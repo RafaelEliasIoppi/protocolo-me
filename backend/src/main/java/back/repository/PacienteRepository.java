@@ -5,7 +5,3 @@ import back.model.Paciente;
 
 public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 }
-
-public class PacienteRepository {
-
-}

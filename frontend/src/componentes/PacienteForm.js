@@ -7,11 +7,18 @@ function PacienteForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    await api.post("/pacientes", { nome, cpf }, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    alert("Paciente cadastrado!");
+    try {
+      const token = localStorage.getItem("token");
+      await api.post("/pacientes", { nome, cpf }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert("Paciente cadastrado!");
+      setNome("");
+      setCpf("");
+    } catch (error) {
+      console.error("Erro ao cadastrar paciente:", error);
+      alert("Erro ao cadastrar paciente.");
+    }
   };
 
   return (

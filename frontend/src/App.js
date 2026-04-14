@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import Login from "./components/Login";
-import Dashboard from "./components/Dashboard";
+import Login from "./componentes/login";
+import Dashboard from "./componentes/Dashboard";
+import "./App.css";
 
 function App() {
   const [isLogged, setIsLogged] = useState(false);
 
   return (
-    <div>
-      {isLogged ? <Dashboard /> : <Login onLogin={() => setIsLogged(true)} />}
+    <div className="app-shell">
+      {isLogged ? <Dashboard onLogout={() => setIsLogged(false)} /> : <Login onLogin={() => setIsLogged(true)} />}
     </div>
   );
 }
