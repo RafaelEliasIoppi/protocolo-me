@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import transportadora.model.Usuario;
-import transportadora.service.UsuarioService;
+import back.model.Usuario;
+import back.service.UsuarioService;
 
 
 @RestController
