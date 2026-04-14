@@ -22,10 +22,10 @@ function PacienteForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input type="text" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
-      <input type="text" placeholder="CPF" value={cpf} onChange={(e) => setCpf(e.target.value)} />
-      <button type="submit">Cadastrar</button>
+    <form onSubmit={handleSubmit} className="form-panel">
+      <input type="text" className="input-field" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
+      <input type="text" className="input-field" placeholder="CPF" value={cpf} onChange={(e) => setCpf(e.target.value)} />
+      <button type="submit" className="primary-button">Cadastrar</button>
     </form>
   );
 }

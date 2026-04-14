@@ -26,25 +26,34 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div>
-      <h2>{isRegister ? "Cadastro" : "Login"}</h2>
-      <form onSubmit={handleSubmit}>
-        {isRegister && (
-          <>
-            <input type="text" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
-            <select value={role} onChange={(e) => setRole(e.target.value)}>
-              <option value="USER">Usuário</option>
-              <option value="ADMIN">Administrador</option>
-            </select>
-          </>
-        )}
-        <input type="text" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        <input type="password" placeholder="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} />
-        <button type="submit">{isRegister ? "Cadastrar" : "Entrar"}</button>
-      </form>
-      <button onClick={() => setIsRegister(!isRegister)}>
-        {isRegister ? "Já tem conta? Faça login" : "Não tem conta? Cadastre-se"}
-      </button>
+    <div className="login-screen">
+      <div className="login-card">
+        <div className="login-hero">
+          <h2>{isRegister ? "Crie sua conta" : "Bem-vindo de volta"}</h2>
+          <p>Use seu login para acessar o dashboard moderno da transportadora.</p>
+        </div>
+
+        <div className="login-panel">
+          <form onSubmit={handleSubmit}>
+            {isRegister && (
+              <>
+                <input type="text" className="input-field" placeholder="Nome" value={nome} onChange={(e) => setNome(e.target.value)} />
+                <select className="select-field" value={role} onChange={(e) => setRole(e.target.value)}>
+                  <option value="USER">Usuário</option>
+                  <option value="ADMIN">Administrador</option>
+                </select>
+              </>
+            )}
+            <input type="text" className="input-field" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input type="password" className="input-field" placeholder="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} />
+            <button type="submit" className="primary-button">{isRegister ? "Cadastrar" : "Entrar"}</button>
+          </form>
+
+          <button type="button" className="secondary-button" onClick={() => setIsRegister(!isRegister)}>
+            {isRegister ? "Já tem conta? Faça login" : "Não tem conta? Cadastre-se"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
