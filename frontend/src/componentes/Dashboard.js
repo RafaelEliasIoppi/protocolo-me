@@ -6,6 +6,7 @@ function Dashboard({ onLogout, theme, setTheme }) {
   const [pacientes, setPacientes] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
+  const [editingPaciente, setEditingPaciente] = useState(null);
 
   const notifications = [
     { id: 1, title: "Protocolo novo recebido", detail: "Há 5 novos pacientes aguardando análise." },
@@ -14,20 +15,21 @@ function Dashboard({ onLogout, theme, setTheme }) {
   ];
 
   useEffect(() => {
-    const fetchPacientes = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await api.get("/pacientes", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setPacientes(response.data);
-      } catch (error) {
-        console.error("Erro ao buscar pacientes:", error);
-        alert("Erro ao carregar pacientes. Verifique se está logado.");
-      }
-    };
     fetchPacientes();
   }, []);
+
+  const fetchPacientes = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await api.get("/pacientes", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPacientes(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar pacientes:", error);
+      alert("Erro ao carregar pacientes. Verifique se está logado.");
+    }
+  };
 
   const totalPacientes = pacientes.length;
   const protocoloAberto = pacientes.filter((p) => p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("aberto")).length;
@@ -39,10 +41,40 @@ function Dashboard({ onLogout, theme, setTheme }) {
       const matchesStatus =
         statusFilter === "Todos" ||
         (statusFilter === "Aberto" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("aberto")) ||
-        (statusFilter === "Concluído" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu"));
+        (statusFilter === "Em andamento" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento")) ||
+        (statusFilter === "Concluído" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu")) ||
+        (statusFilter === "Cancelado" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("cancelado"));
       return matchesName && matchesStatus;
     });
   }, [pacientes, searchQuery, statusFilter]);
+
+  const handleSavePaciente = (pacienteSalvo) => {
+    if (editingPaciente) {
+      setPacientes(prev => prev.map(p => p.id === pacienteSalvo.id ? pacienteSalvo : p));
+      setEditingPaciente(null);
+    } else {
+      setPacientes(prev => [...prev, pacienteSalvo]);
+    }
+  };
+
+  const handleEditPaciente = (paciente) => {
+    setEditingPaciente(paciente);
+  };
+
+  const handleDeletePaciente = async (id) => {
+    if (window.confirm("Tem certeza que deseja excluir este paciente?")) {
+      try {
+        const token = localStorage.getItem("token");
+        await api.delete(`/pacientes/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setPacientes(prev => prev.filter(p => p.id !== id));
+      } catch (error) {
+        console.error("Erro ao deletar paciente:", error);
+        alert("Erro ao excluir paciente.");
+      }
+    }
+  };
 
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
@@ -170,7 +202,9 @@ function Dashboard({ onLogout, theme, setTheme }) {
                 <select className="select-field" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="Todos">Todos os status</option>
                   <option value="Aberto">Aberto</option>
+                  <option value="Em andamento">Em andamento</option>
                   <option value="Concluído">Concluído</option>
+                  <option value="Cancelado">Cancelado</option>
                 </select>
               </div>
 
@@ -178,13 +212,35 @@ function Dashboard({ onLogout, theme, setTheme }) {
                 {filteredPacientes.length > 0 ? (
                   filteredPacientes.map((p) => (
                     <div className="patient-card" key={p.id}>
-                      <div>
+                      <div className="patient-info">
                         <h4>{p.nome}</h4>
-                        <span>{p.cpf ? `CPF: ${p.cpf}` : "CPF não informado"}</span>
+                        <span>CPF: {p.cpf || "Não informado"}</span>
+                        <span>Telefone: {p.telefone || "Não informado"}</span>
+                        <span className="hospital-info">
+                          Hospital: {p.hospital ? `${p.hospital.nome} - ${p.hospital.cidade}` : "Não atribuído"}
+                        </span>
                       </div>
-                      <span className={`status-pill ${p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu") ? "status-closed" : "status-open"}`}>
-                        {p.statusProtocolo || "Sem status"}
-                      </span>
+                      <div className="patient-actions">
+                        <span className={`status-pill ${p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu") ? "status-closed" : p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento") ? "status-pending" : "status-open"}`}>
+                          {p.statusProtocolo || "Sem status"}
+                        </span>
+                        <div className="action-buttons">
+                          <button
+                            className="edit-button"
+                            onClick={() => handleEditPaciente(p)}
+                            title="Editar paciente"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            className="delete-button"
+                            onClick={() => handleDeletePaciente(p.id)}
+                            title="Excluir paciente"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -195,9 +251,18 @@ function Dashboard({ onLogout, theme, setTheme }) {
           </div>
 
           <div className="form-panel card">
-            <h3>Novo paciente</h3>
-            <p className="note">Cadastro rápido para adicionar pacientes diretamente ao painel.</p>
-            <PacienteForm />
+            <h3>{editingPaciente ? "Editar Paciente" : "Novo paciente"}</h3>
+            <p className="note">
+              {editingPaciente
+                ? "Atualize as informações do paciente selecionado."
+                : "Cadastro rápido para adicionar pacientes diretamente ao painel."
+              }
+            </p>
+            <PacienteForm
+              paciente={editingPaciente}
+              onSave={handleSavePaciente}
+              onCancel={() => setEditingPaciente(null)}
+            />
           </div>
         </div>
       </main>

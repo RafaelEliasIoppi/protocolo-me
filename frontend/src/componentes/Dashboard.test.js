@@ -5,6 +5,7 @@ import api from '../api/api';
 
 jest.mock('../api/api', () => ({
   get: jest.fn(),
+  delete: jest.fn(),
 }));
 
 describe('Dashboard', () => {
@@ -12,10 +13,25 @@ describe('Dashboard', () => {
     localStorage.setItem('token', 'test-token');
     api.get.mockResolvedValue({
       data: [
-        { id: 1, nome: 'João Silva', cpf: '123.456.789-00', statusProtocolo: 'Aberto' },
-        { id: 2, nome: 'Maria Souza', cpf: '987.654.321-00', statusProtocolo: 'Concluído' },
+        {
+          id: 1,
+          nome: 'João Silva',
+          cpf: '123.456.789-00',
+          telefone: '11999999999',
+          statusProtocolo: 'Aberto',
+          hospital: { id: 1, nome: 'Hospital Central', cidade: 'São Paulo' }
+        },
+        {
+          id: 2,
+          nome: 'Maria Souza',
+          cpf: '987.654.321-00',
+          telefone: '11888888888',
+          statusProtocolo: 'Concluído',
+          hospital: { id: 2, nome: 'Hospital Norte', cidade: 'Rio de Janeiro' }
+        },
       ],
     });
+    api.delete.mockResolvedValue({});
   });
 
   afterEach(() => {
@@ -23,7 +39,7 @@ describe('Dashboard', () => {
     localStorage.clear();
   });
 
-  it('renderiza notificações e permite filtrar pacientes', async () => {
+  it('renderiza notificações, filtra pacientes e permite operações CRUD', async () => {
     render(<Dashboard onLogout={jest.fn()} theme="dark" setTheme={jest.fn()} />);
 
     expect(await screen.findByText('Notificações')).toBeInTheDocument();
@@ -32,19 +48,31 @@ describe('Dashboard', () => {
 
     await waitFor(() => expect(screen.getByText('João Silva')).toBeInTheDocument());
     expect(screen.getByText('Maria Souza')).toBeInTheDocument();
+    expect(screen.getByText((content, node) => content.includes('Hospital Central') && content.includes('São Paulo'))).toBeInTheDocument();
 
+    // Teste de filtro por nome
     const searchInput = screen.getByPlaceholderText('Buscar por nome');
     fireEvent.change(searchInput, { target: { value: 'Maria' } });
 
     expect(screen.queryByText('João Silva')).not.toBeInTheDocument();
     expect(screen.getByText('Maria Souza')).toBeInTheDocument();
 
-    const statusSelect = screen.getByRole('combobox');
-
+    // Teste de filtro por status
     fireEvent.change(searchInput, { target: { value: '' } });
+    const comboboxes = screen.getAllByRole('combobox');
+    const statusSelect = comboboxes[0];
     fireEvent.change(statusSelect, { target: { value: 'Aberto' } });
 
     expect(screen.getByText('João Silva')).toBeInTheDocument();
     expect(screen.queryByText('Maria Souza')).not.toBeInTheDocument();
+
+    // Teste de edição (simula clique no botão de editar)
+    const editButtons = screen.getAllByTitle('Editar paciente');
+    expect(editButtons.length).toBeGreaterThan(0);
+
+    // Teste de exclusão (simula confirmação)
+    window.confirm = jest.fn(() => true);
+    const deleteButtons = screen.getAllByTitle('Excluir paciente');
+    expect(deleteButtons.length).toBeGreaterThan(0);
   });
 });

@@ -19,13 +19,32 @@ public class PacienteService {
         return pacienteRepository.save(paciente);
     }
 
+    public Paciente buscarPorId(Long id) {
+        return pacienteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+    }
+
+    public Paciente atualizar(Long id, Paciente pacienteAtualizado) {
+        Paciente paciente = buscarPorId(id);
+        paciente.setNome(pacienteAtualizado.getNome());
+        paciente.setCpf(pacienteAtualizado.getCpf());
+        paciente.setTelefone(pacienteAtualizado.getTelefone());
+        paciente.setStatusProtocolo(pacienteAtualizado.getStatusProtocolo());
+        paciente.setHospital(pacienteAtualizado.getHospital());
+        return pacienteRepository.save(paciente);
+    }
+
+    public void deletar(Long id) {
+        Paciente paciente = buscarPorId(id);
+        pacienteRepository.delete(paciente);
+    }
+
     public List<Paciente> listarTodos() {
         return pacienteRepository.findAll();
     }
 
     public Paciente atualizarProtocolo(Long id, String status) {
-        Paciente paciente = pacienteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        Paciente paciente = buscarPorId(id);
         paciente.setStatusProtocolo(status);
         return pacienteRepository.save(paciente);
     }

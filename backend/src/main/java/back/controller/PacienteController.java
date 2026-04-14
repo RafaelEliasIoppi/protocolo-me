@@ -2,6 +2,7 @@ package back.controller;
 
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +33,24 @@ public class PacienteController {
     @GetMapping
     public ResponseEntity<List<Paciente>> listar() {
         return ResponseEntity.ok(pacienteService.listarTodos());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Paciente> buscarPorId(@PathVariable Long id) {
+        Paciente paciente = pacienteService.buscarPorId(id);
+        return ResponseEntity.ok(paciente);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Paciente> atualizar(@PathVariable Long id, @RequestBody Paciente paciente) {
+        Paciente atualizado = pacienteService.atualizar(id, paciente);
+        return ResponseEntity.ok(atualizado);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
+        pacienteService.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/protocolo")
