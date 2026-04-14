@@ -1,0 +1,388 @@
+.protocolo-manager-container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 30px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.protocolo-manager-container h2 {
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 26px;
+}
+
+.subtitle {
+  color: #7f8c8d;
+  margin-bottom: 25px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.protocolo-form-section {
+  background-color: white;
+  padding: 20px;
+  border-radius: 6px;
+  margin-bottom: 25px;
+  border-left: 4px solid #9b59b6;
+}
+
+.protocolo-form-section h3 {
+  color: #2c3e50;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.form-row input {
+  padding: 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.form-row input:focus {
+  outline: none;
+  border-color: #9b59b6;
+  box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+}
+
+.btn-criar {
+  padding: 10px 20px;
+  background-color: #9b59b6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.btn-criar:hover {
+  background-color: #8e44ad;
+  transform: translateY(-2px);
+}
+
+.filtro-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 6px;
+  align-items: flex-end;
+}
+
+.filtro-section label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.select-filtro {
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.select-filtro:focus {
+  outline: none;
+  border-color: #9b59b6;
+  box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+}
+
+.btn-recarregar {
+  padding: 10px 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.btn-recarregar:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+.carregando {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+  font-size: 16px;
+}
+
+.protocolos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+}
+
+.protocolo-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border-top: 4px solid #9b59b6;
+}
+
+.protocolo-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.protocolo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  gap: 10px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.protocolo-header h4 {
+  color: #2c3e50;
+  margin: 0;
+  font-size: 16px;
+}
+
+.protocolo-header .hospital {
+  color: #7f8c8d;
+  margin: 5px 0 0 0;
+  font-size: 13px;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-azul {
+  background-color: #d6eaf8;
+  color: #1a5276;
+}
+
+.status-amarelo {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-laranja {
+  background-color: #fed8b1;
+  color: #7d4e0a;
+}
+
+.status-verde {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-roxo {
+  background-color: #e2d5f3;
+  color: #6c3483;
+}
+
+.status-verde-escuro {
+  background-color: #c3e6cb;
+  color: #1b5e20;
+}
+
+.status-vermelho {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.status-cinza {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+.protocolo-info {
+  margin-bottom: 15px;
+  font-size: 13px;
+}
+
+.protocolo-info p {
+  margin: 6px 0;
+  color: #555;
+}
+
+.protocolo-info strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.protocolo-checklist {
+  margin: 15px 0;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+}
+
+.protocolo-checklist h5 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  font-size: 13px;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.check-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: default;
+}
+
+.check-item label {
+  margin: 0;
+  color: #555;
+  flex: 1;
+}
+
+.btn-pequeno {
+  padding: 4px 10px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-pequeno:hover {
+  background-color: #2980b9;
+}
+
+.protocolo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.actions-row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-acao {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-confirmacao {
+  background-color: #27ae60;
+  color: white;
+}
+
+.btn-confirmacao:hover {
+  background-color: #229954;
+  transform: translateY(-2px);
+}
+
+.select-status {
+  padding: 8px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.select-status:focus {
+  outline: none;
+  border-color: #9b59b6;
+}
+
+.vazio {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: #7f8c8d;
+}
+
+.vazio p {
+  font-size: 16px;
+  margin: 0;
+}
+
+.alerta {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
+}
+
+.alerta-erro {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.alerta-sucesso {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+@media (max-width: 768px) {
+  .protocolo-manager-container {
+    padding: 15px;
+    margin: 15px;
+  }
+
+  .filtro-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .select-filtro {
+    min-width: unset;
+  }
+
+  .protocolos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}

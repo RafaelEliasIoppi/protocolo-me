@@ -1,156 +1,554 @@
-import React, { useEffect, useState } from "react";
-import api from "../api/api";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import '../styles/PacienteForm.css';
 
-function PacienteForm({ paciente, onSave, onCancel }) {
+const PacienteForm = ({ paciente, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
-    nome: "",
-    cpf: "",
-    telefone: "",
-    statusProtocolo: "Aberto",
-    hospital: { id: "", nome: "" }
+    nome: '',
+    cpf: '',
+    dataNascimento: '',
+    genero: '',
+    hospitalId: '',
+    leito: '',
+    dataInternacao: '',
+    diagnosticoPrincipal: '',
+    historicoMedico: '',
+    nomeResponsavel: '',
+    telefonoResponsavel: '',
+    emailResponsavel: '',
+    status: 'INTERNADO'
   });
-  const [hospitais, setHospitais] = useState([]);
 
+  const [hospitais, setHospitais] = useState([]);
+  const [pacientes, setPacientes] = useState([]);
+  const [editandoId, setEditandoId] = useState(null);
+  const [filtroStatus, setFiltroStatus] = useState('');
+  const [filtroHospital, setFiltroHospital] = useState('');
+  const [busca, setBusca] = useState('');
+  const [mensagem, setMensagem] = useState({ tipo: '', texto: '' });
+  const [carregando, setCarregando] = useState(false);
+  const [estatisticas, setEstatisticas] = useState(null);
+
+  const statusOpcoes = [
+    'PRE_INTERNACAO',
+    'INTERNADO',
+    'EM_PROTOCOLO_ME',
+    'APTO_TRANSPLANTE',
+    'NAO_APTO',
+    'RECUSADO',
+    'EXODO'
+  ];
+
+  const generoOpcoes = ['MASCULINO', 'FEMININO', 'OUTRO'];
+
+  // Carregar hospitais e pacientes ao montar
+  useEffect(() => {
+    carregarHospitais();
+    carregarPacientes();
+    carregarEstatisticas();
+  }, []);
+
+  // Se veio um paciente como prop, editar
   useEffect(() => {
     if (paciente) {
       setFormData({
-        nome: paciente.nome || "",
-        cpf: paciente.cpf || "",
-        telefone: paciente.telefone || "",
-        statusProtocolo: paciente.statusProtocolo || "Aberto",
-        hospital: paciente.hospital || { id: "", nome: "" }
+        nome: paciente.nome || '',
+        cpf: paciente.cpf || '',
+        dataNascimento: paciente.dataNascimento || '',
+        genero: paciente.genero || '',
+        hospitalId: paciente.hospital?.id || '',
+        leito: paciente.leito || '',
+        dataInternacao: paciente.dataInternacao || '',
+        diagnosticoPrincipal: paciente.diagnosticoPrincipal || '',
+        historicoMedico: paciente.historicoMedico || '',
+        nomeResponsavel: paciente.nomeResponsavel || '',
+        telefonoResponsavel: paciente.telefonoResponsavel || '',
+        emailResponsavel: paciente.emailResponsavel || '',
+        status: paciente.status || 'INTERNADO'
       });
+      setEditandoId(paciente.id);
     }
-
-    // Carregar lista de hospitais
-    const fetchHospitais = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await api.get("/hospitais", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setHospitais(response.data);
-      } catch (error) {
-        console.error("Erro ao buscar hospitais:", error);
-      }
-    };
-    fetchHospitais();
   }, [paciente]);
+
+  const carregarHospitais = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/hospitais');
+      setHospitais(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar hospitais:', error);
+    }
+  };
+
+  const carregarPacientes = async () => {
+    try {
+      setCarregando(true);
+      let url = 'http://localhost:8080/api/pacientes';
+
+      if (busca) {
+        url = `http://localhost:8080/api/pacientes/buscar?nome=${busca}`;
+      } else if (filtroStatus && filtroHospital) {
+        url = `http://localhost:8080/api/pacientes/hospital/${filtroHospital}/status/${filtroStatus}`;
+      } else if (filtroStatus) {
+        url = `http://localhost:8080/api/pacientes/status/${filtroStatus}`;
+      } else if (filtroHospital) {
+        url = `http://localhost:8080/api/pacientes/hospital/${filtroHospital}`;
+      }
+
+      const response = await axios.get(url);
+      setPacientes(response.data);
+      setMensagem({ tipo: 'sucesso', texto: `${response.data.length} pacientes encontrados` });
+    } catch (error) {
+      console.error('Erro ao carregar pacientes:', error);
+      setMensagem({ tipo: 'erro', texto: 'Erro ao carregar pacientes' });
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  const carregarEstatisticas = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/pacientes/estatisticas/resumo');
+      setEstatisticas(response.data);
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas:', error);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
-      const dataToSend = {
+      setCarregando(true);
+
+      const dadosPaciente = {
         ...formData,
-        hospital: { id: parseInt(formData.hospital.id) }
+        hospital: {
+          id: parseInt(formData.hospitalId)
+        }
       };
 
-      let response;
-      if (paciente) {
-        response = await api.put(`/pacientes/${paciente.id}`, dataToSend, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      if (editandoId) {
+        await axios.put(`http://localhost:8080/api/pacientes/${editandoId}`, dadosPaciente);
+        setMensagem({ tipo: 'sucesso', texto: 'Paciente atualizado com sucesso!' });
+        if (onSave) onSave(dadosPaciente);
       } else {
-        response = await api.post("/pacientes", dataToSend, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.post('http://localhost:8080/api/pacientes', dadosPaciente);
+        setMensagem({ tipo: 'sucesso', texto: 'Paciente criado com sucesso!' });
+        if (onSave) onSave(response.data);
       }
 
-      onSave(response.data);
-      if (!paciente) {
-        setFormData({
-          nome: "",
-          cpf: "",
-          telefone: "",
-          statusProtocolo: "Aberto",
-          hospital: { id: "", nome: "" }
-        });
-      }
+      limparFormulario();
+      carregarPacientes();
+      carregarEstatisticas();
     } catch (error) {
-      console.error("Erro ao salvar paciente:", error);
-      alert("Erro ao salvar paciente.");
+      console.error('Erro ao salvar paciente:', error);
+      const mensagemErro = error.response?.data?.mensagem || 'Erro ao salvar paciente';
+      setMensagem({ tipo: 'erro', texto: mensagemErro });
+    } finally {
+      setCarregando(false);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === "hospitalId") {
-      const selectedHospital = hospitais.find(h => h.id === parseInt(value));
-      setFormData(prev => ({
-        ...prev,
-        hospital: { id: value, nome: selectedHospital?.nome || "" }
-      }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+  const editar = (pacienteItem) => {
+    setFormData({
+      nome: pacienteItem.nome,
+      cpf: pacienteItem.cpf,
+      dataNascimento: pacienteItem.dataNascimento,
+      genero: pacienteItem.genero,
+      hospitalId: pacienteItem.hospital.id,
+      leito: pacienteItem.leito || '',
+      dataInternacao: pacienteItem.dataInternacao || '',
+      diagnosticoPrincipal: pacienteItem.diagnosticoPrincipal || '',
+      historicoMedico: pacienteItem.historicoMedico || '',
+      nomeResponsavel: pacienteItem.nomeResponsavel || '',
+      telefonoResponsavel: pacienteItem.telefonoResponsavel || '',
+      emailResponsavel: pacienteItem.emailResponsavel || '',
+      status: pacienteItem.status
+    });
+    setEditandoId(pacienteItem.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const deletar = async (id) => {
+    if (window.confirm('Tem certeza que deseja deletar este paciente?')) {
+      try {
+        await axios.delete(`http://localhost:8080/api/pacientes/${id}`);
+        setMensagem({ tipo: 'sucesso', texto: 'Paciente deletado com sucesso!' });
+        carregarPacientes();
+        carregarEstatisticas();
+      } catch (error) {
+        console.error('Erro ao deletar paciente:', error);
+        setMensagem({ tipo: 'erro', texto: 'Erro ao deletar paciente' });
+      }
     }
+  };
+
+  const atualizarStatus = async (id, novoStatus) => {
+    try {
+      await axios.patch(`http://localhost:8080/api/pacientes/${id}/status`, { status: novoStatus });
+      setMensagem({ tipo: 'sucesso', texto: 'Status atualizado com sucesso!' });
+      carregarPacientes();
+      carregarEstatisticas();
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      setMensagem({ tipo: 'erro', texto: 'Erro ao atualizar status' });
+    }
+  };
+
+  const limparFormulario = () => {
+    setFormData({
+      nome: '',
+      cpf: '',
+      dataNascimento: '',
+      genero: '',
+      hospitalId: '',
+      leito: '',
+      dataInternacao: '',
+      diagnosticoPrincipal: '',
+      historicoMedico: '',
+      nomeResponsavel: '',
+      telefonoResponsavel: '',
+      emailResponsavel: '',
+      status: 'INTERNADO'
+    });
+    setEditandoId(null);
+    if (onCancel) onCancel();
+  };
+
+  const aplicarFiltro = () => {
+    carregarPacientes();
+  };
+
+  const formatarData = (data) => {
+    if (!data) return '-';
+    return new Date(data).toLocaleDateString('pt-BR');
+  };
+
+  const formatarStatus = (status) => {
+    const statusMap = {
+      'PRE_INTERNACAO': 'Pré-internalização',
+      'INTERNADO': 'Internado',
+      'EM_PROTOCOLO_ME': 'Em Protocolo ME',
+      'APTO_TRANSPLANTE': 'Apto para Transplante',
+      'NAO_APTO': 'Não Apto',
+      'RECUSADO': 'Recusado',
+      'EXODO': 'Óbito'
+    };
+    return statusMap[status] || status;
   };
 
   return (
-    <form onSubmit={handleSubmit} className="form-panel">
-      <input
-        type="text"
-        name="nome"
-        className="input-field"
-        placeholder="Nome"
-        value={formData.nome}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="cpf"
-        className="input-field"
-        placeholder="CPF"
-        value={formData.cpf}
-        onChange={handleChange}
-        required
-      />
-      <input
-        type="text"
-        name="telefone"
-        className="input-field"
-        placeholder="Telefone"
-        value={formData.telefone}
-        onChange={handleChange}
-      />
-      <select
-        name="statusProtocolo"
-        className="select-field"
-        value={formData.statusProtocolo}
-        onChange={handleChange}
-      >
-        <option value="Aberto">Aberto</option>
-        <option value="Em andamento">Em andamento</option>
-        <option value="Concluído">Concluído</option>
-        <option value="Cancelado">Cancelado</option>
-      </select>
-      <select
-        name="hospitalId"
-        className="select-field"
-        value={formData.hospital.id}
-        onChange={handleChange}
-        required
-      >
-        <option value="">Selecione um hospital</option>
-        {hospitais.map(hospital => (
-          <option key={hospital.id} value={hospital.id}>
-            {hospital.nome} - {hospital.cidade}
-          </option>
-        ))}
-      </select>
-      <div className="action-row">
-        <button type="submit" className="primary-button">
-          {paciente ? "Atualizar" : "Cadastrar"}
-        </button>
-        {paciente && (
-          <button type="button" className="secondary-button" onClick={onCancel}>
-            Cancelar
+    <div className="paciente-container">
+      {!paciente && <h1>Gestão de Pacientes</h1>}
+
+      {/* Estatísticas */}
+      {!paciente && estatisticas && (
+        <div className="estatisticas-grid">
+          <div className="stat-card">
+            <div className="stat-valor">{estatisticas.totalPacientes}</div>
+            <div className="stat-label">Total de Pacientes</div>
+          </div>
+          <div className="stat-card stat-internados">
+            <div className="stat-valor">{estatisticas.pacientesInternados}</div>
+            <div className="stat-label">Internados</div>
+          </div>
+          <div className="stat-card stat-protocolo">
+            <div className="stat-valor">{estatisticas.pacientesEmProtocoloME}</div>
+            <div className="stat-label">Em Protocolo ME</div>
+          </div>
+          <div className="stat-card stat-apto">
+            <div className="stat-valor">{estatisticas.pacientesAptosTransplante}</div>
+            <div className="stat-label">Aptos Transplante</div>
+          </div>
+          <div className="stat-card stat-nao-apto">
+            <div className="stat-valor">{estatisticas.pacientesNaoAptos}</div>
+            <div className="stat-label">Não Aptos</div>
+          </div>
+        </div>
+      )}
+
+      {/* Mensagens */}
+      {mensagem.texto && (
+        <div className={`mensagem ${mensagem.tipo}`}>
+          {mensagem.texto}
+        </div>
+      )}
+
+      {/* Formulário */}
+      <form onSubmit={handleSubmit} className="paciente-form">
+        <h2>{editandoId ? 'Editar Paciente' : 'Novo Paciente'}</h2>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Nome *</label>
+            <input
+              type="text"
+              name="nome"
+              value={formData.nome}
+              onChange={handleInputChange}
+              required
+              placeholder="Nome completo"
+            />
+          </div>
+          <div className="form-group">
+            <label>CPF *</label>
+            <input
+              type="text"
+              name="cpf"
+              value={formData.cpf}
+              onChange={handleInputChange}
+              required
+              placeholder="XXX.XXX.XXX-XX"
+              disabled={editandoId !== null}
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Data de Nascimento *</label>
+            <input
+              type="date"
+              name="dataNascimento"
+              value={formData.dataNascimento}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Gênero *</label>
+            <select
+              name="genero"
+              value={formData.genero}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Selecione...</option>
+              {generoOpcoes.map(g => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Hospital *</label>
+            <select
+              name="hospitalId"
+              value={formData.hospitalId}
+              onChange={handleInputChange}
+              required
+            >
+              <option value="">Selecione um hospital...</option>
+              {hospitais.map(h => (
+                <option key={h.id} value={h.id}>{h.nome}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Leito</label>
+            <input
+              type="text"
+              name="leito"
+              value={formData.leito}
+              onChange={handleInputChange}
+              placeholder="Ex: UTI 205"
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Data de Internação</label>
+            <input
+              type="date"
+              name="dataInternacao"
+              value={formData.dataInternacao}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div className="form-group">
+            <label>Status</label>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+            >
+              {statusOpcoes.map(s => (
+                <option key={s} value={s}>{formatarStatus(s)}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Diagnóstico Principal</label>
+          <textarea
+            name="diagnosticoPrincipal"
+            value={formData.diagnosticoPrincipal}
+            onChange={handleInputChange}
+            placeholder="Descreva o diagnóstico principal..."
+            rows="3"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Histórico Médico</label>
+          <textarea
+            name="historicoMedico"
+            value={formData.historicoMedico}
+            onChange={handleInputChange}
+            placeholder="Descreva o histórico médico..."
+            rows="3"
+          />
+        </div>
+
+        <h3>Responsável</h3>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Nome do Responsável</label>
+            <input
+              type="text"
+              name="nomeResponsavel"
+              value={formData.nomeResponsavel}
+              onChange={handleInputChange}
+              placeholder="Nome"
+            />
+          </div>
+          <div className="form-group">
+            <label>Telefone</label>
+            <input
+              type="tel"
+              name="telefonoResponsavel"
+              value={formData.telefonoResponsavel}
+              onChange={handleInputChange}
+              placeholder="(XX) XXXXX-XXXX"
+            />
+          </div>
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              name="emailResponsavel"
+              value={formData.emailResponsavel}
+              onChange={handleInputChange}
+              placeholder="email@example.com"
+            />
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="btn-salvar" disabled={carregando}>
+            {carregando ? 'Salvando...' : (editandoId ? 'Atualizar' : 'Criar')} Paciente
           </button>
-        )}
-      </div>
-    </form>
+          {editandoId && (
+            <button type="button" className="btn-cancelar" onClick={limparFormulario}>
+              Cancelar
+            </button>
+          )}
+        </div>
+      </form>
+
+      {/* Filtros */}
+      {!paciente && (
+        <>
+          <div className="filtros-section">
+            <h2>Filtros e Busca</h2>
+            <div className="filtros">
+              <div className="filtro">
+                <label>Buscar por Nome:</label>
+                <input
+                  type="text"
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Digite o nome..."
+                />
+              </div>
+              <div className="filtro">
+                <label>Filtrar por Status:</label>
+                <select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)}>
+                  <option value="">Todos</option>
+                  {statusOpcoes.map(s => (
+                    <option key={s} value={s}>{formatarStatus(s)}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="filtro">
+                <label>Filtrar por Hospital:</label>
+                <select value={filtroHospital} onChange={(e) => setFiltroHospital(e.target.value)}>
+                  <option value="">Todos</option>
+                  {hospitais.map(h => (
+                    <option key={h.id} value={h.id}>{h.nome}</option>
+                  ))}
+                </select>
+              </div>
+              <button className="btn-filtrar" onClick={aplicarFiltro} disabled={carregando}>
+                Aplicar Filtros
+              </button>
+            </div>
+          </div>
+
+          {/* Lista de Pacientes */}
+          <div className="pacientes-list">
+            <h2>Pacientes ({pacientes.length})</h2>
+            {carregando && <p className="carregando">Carregando...</p>}
+            {!carregando && pacientes.length === 0 && <p className="sem-resultados">Nenhum paciente encontrado</p>}
+            {!carregando && pacientes.length > 0 && (
+              <div className="pacientes-grid">
+                {pacientes.map(pItem => (
+                  <div key={pItem.id} className={`paciente-card status-${pItem.status.toLowerCase().replace(/_/g, '-')}`}>
+                    <div className="card-header">
+                      <h3>{pItem.nome}</h3>
+                      <span className={`status-badge status-${pItem.status.toLowerCase().replace(/_/g, '-')}`}>
+                        {formatarStatus(pItem.status)}
+                      </span>
+                    </div>
+                    <div className="card-body">
+                      <p><strong>CPF:</strong> {pItem.cpf}</p>
+                      <p><strong>Gênero:</strong> {pItem.genero}</p>
+                      <p><strong>Data Nascimento:</strong> {formatarData(pItem.dataNascimento)}</p>
+                      <p><strong>Hospital:</strong> {pItem.hospital.nome}</p>
+                      <p><strong>Leito:</strong> {pItem.leito || '-'}</p>
+                      <p><strong>Data Internação:</strong> {formatarData(pItem.dataInternacao)}</p>
+                      <p><strong>Diagnóstico:</strong> {pItem.diagnosticoPrincipal || '-'}</p>
+                      {pItem.nomeResponsavel && (
+                        <p><strong>Responsável:</strong> {pItem.nomeResponsavel}</p>
+                      )}
+                    </div>
+                    <div className="card-actions">
+                      <button className="btn-editar" onClick={() => editar(pItem)}>Editar</button>
+                      <div className="status-actions">
+                        <select 
+                          value={pItem.status} 
+                          onChange={(e) => atualizarStatus(pItem.id, e.target.value)}
+                          className="status-select"
+                        >
+                          {statusOpcoes.map(s => (
+                            <option key={s} value={s}>{formatarStatus(s)}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <button className="btn-deletar" onClick={() => deletar(pItem.id)}>Deletar</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
-}
+};
+
+  
 
 export default PacienteForm;

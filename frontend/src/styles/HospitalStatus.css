@@ -1,0 +1,300 @@
+.hospital-status-container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 30px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.hospital-status-container h2 {
+  color: #2c3e50;
+  margin-bottom: 8px;
+  font-size: 26px;
+}
+
+.subtitle {
+  color: #7f8c8d;
+  margin-bottom: 25px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.filtro-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 6px;
+  align-items: flex-end;
+}
+
+.filtro-section label {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 14px;
+}
+
+.select-filtro {
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 200px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.select-filtro:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.btn-recarregar {
+  padding: 10px 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.btn-recarregar:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+.carregando {
+  text-align: center;
+  padding: 40px;
+  color: #7f8c8d;
+  font-size: 16px;
+}
+
+.hospitais-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.hospital-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.hospital-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.hospital-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  gap: 10px;
+}
+
+.hospital-card h3 {
+  color: #2c3e50;
+  font-size: 16px;
+  margin: 0;
+  flex: 1;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-verde {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-cinza {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+.status-amarelo {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-vermelho {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.hospital-info {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.hospital-info p {
+  margin: 8px 0;
+  color: #555;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.hospital-info strong {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.hospital-actions {
+  padding-top: 15px;
+}
+
+.campo-obrigatorio {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.actions-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-status {
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  background-color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-status:hover:not(:disabled) {
+  transform: translateX(4px);
+}
+
+.btn-status:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-status-verde {
+  color: #155724;
+  border-color: #c3e6cb;
+}
+
+.btn-status-verde:hover:not(:disabled) {
+  background-color: #d4edda;
+  border-color: #b1dfbb;
+}
+
+.btn-status-verde.ativo {
+  background-color: #27ae60;
+  color: white;
+  border-color: #27ae60;
+}
+
+.btn-status-cinza {
+  color: #383d41;
+  border-color: #d3d6d8;
+}
+
+.btn-status-cinza:hover:not(:disabled) {
+  background-color: #e2e3e5;
+  border-color: #bcbed1;
+}
+
+.btn-status-cinza.ativo {
+  background-color: #6c757d;
+  color: white;
+  border-color: #6c757d;
+}
+
+.btn-status-amarelo {
+  color: #856404;
+  border-color: #ffeaa7;
+}
+
+.btn-status-amarelo:hover:not(:disabled) {
+  background-color: #fff3cd;
+  border-color: #ffd9b3;
+}
+
+.btn-status-amarelo.ativo {
+  background-color: #f39c12;
+  color: white;
+  border-color: #f39c12;
+}
+
+.btn-status-vermelho {
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+.btn-status-vermelho:hover:not(:disabled) {
+  background-color: #f8d7da;
+  border-color: #f1b0b7;
+}
+
+.btn-status-vermelho.ativo {
+  background-color: #e74c3c;
+  color: white;
+  border-color: #e74c3c;
+}
+
+.vazio {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: #7f8c8d;
+}
+
+.vazio p {
+  font-size: 16px;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .hospital-status-container {
+    padding: 15px;
+    margin: 15px;
+  }
+
+  .filtro-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .select-filtro {
+    min-width: unset;
+  }
+
+  .hospitais-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .btn-status {
+    flex: 1;
+    min-width: 70px;
+    padding: 6px 8px;
+  }
+}
