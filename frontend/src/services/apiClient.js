@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:2500',
+  baseURL: process.env.REACT_APP_API_URL || 'https://scaling-space-xylophone-v6qrgq74gqw2w6vr-2500.app.github.dev:2500',
   timeout: 10000,
 });
 
