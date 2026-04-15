@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import api from "../api/api";
+import pacienteService from "../services/pacienteService";
 import PacienteForm from "./PacienteForm";
 
 function Dashboard({ onLogout, theme, setTheme }) {
@@ -20,10 +20,7 @@ function Dashboard({ onLogout, theme, setTheme }) {
 
   const fetchPacientes = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await api.get("/pacientes", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await pacienteService.listar();
       setPacientes(response.data);
     } catch (error) {
       console.error("Erro ao buscar pacientes:", error);
@@ -64,10 +61,7 @@ function Dashboard({ onLogout, theme, setTheme }) {
   const handleDeletePaciente = async (id) => {
     if (window.confirm("Tem certeza que deseja excluir este paciente?")) {
       try {
-        const token = localStorage.getItem("token");
-        await api.delete(`/pacientes/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await pacienteService.deletar(id);
         setPacientes(prev => prev.filter(p => p.id !== id));
       } catch (error) {
         console.error("Erro ao deletar paciente:", error);

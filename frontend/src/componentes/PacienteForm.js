@@ -14,7 +14,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
     diagnosticoPrincipal: '',
     historicoMedico: '',
     nomeResponsavel: '',
-    telefonoResponsavel: '',
+    telefoneResponsavel: '',
     emailResponsavel: '',
     status: 'INTERNADO'
   });
@@ -62,7 +62,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
         diagnosticoPrincipal: paciente.diagnosticoPrincipal || '',
         historicoMedico: paciente.historicoMedico || '',
         nomeResponsavel: paciente.nomeResponsavel || '',
-        telefonoResponsavel: paciente.telefonoResponsavel || '',
+        telefoneResponsavel: paciente.telefoneResponsavel || '',
         emailResponsavel: paciente.emailResponsavel || '',
         status: paciente.status || 'INTERNADO'
       });
@@ -72,7 +72,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
 
   const carregarHospitais = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/hospitais');
+      const response = await axios.get('/api/hospitais');
       setHospitais(response.data);
     } catch (error) {
       console.error('Erro ao carregar hospitais:', error);
@@ -82,16 +82,16 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
   const carregarPacientes = async () => {
     try {
       setCarregando(true);
-      let url = 'http://localhost:8080/api/pacientes';
+      let url = '/api/pacientes';
 
       if (busca) {
-        url = `http://localhost:8080/api/pacientes/buscar?nome=${busca}`;
+        url = `/api/pacientes/buscar?nome=${busca}`;
       } else if (filtroStatus && filtroHospital) {
-        url = `http://localhost:8080/api/pacientes/hospital/${filtroHospital}/status/${filtroStatus}`;
+        url = `/api/pacientes/hospital/${filtroHospital}/status/${filtroStatus}`;
       } else if (filtroStatus) {
-        url = `http://localhost:8080/api/pacientes/status/${filtroStatus}`;
+        url = `/api/pacientes/status/${filtroStatus}`;
       } else if (filtroHospital) {
-        url = `http://localhost:8080/api/pacientes/hospital/${filtroHospital}`;
+        url = `/api/pacientes/hospital/${filtroHospital}`;
       }
 
       const response = await axios.get(url);
@@ -107,7 +107,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
 
   const carregarEstatisticas = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/pacientes/estatisticas/resumo');
+      const response = await axios.get('/api/pacientes/estatisticas/resumo');
       setEstatisticas(response.data);
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
@@ -135,11 +135,11 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       };
 
       if (editandoId) {
-        await axios.put(`http://localhost:8080/api/pacientes/${editandoId}`, dadosPaciente);
+        await axios.put(`/api/pacientes/${editandoId}`, dadosPaciente);
         setMensagem({ tipo: 'sucesso', texto: 'Paciente atualizado com sucesso!' });
         if (onSave) onSave(dadosPaciente);
       } else {
-        const response = await axios.post('http://localhost:8080/api/pacientes', dadosPaciente);
+        const response = await axios.post('/api/pacientes', dadosPaciente);
         setMensagem({ tipo: 'sucesso', texto: 'Paciente criado com sucesso!' });
         if (onSave) onSave(response.data);
       }
@@ -168,7 +168,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       diagnosticoPrincipal: pacienteItem.diagnosticoPrincipal || '',
       historicoMedico: pacienteItem.historicoMedico || '',
       nomeResponsavel: pacienteItem.nomeResponsavel || '',
-      telefonoResponsavel: pacienteItem.telefonoResponsavel || '',
+      telefoneResponsavel: pacienteItem.telefoneResponsavel || '',
       emailResponsavel: pacienteItem.emailResponsavel || '',
       status: pacienteItem.status
     });
@@ -179,7 +179,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
   const deletar = async (id) => {
     if (window.confirm('Tem certeza que deseja deletar este paciente?')) {
       try {
-        await axios.delete(`http://localhost:8080/api/pacientes/${id}`);
+        await axios.delete(`/api/pacientes/${id}`);
         setMensagem({ tipo: 'sucesso', texto: 'Paciente deletado com sucesso!' });
         carregarPacientes();
         carregarEstatisticas();
@@ -192,7 +192,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
 
   const atualizarStatus = async (id, novoStatus) => {
     try {
-      await axios.patch(`http://localhost:8080/api/pacientes/${id}/status`, { status: novoStatus });
+      await axios.patch(`/api/pacientes/${id}/status`, { status: novoStatus });
       setMensagem({ tipo: 'sucesso', texto: 'Status atualizado com sucesso!' });
       carregarPacientes();
       carregarEstatisticas();
@@ -214,7 +214,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       diagnosticoPrincipal: '',
       historicoMedico: '',
       nomeResponsavel: '',
-      telefonoResponsavel: '',
+      telefoneResponsavel: '',
       emailResponsavel: '',
       status: 'INTERNADO'
     });
@@ -427,8 +427,8 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
             <label>Telefone</label>
             <input
               type="tel"
-              name="telefonoResponsavel"
-              value={formData.telefonoResponsavel}
+              name="telefoneResponsavel"
+              value={formData.telefoneResponsavel}
               onChange={handleInputChange}
               placeholder="(XX) XXXXX-XXXX"
             />
