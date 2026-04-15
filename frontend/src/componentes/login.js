@@ -6,7 +6,7 @@ function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
-  const [role, setRole] = useState("USER");
+  const [role, setRole] = useState("MEDICO");
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
@@ -86,7 +86,10 @@ function Login({ onLogin }) {
                   onChange={(e) => setRole(e.target.value)}
                   disabled={carregando}
                 >
-                  <option value="USER">Usuário</option>
+                  <option value="MEDICO">Médico</option>
+                  <option value="ENFERMEIRO">Enfermeiro</option>
+                  <option value="COORDENADOR_TRANSPLANTES">Coordenador de Transplantes</option>
+                  <option value="CENTRAL_TRANSPLANTES">Central de Transplantes</option>
                   <option value="ADMIN">Administrador</option>
                 </select>
               </>
