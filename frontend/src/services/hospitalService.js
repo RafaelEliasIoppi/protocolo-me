@@ -2,27 +2,33 @@ import api from './apiClient';
 
 export const hospitalService = {
   listar: async () => {
-    return api.get('/api/hospitais');
+    const response = await api.get('/api/hospitais');
+    return response.data;
   },
 
   obter: async (id) => {
-    return api.get(`/api/hospitais/${id}`);
+    const response = await api.get(`/api/hospitais/${id}`);
+    return response.data;
   },
 
   criar: async (hospital) => {
-    return api.post('/api/hospitais', hospital);
+    const response = await api.post('/api/hospitais', hospital);
+    return response.data;
   },
 
   atualizar: async (id, hospital) => {
-    return api.put(`/api/hospitais/${id}`, hospital);
+    const response = await api.put(`/api/hospitais/${id}`, hospital);
+    return response.data;
   },
 
   deletar: async (id) => {
-    return api.delete(`/api/hospitais/${id}`);
+    const response = await api.delete(`/api/hospitais/${id}`);
+    return response.data;
   },
 
   obterEstatisticas: async (id) => {
-    return api.get(`/api/hospitais/${id}/estatisticas`);
+    const response = await api.get(`/api/hospitais/${id}/estatisticas`);
+    return response.data;
   }
 };
 

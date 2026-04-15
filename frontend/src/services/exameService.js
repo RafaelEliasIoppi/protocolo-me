@@ -2,27 +2,33 @@ import api from './apiClient';
 
 export const exameService = {
   listar: async () => {
-    return api.get('/api/exames-me');
+    const response = await api.get('/api/exames-me');
+    return response.data;
   },
 
   obter: async (id) => {
-    return api.get(`/api/exames-me/${id}`);
+    const response = await api.get(`/api/exames-me/${id}`);
+    return response.data;
   },
 
   criar: async (exame) => {
-    return api.post('/api/exames-me', exame);
+    const response = await api.post('/api/exames-me', exame);
+    return response.data;
   },
 
   atualizar: async (id, exame) => {
-    return api.put(`/api/exames-me/${id}`, exame);
+    const response = await api.put(`/api/exames-me/${id}`, exame);
+    return response.data;
   },
 
   deletar: async (id) => {
-    return api.delete(`/api/exames-me/${id}`);
+    const response = await api.delete(`/api/exames-me/${id}`);
+    return response.data;
   },
 
   obterPorPaciente: async (pacienteId) => {
-    return api.get(`/api/exames-me/paciente/${pacienteId}`);
+    const response = await api.get(`/api/exames-me/paciente/${pacienteId}`);
+    return response.data;
   }
 };
 

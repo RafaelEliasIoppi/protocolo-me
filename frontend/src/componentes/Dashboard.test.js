@@ -1,17 +1,19 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Dashboard from './Dashboard';
-import api from '../api/api';
+import pacienteService from '../services/pacienteService';
 
-jest.mock('../api/api', () => ({
-  get: jest.fn(),
-  delete: jest.fn(),
+jest.mock('./PacienteForm', () => () => <div data-testid="paciente-form-mock" />);
+
+jest.mock('../services/pacienteService', () => ({
+  listar: jest.fn(),
+  deletar: jest.fn(),
 }));
 
 describe('Dashboard', () => {
   beforeEach(() => {
     localStorage.setItem('token', 'test-token');
-    api.get.mockResolvedValue({
+    pacienteService.listar.mockResolvedValue({
       data: [
         {
           id: 1,
@@ -31,7 +33,7 @@ describe('Dashboard', () => {
         },
       ],
     });
-    api.delete.mockResolvedValue({});
+    pacienteService.deletar.mockResolvedValue({});
   });
 
   afterEach(() => {

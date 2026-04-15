@@ -2,31 +2,38 @@ import api from './apiClient';
 
 export const protocoloService = {
   listar: async () => {
-    return api.get('/api/protocolos-me');
+    const response = await api.get('/api/protocolos-me');
+    return response.data;
   },
 
   obter: async (id) => {
-    return api.get(`/api/protocolos-me/${id}`);
+    const response = await api.get(`/api/protocolos-me/${id}`);
+    return response.data;
   },
 
   criar: async (protocolo) => {
-    return api.post('/api/protocolos-me', protocolo);
+    const response = await api.post('/api/protocolos-me', protocolo);
+    return response.data;
   },
 
   atualizar: async (id, protocolo) => {
-    return api.put(`/api/protocolos-me/${id}`, protocolo);
+    const response = await api.put(`/api/protocolos-me/${id}`, protocolo);
+    return response.data;
   },
 
   deletar: async (id) => {
-    return api.delete(`/api/protocolos-me/${id}`);
+    const response = await api.delete(`/api/protocolos-me/${id}`);
+    return response.data;
   },
 
   obterPorPaciente: async (pacienteId) => {
-    return api.get(`/api/protocolos-me/paciente/${pacienteId}`);
+    const response = await api.get(`/api/protocolos-me/paciente/${pacienteId}`);
+    return response.data;
   },
 
   adicionarTesteClinico: async (protocoloId, testeClinico) => {
-    return api.post(`/api/protocolos-me/${protocoloId}/teste-clinico`, testeClinico);
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/teste-clinico`, testeClinico);
+    return response.data;
   }
 };
 
