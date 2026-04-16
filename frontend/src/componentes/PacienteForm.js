@@ -8,6 +8,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
     cpf: '',
     dataNascimento: '',
     genero: '',
+    hospitalOrigem: '',
     hospitalId: '',
     leito: '',
     dataInternacao: '',
@@ -56,6 +57,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
         cpf: paciente.cpf || '',
         dataNascimento: paciente.dataNascimento || '',
         genero: paciente.genero || '',
+        hospitalOrigem: paciente.hospitalOrigem || '',
         hospitalId: paciente.hospital?.id || '',
         leito: paciente.leito || '',
         dataInternacao: paciente.dataInternacao || '',
@@ -163,6 +165,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       cpf: pacienteItem.cpf,
       dataNascimento: pacienteItem.dataNascimento,
       genero: pacienteItem.genero,
+      hospitalOrigem: pacienteItem.hospitalOrigem || '',
       hospitalId: pacienteItem.hospital.id,
       leito: pacienteItem.leito || '',
       dataInternacao: pacienteItem.dataInternacao || '',
@@ -209,6 +212,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       cpf: '',
       dataNascimento: '',
       genero: '',
+      hospitalOrigem: '',
       hospitalId: '',
       leito: '',
       dataInternacao: '',
@@ -340,6 +344,17 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
         </div>
 
         <div className="form-row">
+          <div className="form-group">
+            <label>Hospital de Origem *</label>
+            <input
+              type="text"
+              name="hospitalOrigem"
+              value={formData.hospitalOrigem}
+              onChange={handleInputChange}
+              required
+              placeholder="Nome do hospital de origem"
+            />
+          </div>
           <div className="form-group">
             <label>Hospital *</label>
             <select

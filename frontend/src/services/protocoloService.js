@@ -27,12 +27,17 @@ export const protocoloService = {
   },
 
   obterPorPaciente: async (pacienteId) => {
-    const response = await api.get(`/api/protocolos-me/paciente/${pacienteId}`);
+    const response = await api.get(`/api/protocolos-me?paciente=${pacienteId}`);
     return response.data;
   },
 
-  adicionarTesteClinico: async (protocoloId, testeClinico) => {
-    const response = await api.post(`/api/protocolos-me/${protocoloId}/teste-clinico`, testeClinico);
+  registrarTesteClinico1: async (protocoloId) => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/teste-clinico-1`);
+    return response.data;
+  },
+
+  registrarTesteClinico2: async (protocoloId) => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/teste-clinico-2`);
     return response.data;
   }
 };

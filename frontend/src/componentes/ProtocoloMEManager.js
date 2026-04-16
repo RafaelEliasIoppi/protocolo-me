@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
 import '../styles/ProtocoloMEManager.css';
 
 const ProtocoloMEManager = () => {
@@ -41,7 +41,7 @@ const ProtocoloMEManager = () => {
   const carregarProtocolos = async () => {
     setCarregando(true);
     try {
-      const response = await axios.get('/api/protocolos-me');
+      const response = await apiClient.get('/api/protocolos-me');
       setProtocolos(response.data);
     } catch (err) {
       setErro('Erro ao carregar protocolos');
@@ -69,7 +69,19 @@ const ProtocoloMEManager = () => {
     }
 
     try {
-      const response = await axios.post('/api/protocolos-me', formProtocolo);
+      const protocoloData = {
+        numeroProtocolo: formProtocolo.numeroProtocolo,
+        hospitalOrigem: formProtocolo.hospitalOrigem,
+        medicoResponsavel: formProtocolo.medicoResponsavel,
+        enfermeiro: formProtocolo.enfermeiro,
+        diagnosticoBasico: formProtocolo.diagnosticoBasico,
+        causaMorte: formProtocolo.causaMorte,
+        observacoes: formProtocolo.observacoes,
+        orgaosDisponiveis: formProtocolo.orgaosDisponiveis,
+        paciente: formProtocolo.pacienteId ? { id: parseInt(formProtocolo.pacienteId) } : null,
+        centralTransplantes: formProtocolo.centralTransplantesId ? { id: parseInt(formProtocolo.centralTransplantesId) } : null
+      };
+      const response = await apiClient.post('/api/protocolos-me', protocoloData);
       setProtocolos([...protocolos, response.data]);
       setFormProtocolo({
         numeroProtocolo: '',
@@ -90,9 +102,9 @@ const ProtocoloMEManager = () => {
     }
   };
 
-  const registrarTesteClinco1 = async (protocoloId) => {
+  const registrarTesteClinico1 = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/teste-clinico-1`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/teste-clinico-1`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Teste clínico 1 registrado!');
     } catch (err) {
@@ -100,9 +112,9 @@ const ProtocoloMEManager = () => {
     }
   };
 
-  const registrarTesteClinco2 = async (protocoloId) => {
+  const registrarTesteClinico2 = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/teste-clinico-2`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/teste-clinico-2`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Teste clínico 2 registrado!');
     } catch (err) {
@@ -112,7 +124,7 @@ const ProtocoloMEManager = () => {
 
   const confirmarMorteCerebral = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/confirmar-morte-cerebral`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/confirmar-morte-cerebral`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Morte cerebral confirmada!');
     } catch (err) {
@@ -122,7 +134,7 @@ const ProtocoloMEManager = () => {
 
   const registrarNotificacaoFamilia = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/notificar-familia`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/notificar-familia`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Notificação da família registrada!');
     } catch (err) {
@@ -132,7 +144,7 @@ const ProtocoloMEManager = () => {
 
   const registrarPreservacaoOrgaos = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/preservacao-orgaos`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/preservacao-orgaos`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Preservação de órgãos registrada!');
     } catch (err) {
@@ -142,7 +154,7 @@ const ProtocoloMEManager = () => {
 
   const alterarStatus = async (protocoloId, novoStatus) => {
     try {
-      const response = await axios.patch(
+      const response = await apiClient.patch(
         `/api/protocolos-me/${protocoloId}/status`,
         {},
         { params: { status: novoStatus } }
@@ -277,7 +289,7 @@ const ProtocoloMEManager = () => {
                   <input type="checkbox" checked={protocolo.testeClinico1Realizado} readOnly />
                   <label>Teste Clínico 1</label>
                   {!protocolo.testeClinico1Realizado && (
-                    <button onClick={() => registrarTesteClinco1(protocolo.id)} className="btn-pequeno">
+                    <button onClick={() => registrarTesteClinico1(protocolo.id)} className="btn-pequeno">
                       Registrar
                     </button>
                   )}
@@ -286,7 +298,7 @@ const ProtocoloMEManager = () => {
                   <input type="checkbox" checked={protocolo.testeClinico2Realizado} readOnly />
                   <label>Teste Clínico 2</label>
                   {!protocolo.testeClinico2Realizado && (
-                    <button onClick={() => registrarTesteClinco2(protocolo.id)} className="btn-pequeno">
+                    <button onClick={() => registrarTesteClinico2(protocolo.id)} className="btn-pequeno">
                       Registrar
                     </button>
                   )}

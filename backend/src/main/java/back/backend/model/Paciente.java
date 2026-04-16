@@ -55,7 +55,7 @@ public class Paciente {
     private String nomeResponsavel;
 
     @Column
-    private String telefonoResponsavel;
+    private String telefoneResponsavel;
 
     @Column
     private String emailResponsavel;
@@ -136,8 +136,8 @@ public class Paciente {
     public String getNomeResponsavel() { return nomeResponsavel; }
     public void setNomeResponsavel(String nomeResponsavel) { this.nomeResponsavel = nomeResponsavel; }
 
-    public String getTelefonoResponsavel() { return telefonoResponsavel; }
-    public void setTelefonoResponsavel(String telefonoResponsavel) { this.telefonoResponsavel = telefonoResponsavel; }
+    public String getTelefoneResponsavel() { return telefoneResponsavel; }
+    public void setTelefoneResponsavel(String telefoneResponsavel) { this.telefoneResponsavel = telefoneResponsavel; }
 
     public String getEmailResponsavel() { return emailResponsavel; }
     public void setEmailResponsavel(String emailResponsavel) { this.emailResponsavel = emailResponsavel; }
