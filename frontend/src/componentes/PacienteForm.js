@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
 import '../styles/PacienteForm.css';
 
 const PacienteForm = ({ paciente, onSave, onCancel }) => {
@@ -72,7 +72,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
 
   const carregarHospitais = async () => {
     try {
-      const response = await axios.get('/api/hospitais');
+      const response = await apiClient.get('/api/hospitais');
       setHospitais(response.data);
     } catch (error) {
       console.error('Erro ao carregar hospitais:', error);
@@ -94,9 +94,10 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
         url = `/api/pacientes/hospital/${filtroHospital}`;
       }
 
-      const response = await axios.get(url);
+      const response = await apiClient.get(url);
       setPacientes(response.data);
-      setMensagem({ tipo: 'sucesso', texto: `${response.data.length} pacientes encontrados` });
+      const total = Array.isArray(response.data) ? response.data.length : 0;
+      setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
     } catch (error) {
       console.error('Erro ao carregar pacientes:', error);
       setMensagem({ tipo: 'erro', texto: 'Erro ao carregar pacientes' });
@@ -107,7 +108,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
 
   const carregarEstatisticas = async () => {
     try {
-      const response = await axios.get('/api/pacientes/estatisticas/resumo');
+      const response = await apiClient.get('/api/pacientes/estatisticas/resumo');
       setEstatisticas(response.data);
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
@@ -135,11 +136,11 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       };
 
       if (editandoId) {
-        await axios.put(`/api/pacientes/${editandoId}`, dadosPaciente);
+        await apiClient.put(`/api/pacientes/${editandoId}`, dadosPaciente);
         setMensagem({ tipo: 'sucesso', texto: 'Paciente atualizado com sucesso!' });
         if (onSave) onSave(dadosPaciente);
       } else {
-        const response = await axios.post('/api/pacientes', dadosPaciente);
+        const response = await apiClient.post('/api/pacientes', dadosPaciente);
         setMensagem({ tipo: 'sucesso', texto: 'Paciente criado com sucesso!' });
         if (onSave) onSave(response.data);
       }
@@ -179,7 +180,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
   const deletar = async (id) => {
     if (window.confirm('Tem certeza que deseja deletar este paciente?')) {
       try {
-        await axios.delete(`/api/pacientes/${id}`);
+        await apiClient.delete(`/api/pacientes/${id}`);
         setMensagem({ tipo: 'sucesso', texto: 'Paciente deletado com sucesso!' });
         carregarPacientes();
         carregarEstatisticas();
@@ -192,7 +193,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
 
   const atualizarStatus = async (id, novoStatus) => {
     try {
-      await axios.patch(`/api/pacientes/${id}/status`, { status: novoStatus });
+      await apiClient.patch(`/api/pacientes/${id}/status`, { status: novoStatus });
       setMensagem({ tipo: 'sucesso', texto: 'Status atualizado com sucesso!' });
       carregarPacientes();
       carregarEstatisticas();

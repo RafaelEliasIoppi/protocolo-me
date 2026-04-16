@@ -17,7 +17,14 @@ export const autenticarService = {
 
   obterUsuarioAtual: () => {
     const usuario = localStorage.getItem('usuario');
-    return usuario ? JSON.parse(usuario) : null;
+    if (!usuario) return null;
+
+    try {
+      return JSON.parse(usuario);
+    } catch (e) {
+      localStorage.removeItem('usuario');
+      return null;
+    }
   },
 
   logout: () => {
@@ -26,7 +33,9 @@ export const autenticarService = {
   },
 
   isAutenticado: () => {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    const usuario = autenticarService.obterUsuarioAtual();
+    return !!token && !!usuario?.role;
   },
 };
 

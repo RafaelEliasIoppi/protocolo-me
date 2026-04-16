@@ -34,6 +34,34 @@ public class UsuarioController {
             if (usuario.getRole() == null) {
                 usuario.setRole(Role.MEDICO);
             }
+
+            if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("erro", "Cadastro público permite apenas perfis MÉDICO ou ENFERMEIRO"));
+            }
+
+            Usuario usuarioRegistrado = usuarioService.registrar(usuario);
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", usuarioRegistrado.getId());
+            response.put("email", usuarioRegistrado.getEmail());
+            response.put("nome", usuarioRegistrado.getNome());
+            response.put("role", usuarioRegistrado.getRole());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("erro", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/admin/registrar")
+    public ResponseEntity<?> registrarAdministrador(@RequestBody Usuario usuario) {
+        try {
+            if (usuario.getRole() == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("erro", "Informe a função do usuário"));
+            }
+
             Usuario usuarioRegistrado = usuarioService.registrar(usuario);
             Map<String, Object> response = new HashMap<>();
             response.put("id", usuarioRegistrado.getId());

@@ -32,9 +32,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .authorizeRequests()
                 .antMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.PUT, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.PATCH, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.DELETE, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+
+                .antMatchers(HttpMethod.POST, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+                .antMatchers(HttpMethod.PUT, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+                .antMatchers(HttpMethod.DELETE, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+
+                .antMatchers(HttpMethod.POST, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+                .antMatchers(HttpMethod.PUT, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+                .antMatchers(HttpMethod.DELETE, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+
                 .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/api/usuarios/**").hasRole("ADMIN")
-                .antMatchers("/api/pacientes/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO")
+                .antMatchers("/api/pacientes/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
+                .antMatchers("/api/hospitais/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
+                .antMatchers("/api/centrais-transplantes/**").hasAnyRole("ADMIN", "CENTRAL_TRANSPLANTES", "COORDENADOR_TRANSPLANTES")
                 .anyRequest().authenticated()
             .and()
                 .headers().frameOptions().sameOrigin()
@@ -47,11 +62,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Aceita requisições de qualquer origem em desenvolvimento
+        // Para desenvolvimento - permite qualquer origem
+        // Em produção, isso deve ser restringido a domínios específicos
         configuration.setAllowedOriginPatterns(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        // Com allowedOriginPatterns = ["*"], allowCredentials deve ser false
+        configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

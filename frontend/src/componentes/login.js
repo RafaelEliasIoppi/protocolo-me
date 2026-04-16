@@ -49,8 +49,10 @@ function Login({ onLogin }) {
         setTimeout(() => onLogin(), 1500);
       }
     } catch (error) {
-      const mensagemErro = error.response?.data?.erro || error.response?.data?.mensagem || 
-                          (isRegister ? "Erro ao cadastrar usuário" : "Email ou senha inválidos");
+      const erroBackend = error.response?.data?.erro || error.response?.data?.mensagem;
+      const mensagemErro = erroBackend === "Email já cadastrado"
+        ? "Este email já está cadastrado. Use outro email para criar a conta."
+        : erroBackend || (isRegister ? "Erro ao cadastrar usuário" : "Email ou senha inválidos");
       setErro(mensagemErro);
     } finally {
       setCarregando(false);
@@ -72,10 +74,14 @@ function Login({ onLogin }) {
           <form onSubmit={handleSubmit}>
             {isRegister && (
               <>
+                <div className="note" style={{ marginBottom: 8 }}>
+                  Cadastro público liberado apenas para Médico e Enfermeiro. As demais funções são criadas pela administração.
+                </div>
                 <input 
                   type="text" 
                   className="input-field" 
                   placeholder="Nome" 
+                  autoComplete="name"
                   value={nome} 
                   onChange={(e) => setNome(e.target.value)} 
                   disabled={carregando}
@@ -88,9 +94,6 @@ function Login({ onLogin }) {
                 >
                   <option value="MEDICO">Médico</option>
                   <option value="ENFERMEIRO">Enfermeiro</option>
-                  <option value="COORDENADOR_TRANSPLANTES">Coordenador de Transplantes</option>
-                  <option value="CENTRAL_TRANSPLANTES">Central de Transplantes</option>
-                  <option value="ADMIN">Administrador</option>
                 </select>
               </>
             )}
@@ -98,6 +101,7 @@ function Login({ onLogin }) {
               type="email" 
               className="input-field" 
               placeholder="Email" 
+              autoComplete={isRegister ? "email" : "username"}
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               disabled={carregando}
@@ -106,6 +110,7 @@ function Login({ onLogin }) {
               type="password" 
               className="input-field" 
               placeholder="Senha" 
+              autoComplete={isRegister ? "new-password" : "current-password"}
               value={senha} 
               onChange={(e) => setSenha(e.target.value)} 
               disabled={carregando}

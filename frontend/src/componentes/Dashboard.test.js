@@ -42,7 +42,7 @@ describe('Dashboard', () => {
   });
 
   it('renderiza notificações, filtra pacientes e permite operações CRUD', async () => {
-    render(<Dashboard onLogout={jest.fn()} theme="dark" setTheme={jest.fn()} />);
+    render(<Dashboard onLogout={jest.fn()} theme="dark" setTheme={jest.fn()} role="MEDICO" />);
 
     expect(await screen.findByText('Notificações')).toBeInTheDocument();
     expect(screen.getByText('Protocolo novo recebido')).toBeInTheDocument();

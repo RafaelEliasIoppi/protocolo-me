@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
 import '../styles/HospitalForm.css';
 
 const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
@@ -78,11 +78,11 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
       let response;
       if (hospitalParaEditar?.id) {
         // Atualizar
-        response = await axios.put(`/api/hospitais/${hospitalParaEditar.id}`, dados);
+        response = await apiClient.put(`/api/hospitais/${hospitalParaEditar.id}`, dados);
         setSucesso('Hospital atualizado com sucesso!');
       } else {
         // Criar
-        response = await axios.post('/api/hospitais', dados);
+        response = await apiClient.post('/api/hospitais', dados);
         setSucesso('Hospital cadastrado com sucesso!');
         setFormData({
           nome: '',

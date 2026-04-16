@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
 import '../styles/CentralTransplantesForm.css';
 
 const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
@@ -72,10 +72,10 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
 
       let response;
       if (centralParaEditar?.id) {
-        response = await axios.put(`/api/centrais-transplantes/${centralParaEditar.id}`, dados);
+        response = await apiClient.put(`/api/centrais-transplantes/${centralParaEditar.id}`, dados);
         setSucesso('Central atualizada com sucesso!');
       } else {
-        response = await axios.post('/api/centrais-transplantes', dados);
+        response = await apiClient.post('/api/centrais-transplantes', dados);
         setSucesso('Central de Transplantes cadastrada com sucesso!');
         setFormData({
           nome: '',

@@ -79,8 +79,9 @@ describe('autenticarService', () => {
   });
 
   describe('isAutenticado', () => {
-    it('deve retornar true se token existe', () => {
+    it('deve retornar true se token e usuário com role existem', () => {
       localStorage.setItem('token', 'test-token');
+      localStorage.setItem('usuario', JSON.stringify({ role: 'MEDICO' }));
       
       expect(autenticarService.isAutenticado()).toBe(true);
     });
@@ -88,6 +89,12 @@ describe('autenticarService', () => {
     it('deve retornar false se token não existe', () => {
       localStorage.clear();
       
+      expect(autenticarService.isAutenticado()).toBe(false);
+    });
+
+    it('deve retornar false se token existe sem usuário válido', () => {
+      localStorage.setItem('token', 'test-token');
+
       expect(autenticarService.isAutenticado()).toBe(false);
     });
   });
