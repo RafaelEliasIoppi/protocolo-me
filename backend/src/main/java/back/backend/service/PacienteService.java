@@ -26,6 +26,7 @@ public class PacienteService {
      * Criar novo paciente
      */
     public Paciente criarPaciente(Paciente paciente) {
+        preencherHospitalOrigemSeNecessario(paciente);
         validarPaciente(paciente);
         return pacienteRepository.save(paciente);
     }
@@ -35,6 +36,10 @@ public class PacienteService {
      */
     public Paciente atualizarPaciente(Long id, Paciente pacienteAtualizado) {
         Paciente paciente = obterPacientePorId(id);
+
+        if (pacienteAtualizado.getHospital() != null) {
+            paciente.setHospital(pacienteAtualizado.getHospital());
+        }
         
         if (pacienteAtualizado.getNome() != null) paciente.setNome(pacienteAtualizado.getNome());
         if (pacienteAtualizado.getDataNascimento() != null) paciente.setDataNascimento(pacienteAtualizado.getDataNascimento());
@@ -46,6 +51,8 @@ public class PacienteService {
         if (pacienteAtualizado.getTelefoneResponsavel() != null) paciente.setTelefoneResponsavel(pacienteAtualizado.getTelefoneResponsavel());
         if (pacienteAtualizado.getEmailResponsavel() != null) paciente.setEmailResponsavel(pacienteAtualizado.getEmailResponsavel());
         if (pacienteAtualizado.getStatus() != null) paciente.setStatus(pacienteAtualizado.getStatus());
+
+        preencherHospitalOrigemSeNecessario(paciente);
         
         return pacienteRepository.save(paciente);
     }
@@ -179,6 +186,23 @@ public class PacienteService {
         Optional<Paciente> existente = pacienteRepository.findByCpf(paciente.getCpf());
         if (existente.isPresent() && !existente.get().getId().equals(paciente.getId())) {
             throw new IllegalArgumentException("CPF já está registrado no sistema");
+        }
+    }
+
+    private void preencherHospitalOrigemSeNecessario(Paciente paciente) {
+        if (paciente == null) {
+            return;
+        }
+
+        boolean hospitalOrigemVazio = paciente.getHospitalOrigem() == null || paciente.getHospitalOrigem().trim().isEmpty();
+        if (hospitalOrigemVazio && paciente.getHospital() != null) {
+            Long hospitalId = paciente.getHospital().getId();
+            if (hospitalId != null) {
+                Hospital hospital = hospitalRepository.findById(hospitalId)
+                    .orElseThrow(() -> new IllegalArgumentException("Hospital não encontrado com ID: " + hospitalId));
+                paciente.setHospitalOrigem(hospital.getNome());
+                paciente.setHospital(hospital);
+            }
         }
     }
 
