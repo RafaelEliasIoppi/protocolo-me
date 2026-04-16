@@ -41,8 +41,6 @@ public class UsuarioService implements UserDetailsService {
             throw new RuntimeException("Email já cadastrado");
         }
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
-        usuario.setDataCriacao(LocalDateTime.now());
-        usuario.setDataAtualizacao(LocalDateTime.now());
         usuario.setAtivo(true);
         return usuarioRepository.save(usuario);
     }

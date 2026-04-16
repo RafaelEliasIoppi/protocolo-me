@@ -13,7 +13,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/pacientes")
-@CrossOrigin(origins = "*")
 public class PacienteController {
 
     @Autowired

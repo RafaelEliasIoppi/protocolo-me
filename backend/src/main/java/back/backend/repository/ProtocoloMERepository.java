@@ -16,4 +16,5 @@ public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> 
     List<ProtocoloME> findByCentralTransplantesAndStatus(CentralTransplantes centralTransplantes, ProtocoloME.StatusProtocoloME status);
     List<ProtocoloME> findByDataNotificacaoBetween(LocalDateTime dataInicio, LocalDateTime dataFim);
     List<ProtocoloME> findByHospitalOrigem(String hospitalOrigem);
+    List<ProtocoloME> findByPacienteId(Long pacienteId);
 }

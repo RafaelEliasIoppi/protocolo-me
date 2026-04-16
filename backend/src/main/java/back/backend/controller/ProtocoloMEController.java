@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/protocolos-me")
-@CrossOrigin(origins = "*")
 public class ProtocoloMEController {
 
     @Autowired
@@ -104,6 +103,17 @@ public class ProtocoloMEController {
     public ResponseEntity<List<ProtocoloME>> listarPorHospitalOrigem(@PathVariable String hospitalOrigem) {
         List<ProtocoloME> protocolos = protocoloService.listarPorHospitalOrigem(hospitalOrigem);
         return ResponseEntity.ok(protocolos);
+    }
+
+    // GET - Listar protocolos de um paciente
+    @GetMapping("/paciente/{pacienteId}")
+    public ResponseEntity<List<ProtocoloME>> listarPorPaciente(@PathVariable Long pacienteId) {
+        try {
+            List<ProtocoloME> protocolos = protocoloService.listarPorPaciente(pacienteId);
+            return ResponseEntity.ok(protocolos);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // PUT - Atualizar protocolo

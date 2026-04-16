@@ -11,11 +11,17 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/exames-me")
-@CrossOrigin(origins = "*")
 public class ExameMEController {
 
     @Autowired
     private ExameMEService exameService;
+
+    // GET - Listar todos os exames
+    @GetMapping
+    public ResponseEntity<List<ExameME>> listarTodos() {
+        List<ExameME> exames = exameService.listarTodos();
+        return ResponseEntity.ok(exames);
+    }
 
     // POST - Criar novo exame
     @PostMapping

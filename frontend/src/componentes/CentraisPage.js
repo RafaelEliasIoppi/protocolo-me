@@ -9,9 +9,8 @@ function CentraisPage() {
 
   const carregarCentrais = async () => {
     try {
-      const response = await centralTransplantesService.listar();
-      const dados = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-      setCentrais(dados);
+      const dados = await centralTransplantesService.listar();
+      setCentrais(Array.isArray(dados) ? dados : []);
       setErro("");
     } catch (e) {
       setErro("Erro ao carregar centrais.");
