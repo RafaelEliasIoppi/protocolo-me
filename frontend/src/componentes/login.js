@@ -64,7 +64,7 @@ function Login({ onLogin }) {
       <div className="login-card">
         <div className="login-hero">
           <h2>{isRegister ? "Crie sua conta" : "Bem-vindo de volta"}</h2>
-          <p>Use seu login para acessar o dashboard moderno da transportadora.</p>
+          <p>Use seu login para acessar o sistema de protocolos de morte encefálica.</p>
         </div>
 
         {erro && <div className="erro-message" style={{ color: 'red', padding: '10px', marginBottom: '10px', backgroundColor: '#ffe6e6', borderRadius: '4px' }}>{erro}</div>}

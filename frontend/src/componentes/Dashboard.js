@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import pacienteService from "../services/pacienteService";
+import autenticarService from "../services/autenticarService";
 import PacienteForm from "./PacienteForm";
 
 function Dashboard({ onLogout, theme, setTheme, role }) {
@@ -36,9 +37,9 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
   };
 
   const totalPacientes = pacientes.length;
-  const protocoloAberto = pacientes.filter((p) => p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("aberto")).length;
-  const protocoloConcluido = pacientes.filter((p) => p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu")).length;
-  const protocoloAndamento = pacientes.filter((p) => p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento")).length;
+  const protocoloAberto = pacientes.filter((p) => p.status === "PRE_INTERNACAO" || p.status === "INTERNADO").length;
+  const protocoloConcluido = pacientes.filter((p) => p.status === "APTO_TRANSPLANTE").length;
+  const protocoloAndamento = pacientes.filter((p) => p.status === "EM_PROTOCOLO_ME").length;
   const podeGerenciarPacientes = role === "MEDICO" || role === "ENFERMEIRO" || role === "ADMIN";
 
   const filteredPacientes = useMemo(() => {
@@ -46,10 +47,13 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
       const matchesName = p.nome.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus =
         statusFilter === "Todos" ||
-        (statusFilter === "Aberto" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("aberto")) ||
-        (statusFilter === "Em andamento" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento")) ||
-        (statusFilter === "Concluído" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu")) ||
-        (statusFilter === "Cancelado" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("cancelado"));
+        (statusFilter === "INTERNADO" && p.status === "INTERNADO") ||
+        (statusFilter === "PRE_INTERNACAO" && p.status === "PRE_INTERNACAO") ||
+        (statusFilter === "EM_PROTOCOLO_ME" && p.status === "EM_PROTOCOLO_ME") ||
+        (statusFilter === "APTO_TRANSPLANTE" && p.status === "APTO_TRANSPLANTE") ||
+        (statusFilter === "NAO_APTO" && p.status === "NAO_APTO") ||
+        (statusFilter === "RECUSADO" && p.status === "RECUSADO") ||
+        (statusFilter === "EXODO" && p.status === "EXODO");
       return matchesName && matchesStatus;
     });
   }, [pacientes, searchQuery, statusFilter]);
@@ -85,7 +89,7 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
     <div className="dashboard-shell">
       <aside className="sidebar">
         <div>
-          <h2>Transportadora</h2>
+          <h2>Protocolo ME</h2>
           <p>Painel de controle para gerenciar pacientes, protocolos e fluxos.</p>
         </div>
 
@@ -113,7 +117,7 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
             <button className="secondary-button" onClick={toggleTheme}>
               {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
             </button>
-            <button className="secondary-button" onClick={() => { localStorage.removeItem("token"); onLogout(); }}>
+            <button className="secondary-button" onClick={() => { autenticarService.logout(); onLogout(); }}>
               Logout
             </button>
           </div>
@@ -213,10 +217,13 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
                 />
                 <select className="select-field" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="Todos">Todos os status</option>
-                  <option value="Aberto">Aberto</option>
-                  <option value="Em andamento">Em andamento</option>
-                  <option value="Concluído">Concluído</option>
-                  <option value="Cancelado">Cancelado</option>
+                  <option value="PRE_INTERNACAO">Pré-internação</option>
+                  <option value="INTERNADO">Internado</option>
+                  <option value="EM_PROTOCOLO_ME">Em Protocolo ME</option>
+                  <option value="APTO_TRANSPLANTE">Apto para Transplante</option>
+                  <option value="NAO_APTO">Não Apto</option>
+                  <option value="RECUSADO">Recusado</option>
+                  <option value="EXODO">Óbito</option>
                 </select>
               </div>
 
@@ -227,14 +234,14 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
                       <div className="patient-info">
                         <h4>{p.nome}</h4>
                         <span>CPF: {p.cpf || "Não informado"}</span>
-                        <span>Telefone: {p.telefone || "Não informado"}</span>
+                        <span>Telefone: {p.telefoneResponsavel || "Não informado"}</span>
                         <span className="hospital-info">
                           Hospital: {p.hospital ? `${p.hospital.nome} - ${p.hospital.cidade}` : "Não atribuído"}
                         </span>
                       </div>
                       <div className="patient-actions">
-                        <span className={`status-pill ${p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu") ? "status-closed" : p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento") ? "status-pending" : "status-open"}`}>
-                          {p.statusProtocolo || "Sem status"}
+                        <span className={`status-pill ${p.status === "APTO_TRANSPLANTE" ? "status-closed" : p.status === "EM_PROTOCOLO_ME" ? "status-pending" : "status-open"}`}>
+                          {p.status || "Sem status"}
                         </span>
                         {podeGerenciarPacientes && (
                           <div className="action-buttons">
@@ -303,10 +310,13 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
                 />
                 <select className="select-field" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="Todos">Todos os status</option>
-                  <option value="Aberto">Aberto</option>
-                  <option value="Em andamento">Em andamento</option>
-                  <option value="Concluído">Concluído</option>
-                  <option value="Cancelado">Cancelado</option>
+                  <option value="PRE_INTERNACAO">Pré-internação</option>
+                  <option value="INTERNADO">Internado</option>
+                  <option value="EM_PROTOCOLO_ME">Em Protocolo ME</option>
+                  <option value="APTO_TRANSPLANTE">Apto para Transplante</option>
+                  <option value="NAO_APTO">Não Apto</option>
+                  <option value="RECUSADO">Recusado</option>
+                  <option value="EXODO">Óbito</option>
                 </select>
               </div>
 
@@ -317,14 +327,14 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
                       <div className="patient-info">
                         <h4>{p.nome}</h4>
                         <span>CPF: {p.cpf || "Não informado"}</span>
-                        <span>Telefone: {p.telefone || "Não informado"}</span>
+                        <span>Telefone: {p.telefoneResponsavel || "Não informado"}</span>
                         <span className="hospital-info">
                           Hospital: {p.hospital ? `${p.hospital.nome} - ${p.hospital.cidade}` : "Não atribuído"}
                         </span>
                       </div>
                       <div className="patient-actions">
-                        <span className={`status-pill ${p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu") ? "status-closed" : p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento") ? "status-pending" : "status-open"}`}>
-                          {p.statusProtocolo || "Sem status"}
+                        <span className={`status-pill ${p.status === "APTO_TRANSPLANTE" ? "status-closed" : p.status === "EM_PROTOCOLO_ME" ? "status-pending" : "status-open"}`}>
+                          {p.status || "Sem status"}
                         </span>
                         <div className="action-buttons">
                           <button
@@ -405,7 +415,7 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
               <button className="secondary-button" onClick={toggleTheme}>
                 {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
               </button>
-              <button className="secondary-button" onClick={() => { localStorage.removeItem("token"); onLogout(); }}>
+              <button className="secondary-button" onClick={() => { autenticarService.logout(); onLogout(); }}>
                 Logout
               </button>
             </div>
