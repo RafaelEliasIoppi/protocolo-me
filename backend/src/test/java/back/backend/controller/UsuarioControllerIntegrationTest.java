@@ -121,12 +121,12 @@ public class UsuarioControllerIntegrationTest {
 
     @Test
     public void testLoginComSenhaIncorreta() throws Exception {
-        // Criar usuário
+        // Criar usuário (MEDICO é permitido no cadastro público)
         Usuario usuario = new Usuario();
         usuario.setNome("Carlos Oliveira");
         usuario.setEmail("carlos@example.com");
         usuario.setSenha("senha789");
-        usuario.setRole(Role.ADMIN);
+        usuario.setRole(Role.MEDICO);
 
         mockMvc.perform(post(API_USUARIOS)
                 .contentType(MediaType.APPLICATION_JSON)

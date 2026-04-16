@@ -2,27 +2,33 @@ import api from './apiClient';
 
 export const centralTransplantesService = {
   listar: async () => {
-    return api.get('/api/centrais-transplantes');
+    const response = await api.get('/api/centrais-transplantes');
+    return response.data;
   },
 
   obter: async (id) => {
-    return api.get(`/api/centrais-transplantes/${id}`);
+    const response = await api.get(`/api/centrais-transplantes/${id}`);
+    return response.data;
   },
 
   criar: async (central) => {
-    return api.post('/api/centrais-transplantes', central);
+    const response = await api.post('/api/centrais-transplantes', central);
+    return response.data;
   },
 
   atualizar: async (id, central) => {
-    return api.put(`/api/centrais-transplantes/${id}`, central);
+    const response = await api.put(`/api/centrais-transplantes/${id}`, central);
+    return response.data;
   },
 
   deletar: async (id) => {
-    return api.delete(`/api/centrais-transplantes/${id}`);
+    const response = await api.delete(`/api/centrais-transplantes/${id}`);
+    return response.data;
   },
 
   obterEstatisticas: async () => {
-    return api.get('/api/centrais-transplantes/estatisticas');
+    const response = await api.get('/api/centrais-transplantes/estatisticas');
+    return response.data;
   }
 };
 

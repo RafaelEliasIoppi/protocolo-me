@@ -8,6 +8,8 @@ import back.backend.repository.CentralTransplantesRepository;
 import back.backend.repository.ExameMERepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
@@ -25,17 +27,17 @@ public class ProtocoloMEService {
     private ExameMERepository exameMERepository;
 
     // Criar novo protocolo de ME e auto-popular com 35 exames
+    @Transactional
     public ProtocoloME criarProtocolo(ProtocoloME protocolo) {
         if (protocoloRepository.findByNumeroProtocolo(protocolo.getNumeroProtocolo()).isPresent()) {
             throw new RuntimeException("Protocolo com número " + protocolo.getNumeroProtocolo() + " já existe");
         }
-        
-        // Salvar protocolo
+
         ProtocoloME protocoloSalvo = protocoloRepository.save(protocolo);
-        
+
         // Auto-popular com 35 exames (Clínicos, Complementares, Laboratoriais)
         preencherExamesAutomaticamente(protocoloSalvo);
-        
+
         return protocoloSalvo;
     }
 
@@ -43,7 +45,6 @@ public class ProtocoloMEService {
      * Preenche automaticamente os 35 exames necessários para um protocolo ME
      */
     private void preencherExamesAutomaticamente(ProtocoloME protocolo) {
-        // Array com todos os 35 tipos de exames
         ExameME.TipoExame[] examesObrigatorios = {
             // Exames Clínicos (9)
             ExameME.TipoExame.RESPOSTA_ESTIMULO_DORO,
@@ -55,7 +56,7 @@ public class ProtocoloMEService {
             ExameME.TipoExame.APNEIA_TEST,
             ExameME.TipoExame.POSTURA_DECEREBRADO,
             ExameME.TipoExame.POSTURA_DESCEREBRADO,
-            
+
             // Exames Complementares (8)
             ExameME.TipoExame.ANGIOGRAFIA_CEREBRAL,
             ExameME.TipoExame.RESSONANCIA_MAGNETICA,
@@ -65,7 +66,7 @@ public class ProtocoloMEService {
             ExameME.TipoExame.ELETROENCEFALOGRAMA,
             ExameME.TipoExame.MAPEAMENTO_CEREBRAL,
             ExameME.TipoExame.RESSONANCIA_MAGNETICA_FUNCIONAL,
-            
+
             // Exames Laboratoriais (18)
             ExameME.TipoExame.GASOMETRIA_ARTERIAL,
             ExameME.TipoExame.HEMOGRAMA,
@@ -86,20 +87,19 @@ public class ProtocoloMEService {
             ExameME.TipoExame.TESTE_FUNCAO_TIREOIDE,
             ExameME.TipoExame.LACTATO
         };
-        
-        // Para cada tipo de exame, criar e salvar
+
         for (ExameME.TipoExame tipoExame : examesObrigatorios) {
             ExameME exame = new ExameME();
             exame.setProtocoloME(protocolo);
             exame.setTipoExame(tipoExame);
             exame.setCategoria(tipoExame.getCategoria());
             exame.setDescricao(tipoExame.getLabel());
-            exame.setResultado(null); // Será preenchido quando o exame for realizado
+            exame.setResultado(null);
             exame.setResultado_positivo(null);
             exame.setDataRealizacao(null);
             exame.setResponsavel(null);
             exame.setObservacoes("Exame criado automaticamente com protocolo");
-            
+
             exameMERepository.save(exame);
         }
     }
@@ -146,6 +146,11 @@ public class ProtocoloMEService {
     // Listar por hospital origem
     public List<ProtocoloME> listarPorHospitalOrigem(String hospitalOrigem) {
         return protocoloRepository.findByHospitalOrigem(hospitalOrigem);
+    }
+
+    // Listar protocolos de um paciente
+    public List<ProtocoloME> listarPorPaciente(Long pacienteId) {
+        return protocoloRepository.findByPacienteId(pacienteId);
     }
 
     // Atualizar protocolo
@@ -234,7 +239,7 @@ public class ProtocoloMEService {
         return protocoloRepository.save(protocolo);
     }
 
-    // Deletar protocolo (será cascade delete dos exames)
+    // Deletar protocolo (cascade delete dos exames)
     public void deletarProtocolo(Long id) {
         if (!protocoloRepository.existsById(id)) {
             throw new RuntimeException("Protocolo não encontrado com ID: " + id);

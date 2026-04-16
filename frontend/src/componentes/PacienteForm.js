@@ -62,7 +62,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
         diagnosticoPrincipal: paciente.diagnosticoPrincipal || '',
         historicoMedico: paciente.historicoMedico || '',
         nomeResponsavel: paciente.nomeResponsavel || '',
-        telefoneResponsavel: paciente.telefoneResponsavel || '',
+        telefoneResponsavel: paciente.telefonoResponsavel || '',
         emailResponsavel: paciente.emailResponsavel || '',
         status: paciente.status || 'INTERNADO'
       });
@@ -130,6 +130,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
 
       const dadosPaciente = {
         ...formData,
+        telefonoResponsavel: formData.telefoneResponsavel,
         hospital: {
           id: parseInt(formData.hospitalId)
         }
@@ -169,7 +170,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       diagnosticoPrincipal: pacienteItem.diagnosticoPrincipal || '',
       historicoMedico: pacienteItem.historicoMedico || '',
       nomeResponsavel: pacienteItem.nomeResponsavel || '',
-      telefoneResponsavel: pacienteItem.telefoneResponsavel || '',
+      telefoneResponsavel: pacienteItem.telefonoResponsavel || '',
       emailResponsavel: pacienteItem.emailResponsavel || '',
       status: pacienteItem.status
     });

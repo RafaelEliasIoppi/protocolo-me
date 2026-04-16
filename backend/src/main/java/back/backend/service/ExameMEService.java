@@ -27,6 +27,11 @@ public class ExameMEService {
         return exameRepository.save(exame);
     }
 
+    // Listar todos os exames
+    public List<ExameME> listarTodos() {
+        return exameRepository.findAll();
+    }
+
     // Listar exames de um protocolo
     public List<ExameME> listarExamesPorProtocolo(Long protocoloId) {
         ProtocoloME protocolo = protocoloRepository.findById(protocoloId)
