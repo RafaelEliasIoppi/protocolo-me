@@ -32,7 +32,7 @@ public class Paciente {
     @Column(nullable = false)
     private Genero genero;
 
-    @Column(nullable = false)
+    @Column
     private String hospitalOrigem;
 
     @ManyToOne(optional = false)
@@ -54,8 +54,8 @@ public class Paciente {
     @Column
     private String nomeResponsavel;
 
-    @Column
-    private String telefonoResponsavel;
+    @Column(name = "telefono_responsavel")
+    private String telefoneResponsavel;
 
     @Column
     private String emailResponsavel;
@@ -98,60 +98,4 @@ public class Paciente {
         RECUSADO,
         EXODO
     }
-
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getCpf() { return cpf; }
-    public void setCpf(String cpf) { this.cpf = cpf; }
-
-    public LocalDate getDataNascimento() { return dataNascimento; }
-    public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
-
-    public Genero getGenero() { return genero; }
-    public void setGenero(Genero genero) { this.genero = genero; }
-
-    public String getHospitalOrigem() { return hospitalOrigem; }
-    public void setHospitalOrigem(String hospitalOrigem) { this.hospitalOrigem = hospitalOrigem; }
-
-    public Hospital getHospital() { return hospital; }
-    public void setHospital(Hospital hospital) { this.hospital = hospital; }
-
-    public String getLeito() { return leito; }
-    public void setLeito(String leito) { this.leito = leito; }
-
-    public LocalDate getDataInternacao() { return dataInternacao; }
-    public void setDataInternacao(LocalDate dataInternacao) { this.dataInternacao = dataInternacao; }
-
-    public String getDiagnosticoPrincipal() { return diagnosticoPrincipal; }
-    public void setDiagnosticoPrincipal(String diagnosticoPrincipal) { this.diagnosticoPrincipal = diagnosticoPrincipal; }
-
-    public String getHistoricoMedico() { return historicoMedico; }
-    public void setHistoricoMedico(String historicoMedico) { this.historicoMedico = historicoMedico; }
-
-    public String getNomeResponsavel() { return nomeResponsavel; }
-    public void setNomeResponsavel(String nomeResponsavel) { this.nomeResponsavel = nomeResponsavel; }
-
-    public String getTelefonoResponsavel() { return telefonoResponsavel; }
-    public void setTelefonoResponsavel(String telefonoResponsavel) { this.telefonoResponsavel = telefonoResponsavel; }
-
-    public String getEmailResponsavel() { return emailResponsavel; }
-    public void setEmailResponsavel(String emailResponsavel) { this.emailResponsavel = emailResponsavel; }
-
-    public StatusPaciente getStatus() { return status; }
-    public void setStatus(StatusPaciente status) { this.status = status; }
-
-    public List<ProtocoloME> getProtocolosME() { return protocolosME; }
-    public void setProtocolosME(List<ProtocoloME> protocolosME) { this.protocolosME = protocolosME; }
-
-    public LocalDateTime getDataCriacao() { return dataCriacao; }
-    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
-
-    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
-    public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
-
 }

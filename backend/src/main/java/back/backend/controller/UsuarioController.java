@@ -85,13 +85,13 @@ public class UsuarioController {
             Optional<Usuario> usuarioOpt = usuarioService.findByEmail(email);
             if (usuarioOpt.isEmpty() || !usuarioOpt.get().getAtivo()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("erro", "Usuário não encontrado ou inativo"));
+                    .body(Map.of("erro", "Credenciais inválidas"));
             }
 
             Usuario usuario = usuarioOpt.get();
             if (!passwordEncoder.matches(senha, usuario.getSenha())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("erro", "Senha incorreta"));
+                    .body(Map.of("erro", "Credenciais inválidas"));
             }
 
             String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getRole().name());
@@ -117,7 +117,17 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("erro", "Usuário não encontrado"));
         }
-        return ResponseEntity.ok(usuario.get());
+        Usuario u = usuario.get();
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", u.getId());
+        response.put("email", u.getEmail());
+        response.put("nome", u.getNome());
+        response.put("role", u.getRole());
+        response.put("crm", u.getCrm());
+        response.put("coren", u.getCoren());
+        response.put("ativo", u.getAtivo());
+        response.put("dataCriacao", u.getDataCriacao());
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")

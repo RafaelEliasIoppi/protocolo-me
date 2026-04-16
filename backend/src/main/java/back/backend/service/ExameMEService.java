@@ -67,7 +67,7 @@ public class ExameMEService {
                 .orElseThrow(() -> new RuntimeException("Exame não encontrado"));
 
         exame.setResultado(exameAtualizado.getResultado());
-        exame.setResultado_positivo(exameAtualizado.getResultado_positivo());
+        exame.setResultadoPositivo(exameAtualizado.getResultadoPositivo());
         exame.setResponsavel(exameAtualizado.getResponsavel());
         exame.setObservacoes(exameAtualizado.getObservacoes());
 
@@ -75,12 +75,12 @@ public class ExameMEService {
     }
 
     // Registrar resultado
-    public ExameME registrarResultado(Long id, String resultado, Boolean resultado_positivo, String responsavel) {
+    public ExameME registrarResultado(Long id, String resultado, Boolean resultadoPositivo, String responsavel) {
         ExameME exame = exameRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Exame não encontrado"));
 
         exame.setResultado(resultado);
-        exame.setResultado_positivo(resultado_positivo);
+        exame.setResultadoPositivo(resultadoPositivo);
         exame.setResponsavel(responsavel);
         exame.setDataRealizacao(LocalDateTime.now());
 
