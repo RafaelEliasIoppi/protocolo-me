@@ -35,7 +35,13 @@ export const autenticarService = {
   isAutenticado: () => {
     const token = localStorage.getItem('token');
     const usuario = autenticarService.obterUsuarioAtual();
-    return !!token && !!usuario?.role;
+    if (!token || !usuario?.role) return false;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 > Date.now();
+    } catch (e) {
+      return false;
+    }
   },
 };
 

@@ -95,7 +95,7 @@ public class ProtocoloMEService {
             exame.setCategoria(tipoExame.getCategoria());
             exame.setDescricao(tipoExame.getLabel());
             exame.setResultado(null); // Será preenchido quando o exame for realizado
-            exame.setResultado_positivo(null);
+            exame.setResultadoPositivo(null);
             exame.setDataRealizacao(null);
             exame.setResponsavel(null);
             exame.setObservacoes("Exame criado automaticamente com protocolo");

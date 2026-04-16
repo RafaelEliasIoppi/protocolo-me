@@ -96,10 +96,10 @@ public class ExameMEController {
     public ResponseEntity<ExameME> registrarResultado(
             @PathVariable Long id,
             @RequestParam String resultado,
-            @RequestParam(required = false) Boolean resultado_positivo,
+            @RequestParam(required = false) Boolean resultadoPositivo,
             @RequestParam(required = false) String responsavel) {
         try {
-            ExameME exame = exameService.registrarResultado(id, resultado, resultado_positivo, responsavel);
+            ExameME exame = exameService.registrarResultado(id, resultado, resultadoPositivo, responsavel);
             return ResponseEntity.ok(exame);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

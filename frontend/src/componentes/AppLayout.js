@@ -27,7 +27,9 @@ function AppLayout({ usuario, theme, setTheme, onLogout }) {
           {role === "ADMIN" && (
             <Link className="secondary-button" to="/admin/usuarios">Cadastro de Usuários</Link>
           )}
-          <Link className="secondary-button" to="/cadastros/centrais">Cadastro de Centrais</Link>
+          {(role === "CENTRAL_TRANSPLANTES" || role === "ADMIN") && (
+            <Link className="secondary-button" to="/cadastros/centrais">Cadastro de Centrais</Link>
+          )}
         </div>
 
         <div className="action-row" style={{ justifyContent: "flex-start" }}>
