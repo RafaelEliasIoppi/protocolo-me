@@ -8,6 +8,7 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
   const [editingPaciente, setEditingPaciente] = useState(null);
+  const [mostrarFormularioPaciente, setMostrarFormularioPaciente] = useState(false);
 
   const notifications = [
     { id: 1, title: "Protocolo novo recebido", detail: "Há 5 novos pacientes aguardando análise." },
@@ -57,14 +58,29 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
   const handleSavePaciente = (pacienteSalvo) => {
     if (editingPaciente) {
       setPacientes(prev => prev.map(p => p.id === pacienteSalvo.id ? pacienteSalvo : p));
-      setEditingPaciente(null);
     } else {
       setPacientes(prev => [...prev, pacienteSalvo]);
     }
+
+    setEditingPaciente(null);
+    setMostrarFormularioPaciente(false);
+  };
+
+  const handleNovoPaciente = () => {
+    setEditingPaciente(null);
+    setMostrarFormularioPaciente(true);
+    setActiveSection("pacientes");
   };
 
   const handleEditPaciente = (paciente) => {
     setEditingPaciente(paciente);
+    setMostrarFormularioPaciente(true);
+    setActiveSection("pacientes");
+  };
+
+  const handleFecharFormularioPaciente = () => {
+    setEditingPaciente(null);
+    setMostrarFormularioPaciente(false);
   };
 
   const handleDeletePaciente = async (id) => {
@@ -201,6 +217,11 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
                       : "Visualização somente leitura para este perfil."}
                   </p>
                 </div>
+                {podeGerenciarPacientes && (
+                  <button className="secondary-button" onClick={handleNovoPaciente}>
+                    Novo paciente
+                  </button>
+                )}
               </header>
 
               <div className="filter-panel">
@@ -264,7 +285,7 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
             </div>
           </div>
 
-          {podeGerenciarPacientes && (
+          {podeGerenciarPacientes && mostrarFormularioPaciente && activeSection === "pacientes" && (
             <div className="form-panel card">
               <h3>{editingPaciente ? "Editar Paciente" : "Novo paciente"}</h3>
               <p className="note">
@@ -276,8 +297,13 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
               <PacienteForm
                 paciente={editingPaciente}
                 onSave={handleSavePaciente}
-                onCancel={() => setEditingPaciente(null)}
+                onCancel={handleFecharFormularioPaciente}
               />
+              <div className="action-row" style={{ justifyContent: "flex-start", marginTop: 16 }}>
+                <button className="secondary-button" onClick={handleFecharFormularioPaciente}>
+                  Fechar cadastro
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -351,6 +377,7 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
               </div>
             </div>
 
+            {mostrarFormularioPaciente && (
             <div className="form-panel card">
               <h3>{editingPaciente ? "Editar Paciente" : "Novo paciente"}</h3>
               <p className="note">
@@ -362,9 +389,15 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
               <PacienteForm
                 paciente={editingPaciente}
                 onSave={handleSavePaciente}
-                onCancel={() => setEditingPaciente(null)}
+                onCancel={handleFecharFormularioPaciente}
               />
+              <div className="action-row" style={{ justifyContent: "flex-start", marginTop: 16 }}>
+                <button className="secondary-button" onClick={handleFecharFormularioPaciente}>
+                  Fechar cadastro
+                </button>
+              </div>
             </div>
+            )}
           </div>
         )}
 

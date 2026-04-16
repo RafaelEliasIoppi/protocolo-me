@@ -15,6 +15,11 @@ export const autenticarService = {
     return response.data;
   },
 
+  registrarAdmin: async (usuario) => {
+    const response = await api.post('/api/usuarios/admin/registrar', usuario);
+    return response.data;
+  },
+
   obterUsuarioAtual: () => {
     const usuario = localStorage.getItem('usuario');
     if (!usuario) return null;

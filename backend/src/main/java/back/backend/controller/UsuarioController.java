@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -60,6 +62,22 @@ public class UsuarioController {
             if (usuario.getRole() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("erro", "Informe a função do usuário"));
+            }
+
+            long totalAdmins = usuarioService.countAdmins();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            boolean autenticadoComoAdmin = authentication != null
+                && authentication.isAuthenticated()
+                && authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+
+            if (totalAdmins == 0) {
+                if (usuario.getRole() != Role.ADMIN) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("erro", "O primeiro usuário administrativo deve ser ADMIN"));
+                }
+            } else if (!autenticadoComoAdmin) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("erro", "Apenas administradores podem criar outros usuários"));
             }
 
             Usuario usuarioRegistrado = usuarioService.registrar(usuario);

@@ -11,6 +11,7 @@ bash start.sh
 - Inicia Backend (Spring Boot) em `http://localhost:2500`
 - Inicia Frontend (React) em `http://localhost:3000`
 - Ambos rodam em background
+- Se as dependências do frontend não estiverem instaladas, o script executa `npm install` automaticamente antes de iniciar
 
 ---
 
@@ -25,6 +26,7 @@ cd /workspaces/protocolo-me/backend
 ### Terminal 2 - Frontend
 ```bash
 cd /workspaces/protocolo-me/frontend
+npm install
 npm start
 ```
 

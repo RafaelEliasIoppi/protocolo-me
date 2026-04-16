@@ -32,7 +32,7 @@ public class Paciente {
     @Column(nullable = false)
     private Genero genero;
 
-    @Column(nullable = false)
+    @Column
     private String hospitalOrigem;
 
     @ManyToOne(optional = false)
@@ -55,7 +55,7 @@ public class Paciente {
     private String nomeResponsavel;
 
     @Column
-    private String telefonoResponsavel;
+    private String telefoneResponsavel;
 
     @Column
     private String emailResponsavel;
@@ -66,6 +66,10 @@ public class Paciente {
 
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProtocoloME> protocolosME;
+
+    // Exames adicionados quando em protocolo ME
+    @Transient
+    private List<ExameME> examesEmProtocolo;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
@@ -136,8 +140,8 @@ public class Paciente {
     public String getNomeResponsavel() { return nomeResponsavel; }
     public void setNomeResponsavel(String nomeResponsavel) { this.nomeResponsavel = nomeResponsavel; }
 
-    public String getTelefonoResponsavel() { return telefonoResponsavel; }
-    public void setTelefonoResponsavel(String telefonoResponsavel) { this.telefonoResponsavel = telefonoResponsavel; }
+    public String getTelefoneResponsavel() { return telefoneResponsavel; }
+    public void setTelefoneResponsavel(String telefoneResponsavel) { this.telefoneResponsavel = telefoneResponsavel; }
 
     public String getEmailResponsavel() { return emailResponsavel; }
     public void setEmailResponsavel(String emailResponsavel) { this.emailResponsavel = emailResponsavel; }
@@ -153,5 +157,8 @@ public class Paciente {
 
     public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
     public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
+
+    public List<ExameME> getExamesEmProtocolo() { return examesEmProtocolo; }
+    public void setExamesEmProtocolo(List<ExameME> examesEmProtocolo) { this.examesEmProtocolo = examesEmProtocolo; }
 
 }

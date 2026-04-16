@@ -47,6 +47,7 @@ describe('Dashboard', () => {
     expect(await screen.findByText('Notificações')).toBeInTheDocument();
     expect(screen.getByText('Protocolo novo recebido')).toBeInTheDocument();
     expect(screen.getByText('Total de pacientes')).toBeInTheDocument();
+    expect(screen.queryByTestId('paciente-form-mock')).not.toBeInTheDocument();
 
     await waitFor(() => expect(screen.getByText('João Silva')).toBeInTheDocument());
     expect(screen.getByText('Maria Souza')).toBeInTheDocument();
@@ -71,6 +72,8 @@ describe('Dashboard', () => {
     // Teste de edição (simula clique no botão de editar)
     const editButtons = screen.getAllByTitle('Editar paciente');
     expect(editButtons.length).toBeGreaterThan(0);
+    fireEvent.click(editButtons[0]);
+    expect(screen.getByTestId('paciente-form-mock')).toBeInTheDocument();
 
     // Teste de exclusão (simula confirmação)
     window.confirm = jest.fn(() => true);

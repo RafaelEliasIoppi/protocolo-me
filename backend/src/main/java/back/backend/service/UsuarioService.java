@@ -47,6 +47,14 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.save(usuario);
     }
 
+    public long countUsuarios() {
+        return usuarioRepository.count();
+    }
+
+    public long countAdmins() {
+        return usuarioRepository.countByRole(back.backend.model.Role.ADMIN);
+    }
+
     public Optional<Usuario> findByEmail(String email) {
         return usuarioRepository.findByEmail(email);
     }

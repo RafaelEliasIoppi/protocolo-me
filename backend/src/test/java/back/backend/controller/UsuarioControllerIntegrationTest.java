@@ -126,7 +126,7 @@ public class UsuarioControllerIntegrationTest {
         usuario.setNome("Carlos Oliveira");
         usuario.setEmail("carlos@example.com");
         usuario.setSenha("senha789");
-        usuario.setRole(Role.ADMIN);
+        usuario.setRole(Role.MEDICO);
 
         mockMvc.perform(post(API_USUARIOS)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -178,6 +178,34 @@ public class UsuarioControllerIntegrationTest {
 
         System.out.println("✓ Role automática (MEDICO) atribuída com sucesso");
     }
+
+        @Test
+        public void testBootstrapPrimeiroAdminMesmoComUsuarioComumExistente() throws Exception {
+                Usuario usuarioComum = new Usuario();
+                usuarioComum.setNome("Usuario Comum");
+                usuarioComum.setEmail("comum@example.com");
+                usuarioComum.setSenha("senha123");
+                usuarioComum.setRole(Role.MEDICO);
+
+                mockMvc.perform(post(API_USUARIOS)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(usuarioComum)))
+                                .andExpect(status().isCreated());
+
+                Usuario admin = new Usuario();
+                admin.setNome("Admin Inicial");
+                admin.setEmail("admin@example.com");
+                admin.setSenha("senhaAdmin123");
+                admin.setRole(Role.ADMIN);
+
+                mockMvc.perform(post(API_USUARIOS + "/admin/registrar")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(admin)))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.role").value("ADMIN"));
+
+                System.out.println("✓ Bootstrap de primeiro admin com usuários comuns existentes passou");
+        }
 
     @Test
     public void testFluxoCompletoRegistroELogin() throws Exception {

@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import PacienteForm from "./PacienteForm";
 
 function PacientesPage() {
+  const [mostrarFormularioPaciente, setMostrarFormularioPaciente] = useState(false);
+
   return (
     <section>
       <div className="brand-bar">
@@ -9,8 +11,18 @@ function PacientesPage() {
           <h1>Cadastro de Pacientes</h1>
           <p>Somente médicos e enfermeiros podem cadastrar pacientes.</p>
         </div>
+        <button className="secondary-button" onClick={() => setMostrarFormularioPaciente((valor) => !valor)}>
+          {mostrarFormularioPaciente ? "Fechar cadastro" : "Abrir cadastro"}
+        </button>
       </div>
-      <PacienteForm />
+
+      {mostrarFormularioPaciente ? (
+        <PacienteForm onCancel={() => setMostrarFormularioPaciente(false)} />
+      ) : (
+        <div className="panel">
+          <p className="note">O cadastro de pacientes fica oculto até você abrir o formulário.</p>
+        </div>
+      )}
     </section>
   );
 }

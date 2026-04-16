@@ -43,7 +43,7 @@ public class PacienteService {
         if (pacienteAtualizado.getDiagnosticoPrincipal() != null) paciente.setDiagnosticoPrincipal(pacienteAtualizado.getDiagnosticoPrincipal());
         if (pacienteAtualizado.getHistoricoMedico() != null) paciente.setHistoricoMedico(pacienteAtualizado.getHistoricoMedico());
         if (pacienteAtualizado.getNomeResponsavel() != null) paciente.setNomeResponsavel(pacienteAtualizado.getNomeResponsavel());
-        if (pacienteAtualizado.getTelefonoResponsavel() != null) paciente.setTelefonoResponsavel(pacienteAtualizado.getTelefonoResponsavel());
+        if (pacienteAtualizado.getTelefoneResponsavel() != null) paciente.setTelefoneResponsavel(pacienteAtualizado.getTelefoneResponsavel());
         if (pacienteAtualizado.getEmailResponsavel() != null) paciente.setEmailResponsavel(pacienteAtualizado.getEmailResponsavel());
         if (pacienteAtualizado.getStatus() != null) paciente.setStatus(pacienteAtualizado.getStatus());
         

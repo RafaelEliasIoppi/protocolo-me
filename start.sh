@@ -27,6 +27,12 @@ sleep 5
 # Inicia Frontend em background
 echo -e "${BLUE}▶ Iniciando Frontend (React) na porta 3000...${NC}"
 cd frontend
+
+if [ ! -d node_modules ]; then
+	echo -e "${BLUE}▶ Dependências do frontend não encontradas. Executando npm install...${NC}"
+	npm install
+fi
+
 npm start &
 FRONTEND_PID=$!
 cd ..
