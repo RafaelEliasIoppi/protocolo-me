@@ -3,11 +3,15 @@ import api from './apiClient';
 export const pacienteService = {
   listar: async (filtros = {}) => {
     let url = '/api/pacientes';
-    const params = new URLSearchParams();
-    if (filtros.busca) params.append('nome', filtros.busca);
-    if (filtros.status) params.append('status', filtros.status);
-    if (filtros.hospitalId) params.append('hospital', filtros.hospitalId);
-    if (params.toString()) url += '?' + params.toString();
+    if (filtros.busca) {
+      url = `/api/pacientes/buscar?nome=${encodeURIComponent(filtros.busca)}`;
+    } else if (filtros.hospitalId && filtros.status) {
+      url = `/api/pacientes/hospital/${filtros.hospitalId}/status/${filtros.status}`;
+    } else if (filtros.status) {
+      url = `/api/pacientes/status/${filtros.status}`;
+    } else if (filtros.hospitalId) {
+      url = `/api/pacientes/hospital/${filtros.hospitalId}`;
+    }
     const response = await api.get(url);
     return response.data;
   },

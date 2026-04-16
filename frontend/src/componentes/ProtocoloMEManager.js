@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
 import '../styles/ProtocoloMEManager.css';
 
 const ProtocoloMEManager = () => {
@@ -41,7 +41,7 @@ const ProtocoloMEManager = () => {
   const carregarProtocolos = async () => {
     setCarregando(true);
     try {
-      const response = await axios.get('/api/protocolos-me');
+      const response = await apiClient.get('/api/protocolos-me');
       setProtocolos(response.data);
     } catch (err) {
       setErro('Erro ao carregar protocolos');
@@ -69,7 +69,7 @@ const ProtocoloMEManager = () => {
     }
 
     try {
-      const response = await axios.post('/api/protocolos-me', formProtocolo);
+      const response = await apiClient.post('/api/protocolos-me', formProtocolo);
       setProtocolos([...protocolos, response.data]);
       setFormProtocolo({
         numeroProtocolo: '',
@@ -92,37 +92,37 @@ const ProtocoloMEManager = () => {
 
   const registrarTesteClinco1 = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/teste-clinico-1`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/teste-clinico-1`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Teste clínico 1 registrado!');
     } catch (err) {
-      setErro('Erro ao registrar teste');
+      setErro(err.response?.data || 'Erro ao registrar teste');
     }
   };
 
   const registrarTesteClinco2 = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/teste-clinico-2`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/teste-clinico-2`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Teste clínico 2 registrado!');
     } catch (err) {
-      setErro('Erro ao registrar teste');
+      setErro(err.response?.data || 'Erro ao registrar teste');
     }
   };
 
   const confirmarMorteCerebral = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/confirmar-morte-cerebral`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/confirmar-morte-cerebral`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Morte cerebral confirmada!');
     } catch (err) {
-      setErro('Erro ao confirmar morte cerebral');
+      setErro(err.response?.data || 'Erro ao confirmar morte cerebral');
     }
   };
 
   const registrarNotificacaoFamilia = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/notificar-familia`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/notificar-familia`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Notificação da família registrada!');
     } catch (err) {
@@ -132,7 +132,7 @@ const ProtocoloMEManager = () => {
 
   const registrarPreservacaoOrgaos = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/preservacao-orgaos`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/preservacao-orgaos`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Preservação de órgãos registrada!');
     } catch (err) {
@@ -142,7 +142,7 @@ const ProtocoloMEManager = () => {
 
   const alterarStatus = async (protocoloId, novoStatus) => {
     try {
-      const response = await axios.patch(
+      const response = await apiClient.patch(
         `/api/protocolos-me/${protocoloId}/status`,
         {},
         { params: { status: novoStatus } }
@@ -265,7 +265,7 @@ const ProtocoloMEManager = () => {
               </div>
 
               <div className="protocolo-info">
-                <p><strong>Paciente ID:</strong> {protocolo.pacienteId || 'N/A'}</p>
+                <p><strong>Paciente ID:</strong> {protocolo.paciente?.id || 'N/A'}</p>
                 <p><strong>Médico:</strong> {protocolo.medicoResponsavel || 'N/A'}</p>
                 <p><strong>Diagnóstico:</strong> {protocolo.diagnosticoBasico || 'N/A'}</p>
                 <p><strong>Órgãos:</strong> {protocolo.orgaosDisponiveis || 'N/A'}</p>

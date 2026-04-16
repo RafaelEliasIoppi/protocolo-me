@@ -169,6 +169,10 @@ public class PacienteController {
             @RequestBody Map<String, String> body) {
         try {
             String statusStr = body.get("status");
+            if (statusStr == null || statusStr.isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("Campo 'status' é obrigatório"));
+            }
             Paciente.StatusPaciente status = Paciente.StatusPaciente.valueOf(statusStr.toUpperCase());
             Paciente pacienteAtualizado = pacienteService.atualizarStatus(id, status);
             return ResponseEntity.ok(pacienteAtualizado);

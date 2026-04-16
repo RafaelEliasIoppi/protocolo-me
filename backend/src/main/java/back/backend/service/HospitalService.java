@@ -56,6 +56,16 @@ public class HospitalService {
         Hospital hospital = hospitalRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Hospital não encontrado com ID: " + id));
 
+        // Verificar duplicidade de CNPJ em outro hospital
+        if (hospitalAtualizado.getCnpj() != null) {
+            hospitalRepository.findByCnpj(hospitalAtualizado.getCnpj())
+                .ifPresent(existente -> {
+                    if (!existente.getId().equals(id)) {
+                        throw new RuntimeException("CNPJ já está cadastrado em outro hospital");
+                    }
+                });
+        }
+
         hospital.setNome(hospitalAtualizado.getNome());
         hospital.setEndereco(hospitalAtualizado.getEndereco());
         hospital.setCidade(hospitalAtualizado.getCidade());
