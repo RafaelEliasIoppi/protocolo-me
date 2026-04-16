@@ -66,6 +66,16 @@ public class CentralTransplantesService {
         CentralTransplantes central = centralRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Central não encontrada com ID: " + id));
 
+        // Verificar duplicidade de CNPJ em outra central
+        if (centralAtualizada.getCnpj() != null) {
+            centralRepository.findByCnpj(centralAtualizada.getCnpj())
+                .ifPresent(existente -> {
+                    if (!existente.getId().equals(id)) {
+                        throw new RuntimeException("CNPJ já está cadastrado em outra central");
+                    }
+                });
+        }
+
         central.setNome(centralAtualizada.getNome());
         central.setEndereco(centralAtualizada.getEndereco());
         central.setCidade(centralAtualizada.getCidade());

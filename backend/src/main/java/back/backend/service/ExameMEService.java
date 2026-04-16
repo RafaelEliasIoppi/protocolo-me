@@ -71,6 +71,11 @@ public class ExameMEService {
         exame.setResponsavel(exameAtualizado.getResponsavel());
         exame.setObservacoes(exameAtualizado.getObservacoes());
 
+        // Definir dataRealizacao quando um resultado é registrado pela primeira vez
+        if (exameAtualizado.getResultado() != null && exame.getDataRealizacao() == null) {
+            exame.setDataRealizacao(LocalDateTime.now());
+        }
+
         return exameRepository.save(exame);
     }
 

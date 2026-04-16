@@ -8,11 +8,13 @@ import back.backend.repository.CentralTransplantesRepository;
 import back.backend.repository.ExameMERepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
 
 @Service
+@Transactional
 public class ProtocoloMEService {
 
     @Autowired
@@ -172,10 +174,13 @@ public class ProtocoloMEService {
         return protocoloRepository.save(protocolo);
     }
 
-    // Registrar teste clínico 2
+    // Registrar teste clínico 2 (requer teste clínico 1 já realizado)
     public ProtocoloME registrarTesteClinico2(Long id) {
         ProtocoloME protocolo = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        if (!Boolean.TRUE.equals(protocolo.getTesteClinico1Realizado())) {
+            throw new RuntimeException("O Teste Clínico 1 deve ser realizado antes do Teste Clínico 2");
+        }
         protocolo.setTesteClinico2Realizado(true);
         protocolo.setDataTesteClinico2(LocalDateTime.now());
         return protocoloRepository.save(protocolo);
@@ -217,10 +222,16 @@ public class ProtocoloMEService {
         return protocoloRepository.save(protocolo);
     }
 
-    // Confirmar morte cerebral
+    // Confirmar morte cerebral (requer TC1, TC2 e testes complementares realizados)
     public ProtocoloME confirmarMorteCerebral(Long id) {
         ProtocoloME protocolo = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        if (!Boolean.TRUE.equals(protocolo.getTesteClinico1Realizado())) {
+            throw new RuntimeException("O Teste Clínico 1 deve ser realizado antes de confirmar a morte cerebral");
+        }
+        if (!Boolean.TRUE.equals(protocolo.getTesteClinico2Realizado())) {
+            throw new RuntimeException("O Teste Clínico 2 deve ser realizado antes de confirmar a morte cerebral");
+        }
         protocolo.setDataConfirmacaoME(LocalDateTime.now());
         protocolo.setStatus(ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA);
         return protocoloRepository.save(protocolo);
