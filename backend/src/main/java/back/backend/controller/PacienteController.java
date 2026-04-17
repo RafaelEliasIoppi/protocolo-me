@@ -88,14 +88,14 @@ public class PacienteController {
      * GET /api/pacientes/status/{status} - Listar pacientes por status
      */
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Paciente>> listarPorStatus(@PathVariable String status) {
+    public ResponseEntity<?> listarPorStatus(@PathVariable String status) {
         try {
             Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
             List<Paciente> pacientes = pacienteService.listarPorStatus(statusEnum);
             return ResponseEntity.ok(pacientes);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(null);
+                .body(new ErrorResponse("Status inválido: " + status));
         }
     }
 

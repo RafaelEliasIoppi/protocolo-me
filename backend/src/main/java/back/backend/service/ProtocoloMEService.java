@@ -8,6 +8,7 @@ import back.backend.repository.CentralTransplantesRepository;
 import back.backend.repository.ExameMERepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public class ProtocoloMEService {
     private ExameMERepository exameMERepository;
 
     // Criar novo protocolo de ME e auto-popular com 35 exames
+    @Transactional
     public ProtocoloME criarProtocolo(ProtocoloME protocolo) {
         if (protocoloRepository.findByNumeroProtocolo(protocolo.getNumeroProtocolo()).isPresent()) {
             throw new RuntimeException("Protocolo com número " + protocolo.getNumeroProtocolo() + " já existe");
@@ -176,6 +178,9 @@ public class ProtocoloMEService {
     public ProtocoloME registrarTesteClinico2(Long id) {
         ProtocoloME protocolo = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        if (!Boolean.TRUE.equals(protocolo.getTesteClinico1Realizado())) {
+            throw new RuntimeException("O Teste Clínico 1 deve ser realizado antes do Teste Clínico 2");
+        }
         protocolo.setTesteClinico2Realizado(true);
         protocolo.setDataTesteClinico2(LocalDateTime.now());
         return protocoloRepository.save(protocolo);
@@ -221,6 +226,10 @@ public class ProtocoloMEService {
     public ProtocoloME confirmarMorteCerebral(Long id) {
         ProtocoloME protocolo = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        if (!Boolean.TRUE.equals(protocolo.getTesteClinico1Realizado()) ||
+            !Boolean.TRUE.equals(protocolo.getTesteClinico2Realizado())) {
+            throw new RuntimeException("Ambos os Testes Clínicos (1 e 2) devem ser realizados antes de confirmar a Morte Cerebral");
+        }
         protocolo.setDataConfirmacaoME(LocalDateTime.now());
         protocolo.setStatus(ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA);
         return protocoloRepository.save(protocolo);
