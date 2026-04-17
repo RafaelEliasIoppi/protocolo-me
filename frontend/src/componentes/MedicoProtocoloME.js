@@ -370,40 +370,55 @@ function MedicoProtocoloME() {
                     </div>
 
                     <div className="entrevista-resumo">
-                      <div className="entrevista-resumo-header">
-                        <label>Entrevista Familiar</label>
+                      <div className="entrevista-resumo-topo">
+                        <div>
+                          <label>Entrevista Familiar</label>
+                          <p className="entrevista-resumo-subtitulo">
+                            Status técnico do protocolo e resultado humano
+                          </p>
+                        </div>
                         <span className={`status-badge status-${paciente.statusEntrevistaFamiliar ? paciente.statusEntrevistaFamiliar.toLowerCase() : "nao-iniciada"}`}>
                           {statusEntrevista}
                         </span>
                       </div>
+
                       <div className="entrevista-resumo-resultado">
-                        <span>Resultado:</span>
+                        <span className="entrevista-resumo-rotulo">Resultado:</span>
                         <span className={`resultado-badge resultado-${resultadoEntrevista.cor}`}>
                           {resultadoEntrevista.label}
                         </span>
                       </div>
-                      <p className="entrevista-resumo-texto">
-                        {entrevistaConcluida
-                          ? "Entrevista concluída dentro deste protocolo."
-                          : protocolo?.status === "MORTE_CEREBRAL_CONFIRMADA"
-                            ? "A entrevista já pode ser iniciada neste perfil."
-                            : "A entrevista será liberada após a confirmação da morte cerebral."}
-                      </p>
-                      <button
-                        className="btn-entrevista-inline"
-                        onClick={() => {
-                          setProtocoloSelecionado(protocolo);
-                          setAbaProtocoloAberta("entrevista");
-                          setMostraExames(true);
-                        }}
-                      >
-                        {entrevistaConcluida ? "👀 Ver entrevista" : "👨‍👩‍👧 Abrir entrevista"}
-                      </button>
+
+                      <div className="entrevista-resumo-footer">
+                        {!entrevistaConcluida && (
+                          <p className="entrevista-resumo-texto">
+                            {protocolo?.status === "MORTE_CEREBRAL_CONFIRMADA"
+                              ? "A entrevista já pode ser iniciada neste perfil."
+                              : "A entrevista será liberada após a confirmação da morte cerebral."}
+                          </p>
+                        )}
+                        <button
+                          className="btn-entrevista-inline"
+                          onClick={() => {
+                            setProtocoloSelecionado(protocolo);
+                            setAbaProtocoloAberta("entrevista");
+                            setMostraExames(true);
+                          }}
+                        >
+                          {entrevistaConcluida ? "👀 Ver entrevista" : "👨‍👩‍👧 Abrir entrevista"}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Exames realizados */}
                     <div className="exames-resumo">
-                      <label>Exames Realizados:</label>
+                      <div className="exames-resumo-topo">
+                        <label>Exames</label>
+                        <span className="exames-count">
+                          <strong>{examesRealizados}/3</strong> completos
+                        </span>
+                      </div>
+
                       <div className="exames-status">
                         <div className={protocolo?.testeClinico1Realizado ? "exame completo" : "exame pendente"}>
                           {protocolo?.testeClinico1Realizado ? "✅" : "⏳"} Teste Clínico 1
@@ -412,19 +427,18 @@ function MedicoProtocoloME() {
                           {protocolo?.testeClinico2Realizado ? "✅" : "⏳"} Teste Clínico 2
                         </div>
                         <div className={protocolo?.testesComplementaresRealizados ? "exame completo" : "exame pendente"}>
-                          {protocolo?.testesComplementaresRealizados ? "✅" : "⏳"} Exames Complementares
+                          {protocolo?.testesComplementaresRealizados ? "✅" : "⏳"} Complementares
                         </div>
                       </div>
-                      <p className="exames-count">
-                        <strong>{examesRealizados}/3</strong> exames completos
-                      </p>
+
+                      <div className="exames-resumo-footer">
+                        <div className="progress-bar">
+                          <div className="progress" style={{ width: `${(examesRealizados / 3) * 100}%` }}></div>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Progresso */}
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: `${(examesRealizados / 3) * 100}%` }}></div>
-                    </div>
-
                     <div className="proximo-passo-box">
                       <strong>Próximo passo:</strong> {obterProximoPasso(protocolo, paciente)}
                     </div>

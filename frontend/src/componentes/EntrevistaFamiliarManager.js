@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../services/apiClient";
 import GerenciadorAnexos from "./GerenciadorAnexos";
 import "../styles/EntrevistaFamiliarManager.css";
 
@@ -20,10 +20,24 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
     carregarProtocolo();
   }, [protocoloMEId]);
 
+  const obterMensagemErro = (erro, fallback) => {
+    const payload = erro?.response?.data;
+    if (typeof payload === "string" && payload.trim()) {
+      return payload;
+    }
+    if (payload?.mensagem) {
+      return payload.mensagem;
+    }
+    if (payload?.erro) {
+      return payload.erro;
+    }
+    return fallback;
+  };
+
   const carregarProtocolo = async () => {
     setCarregando(true);
     try {
-      const response = await axios.get(`/api/protocolos-me/${protocoloMEId}`);
+      const response = await apiClient.get(`/api/protocolos-me/${protocoloMEId}`);
       setProtocolo(response.data);
       setFormEntrevista({
         familiaNotificada: response.data.familiaNotificada || false,
@@ -32,7 +46,7 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
         observacoes: response.data.observacoes || ""
       });
     } catch (e) {
-      setErro("Erro ao carregar protocolo");
+      setErro(obterMensagemErro(e, "Erro ao carregar protocolo"));
     } finally {
       setCarregando(false);
     }
@@ -79,11 +93,11 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
     setErro("");
     setSucesso("");
     try {
-      await axios.post(`/api/protocolos-me/${protocoloMEId}/marcar-entrevista`);
+      await apiClient.post(`/api/protocolos-me/${protocoloMEId}/marcar-entrevista`);
       setSucesso("Protocolo marcado para entrevista familiar");
       await carregarProtocolo();
     } catch (e) {
-      setErro(e.response?.data || "Erro ao marcar para entrevista");
+      setErro(obterMensagemErro(e, "Erro ao marcar para entrevista"));
     } finally {
       setSalvando(false);
     }
@@ -104,7 +118,7 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
     setErro("");
     setSucesso("");
     try {
-      await axios.post(
+      await apiClient.post(
         `/api/protocolos-me/${protocoloMEId}/resultado-entrevista`,
         null,
         {
@@ -121,7 +135,7 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
       );
       await carregarProtocolo();
     } catch (e) {
-      setErro(e.response?.data || "Erro ao salvar resultado");
+      setErro(obterMensagemErro(e, "Erro ao salvar resultado"));
     } finally {
       setSalvando(false);
     }
