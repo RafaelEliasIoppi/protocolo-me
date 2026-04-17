@@ -46,6 +46,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.PUT, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
                 .antMatchers(HttpMethod.DELETE, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
 
+                .antMatchers(HttpMethod.POST, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.PUT, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.PATCH, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.DELETE, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.GET, "/api/protocolos-me/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
+
+                .antMatchers(HttpMethod.POST, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.PUT, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.PATCH, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.DELETE, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.GET, "/api/exames-me/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
+
                 .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/api/usuarios/**").hasRole("ADMIN")
                 .antMatchers("/api/pacientes/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")

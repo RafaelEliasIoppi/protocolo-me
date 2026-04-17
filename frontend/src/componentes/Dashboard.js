@@ -1,451 +1,246 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import apiClient from "../services/apiClient";
 import pacienteService from "../services/pacienteService";
-import PacienteForm from "./PacienteForm";
+import "../styles/Dashboard.css";
 
 function Dashboard({ onLogout, theme, setTheme, role }) {
   const [pacientes, setPacientes] = useState([]);
-  const [activeSection, setActiveSection] = useState("overview");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Todos");
-  const [editingPaciente, setEditingPaciente] = useState(null);
-  const [mostrarFormularioPaciente, setMostrarFormularioPaciente] = useState(false);
-
-  const notifications = [
-    { id: 1, title: "Protocolo novo recebido", detail: "Há 5 novos pacientes aguardando análise." },
-    { id: 2, title: "Atualização de processo", detail: "2 protocolos concluídos nas últimas 24 horas." },
-    { id: 3, title: "Atenção prioritária", detail: "1 paciente precisa de atendimento urgente." },
-  ];
+  const [protocolosME, setProtocolosME] = useState([]);
+  const [notificacoes, setNotificacoes] = useState([]);
+  const [carregando, setCarregando] = useState(false);
 
   useEffect(() => {
-    fetchPacientes();
-  }, []);
+    let ativo = true;
 
-  const fetchPacientes = async () => {
-    try {
-      const response = await pacienteService.listar();
-      const pacientesData = Array.isArray(response)
-        ? response
-        : Array.isArray(response?.data)
-          ? response.data
-          : [];
-      setPacientes(pacientesData);
-    } catch (error) {
-      console.error("Erro ao buscar pacientes:", error);
-      setPacientes([]);
-      alert("Erro ao carregar pacientes. Verifique se está logado.");
+    const carregarDados = async () => {
+      try {
+        setCarregando(true);
+
+        const pacientesResponse = await pacienteService.listar();
+        const pacientesData = Array.isArray(pacientesResponse)
+          ? pacientesResponse
+          : Array.isArray(pacientesResponse?.data)
+            ? pacientesResponse.data
+            : [];
+
+        if (!ativo) {
+          return;
+        }
+
+        setPacientes(pacientesData);
+
+        if (role === "MEDICO" || role === "ENFERMEIRO" || role === "CENTRAL_TRANSPLANTES") {
+          try {
+            const protocolosResponse = await apiClient.get("/api/pacientes/em-protocolo-me");
+            if (ativo) {
+              setProtocolosME(Array.isArray(protocolosResponse.data) ? protocolosResponse.data : []);
+            }
+          } catch (error) {
+            console.error("Erro ao carregar protocolos ME:", error);
+            if (ativo) {
+              setProtocolosME([]);
+            }
+          }
+        } else {
+          setProtocolosME([]);
+        }
+
+        if (ativo) {
+          setNotificacoes(gerarNotificacoes(pacientesData));
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+      } finally {
+        if (ativo) {
+          setCarregando(false);
+        }
+      }
+    };
+
+    carregarDados();
+    const intervalo = setInterval(carregarDados, 30000);
+
+    return () => {
+      ativo = false;
+      clearInterval(intervalo);
+    };
+  }, [role]);
+
+  const gerarNotificacoes = (listaPacientes) => {
+    const novasNotificacoes = [];
+
+    const pacientesEmProtocolo = listaPacientes.filter(
+      (p) => Array.isArray(p.protocolosME) && p.protocolosME.length > 0,
+    );
+
+    if (pacientesEmProtocolo.length > 0) {
+      const naoConfirmados = pacientesEmProtocolo.filter(
+        (p) => p.protocolosME[0]?.status !== "MORTE_CEREBRAL_CONFIRMADA",
+      ).length;
+
+      novasNotificacoes.push({
+        id: 1,
+        tipo: "info",
+        titulo: `${pacientesEmProtocolo.length} Protocolo(s) ME em Acompanhamento`,
+        detalhe: `${naoConfirmados} aguardando confirmação de morte cerebral`,
+      });
     }
+
+    const internadosSemProtocolo = listaPacientes.filter(
+      (p) => p.status === "INTERNADO" && (!Array.isArray(p.protocolosME) || p.protocolosME.length === 0),
+    );
+
+    if (internadosSemProtocolo.length > 0) {
+      novasNotificacoes.push({
+        id: 2,
+        tipo: "warning",
+        titulo: `${internadosSemProtocolo.length} Paciente(s) Internado(s) Sem Protocolo`,
+        detalhe: "Verificar possibilidade de iniciar protocolo ME",
+      });
+    }
+
+    const confirmados = pacientesEmProtocolo.filter(
+      (p) => p.protocolosME[0]?.status === "MORTE_CEREBRAL_CONFIRMADA",
+    ).length;
+
+    if (confirmados > 0) {
+      novasNotificacoes.push({
+        id: 3,
+        tipo: "alert",
+        titulo: `${confirmados} Morte(s) Cerebral(is) Confirmada(s)`,
+        detalhe: "Referências enviadas para a central de transplantes",
+      });
+    }
+
+    return novasNotificacoes;
   };
 
   const totalPacientes = pacientes.length;
-  const protocoloAberto = pacientes.filter((p) => p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("aberto")).length;
-  const protocoloConcluido = pacientes.filter((p) => p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu")).length;
-  const protocoloAndamento = pacientes.filter((p) => p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento")).length;
-  const podeGerenciarPacientes = role === "MEDICO" || role === "ENFERMEIRO" || role === "ADMIN";
+  const internados = pacientes.filter((p) => p.status === "INTERNADO").length;
+  const emProtocoloME = protocolosME.length;
+  const meConfirmada = protocolosME.filter(
+    (p) => p.protocolosME?.[0]?.status === "MORTE_CEREBRAL_CONFIRMADA",
+  ).length;
 
-  const filteredPacientes = useMemo(() => {
-    return pacientes.filter((p) => {
-      const matchesName = p.nome.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus =
-        statusFilter === "Todos" ||
-        (statusFilter === "Aberto" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("aberto")) ||
-        (statusFilter === "Em andamento" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento")) ||
-        (statusFilter === "Concluído" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu")) ||
-        (statusFilter === "Cancelado" && p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("cancelado"));
-      return matchesName && matchesStatus;
-    });
-  }, [pacientes, searchQuery, statusFilter]);
-
-  const handleSavePaciente = (pacienteSalvo) => {
-    if (editingPaciente) {
-      setPacientes(prev => prev.map(p => p.id === pacienteSalvo.id ? pacienteSalvo : p));
-    } else {
-      setPacientes(prev => [...prev, pacienteSalvo]);
-    }
-
-    setEditingPaciente(null);
-    setMostrarFormularioPaciente(false);
-  };
-
-  const handleNovoPaciente = () => {
-    setEditingPaciente(null);
-    setMostrarFormularioPaciente(true);
-    setActiveSection("pacientes");
-  };
-
-  const handleEditPaciente = (paciente) => {
-    setEditingPaciente(paciente);
-    setMostrarFormularioPaciente(true);
-    setActiveSection("pacientes");
-  };
-
-  const handleFecharFormularioPaciente = () => {
-    setEditingPaciente(null);
-    setMostrarFormularioPaciente(false);
-  };
-
-  const handleDeletePaciente = async (id) => {
-    if (window.confirm("Tem certeza que deseja excluir este paciente?")) {
-      try {
-        await pacienteService.deletar(id);
-        setPacientes(prev => prev.filter(p => p.id !== id));
-      } catch (error) {
-        console.error("Erro ao deletar paciente:", error);
-        alert("Erro ao excluir paciente.");
-      }
-    }
-  };
-
-  const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
+  const isMedico = role === "MEDICO" || role === "ENFERMEIRO";
+  const isCentral = role === "CENTRAL_TRANSPLANTES";
+  const isAdmin = role === "ADMIN";
 
   return (
-    <div className="dashboard-shell">
-      <aside className="sidebar">
+    <section className="dashboard">
+      <div className="dashboard-header">
         <div>
-          <h2>Transportadora</h2>
-          <p>Painel de controle para gerenciar pacientes, protocolos e fluxos.</p>
+          <h1>Dashboard Principal</h1>
+          <p>Sistema de Protocolo ME</p>
         </div>
-
-        <div className="sidebar-nav">
-          <button className={activeSection === "overview" ? "active" : ""} onClick={() => setActiveSection("overview")}>Overview</button>
-          {podeGerenciarPacientes && (
-            <button className={activeSection === "pacientes" ? "active" : ""} onClick={() => setActiveSection("pacientes")}>Pacientes</button>
-          )}
-          <button className={activeSection === "protocolos" ? "active" : ""} onClick={() => setActiveSection("protocolos")}>Protocolos</button>
-          <button className={activeSection === "configuracoes" ? "active" : ""} onClick={() => setActiveSection("configuracoes")}>Configurações</button>
-        </div>
-
         <div>
-          <p className="note">Dica: atualize os dados sempre que cadastrar um novo paciente.</p>
+          <button className="secondary-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+            {theme === "dark" ? "Claro" : "Escuro"}
+          </button>
+          <button className="secondary-button" onClick={onLogout}>Sair</button>
         </div>
-      </aside>
+      </div>
 
-      <main className="dashboard-main">
-        <div className="brand-bar">
-          <div>
-            <h1>Dashboard Moderno</h1>
-            <p>Uma visão clara dos indicadores de saúde e dos protocolos ativos.</p>
+      {carregando && <p className="note">Carregando dados...</p>}
+
+      <div className="resumo-grid">
+        <div className="resumo-card total">
+          <h3>{totalPacientes}</h3>
+          <p>Total de Pacientes</p>
+        </div>
+        <div className="resumo-card internados">
+          <h3>{internados}</h3>
+          <p>Pacientes Internados</p>
+        </div>
+        <div className="resumo-card protocolo">
+          <h3>{emProtocoloME}</h3>
+          <p>Em Protocolo ME</p>
+        </div>
+        <div className="resumo-card confirmado">
+          <h3>{meConfirmada}</h3>
+          <p>ME Confirmadas</p>
+        </div>
+      </div>
+
+      <div className="panel notificacoes-panel">
+        <h2>Notificacoes em Tempo Real</h2>
+        {notificacoes.length === 0 ? (
+          <p className="note">Tudo funcionando normalmente</p>
+        ) : (
+          <div className="notificacoes-lista">
+            {notificacoes.map((notif) => (
+              <div key={notif.id} className={`notificacao-item notif-${notif.tipo}`}>
+                <h4>{notif.titulo}</h4>
+                <p>{notif.detalhe}</p>
+              </div>
+            ))}
           </div>
-          <div className="action-row">
-            <button className="secondary-button" onClick={toggleTheme}>
-              {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
-            </button>
-            <button className="secondary-button" onClick={() => { localStorage.removeItem("token"); onLogout(); }}>
-              Logout
-            </button>
+        )}
+      </div>
+
+      {isMedico && (
+        <div className="panel secao-medico">
+          <h2>Secao do Medico/Enfermeiro</h2>
+          <div className="acoes-rapidas">
+            <Link to="/protocolo-me-medico" className="acao-card">
+              <h3>Meu Protocolo ME</h3>
+              <p>Gerenciar pacientes em protocolo ME e adicionar exames</p>
+              <span className="link-arrow">-></span>
+            </Link>
+            <Link to="/cadastros/pacientes" className="acao-card">
+              <h3>Cadastro de Pacientes</h3>
+              <p>Cadastrar novos pacientes internados</p>
+              <span className="link-arrow">-></span>
+            </Link>
           </div>
         </div>
+      )}
 
-        {activeSection === "overview" && (
-        <div className="overview-layout">
-          <div className="overview-main">
-            <div className="stats-grid">
-              <div className="stat-card">
-                <h3>Total de pacientes</h3>
-                <strong>{totalPacientes}</strong>
-              </div>
-              <div className="stat-card">
-                <h3>Protocolos abertos</h3>
-                <strong>{protocoloAberto}</strong>
-              </div>
-              <div className="stat-card">
-                <h3>Protocolos concluídos</h3>
-                <strong>{protocoloConcluido}</strong>
-              </div>
-            </div>
-
-            <div className="overview-panels-row">
-              <div className="notifications-panel panel">
-                <header>
-                  <div>
-                    <h2>Notificações</h2>
-                    <p className="note">Acompanhe alertas importantes e mudanças recentes.</p>
-                  </div>
-                </header>
-                <div className="notifications-grid">
-                  {notifications.map((note) => (
-                    <div className="notification-card" key={note.id}>
-                      <strong>{note.title}</strong>
-                      <p>{note.detail}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="panel protocols-panel">
-                <header>
-                  <div>
-                    <h2>Resumo dos protocolos</h2>
-                    <p className="note">Visualização rápida do status atual em barras de progresso.</p>
-                  </div>
-                </header>
-
-                <div className="chart-card">
-                  <div className="chart-row">
-                    <span>Tempo médio</span>
-                    <strong>72%</strong>
-                  </div>
-                  <div className="chart-bar background">
-                    <div className="chart-progress" style={{ width: "72%" }} />
-                  </div>
-
-                  <div className="chart-row">
-                    <span>Urgência</span>
-                    <strong>43%</strong>
-                  </div>
-                  <div className="chart-bar background">
-                    <div className="chart-progress accent" style={{ width: "43%" }} />
-                  </div>
-
-                  <div className="chart-row">
-                    <span>Satisfação</span>
-                    <strong>89%</strong>
-                  </div>
-                  <div className="chart-bar background">
-                    <div className="chart-progress success" style={{ width: "89%" }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="panel patients-panel">
-              <header>
-                <div>
-                  <h2>Pacientes recentes</h2>
-                  <p className="note">
-                    {podeGerenciarPacientes
-                      ? "Acompanhe os registros criados e o status dos protocolos em tempo real."
-                      : "Visualização somente leitura para este perfil."}
-                  </p>
-                </div>
-                {podeGerenciarPacientes && (
-                  <button className="secondary-button" onClick={handleNovoPaciente}>
-                    Novo paciente
-                  </button>
-                )}
-              </header>
-
-              <div className="filter-panel">
-                <input
-                  className="input-field"
-                  type="search"
-                  placeholder="Buscar por nome"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <select className="select-field" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                  <option value="Todos">Todos os status</option>
-                  <option value="Aberto">Aberto</option>
-                  <option value="Em andamento">Em andamento</option>
-                  <option value="Concluído">Concluído</option>
-                  <option value="Cancelado">Cancelado</option>
-                </select>
-              </div>
-
-              <div className="list-panel">
-                {filteredPacientes.length > 0 ? (
-                  filteredPacientes.map((p) => (
-                    <div className="patient-card" key={p.id}>
-                      <div className="patient-info">
-                        <h4>{p.nome}</h4>
-                        <span>CPF: {p.cpf || "Não informado"}</span>
-                        <span>Telefone: {p.telefone || "Não informado"}</span>
-                        <span className="hospital-info">
-                          Hospital: {p.hospital ? `${p.hospital.nome} - ${p.hospital.cidade}` : "Não atribuído"}
-                        </span>
-                      </div>
-                      <div className="patient-actions">
-                        <span className={`status-pill ${p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu") ? "status-closed" : p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento") ? "status-pending" : "status-open"}`}>
-                          {p.statusProtocolo || "Sem status"}
-                        </span>
-                        {podeGerenciarPacientes && (
-                          <div className="action-buttons">
-                            <button
-                              className="edit-button"
-                              onClick={() => handleEditPaciente(p)}
-                              title="Editar paciente"
-                            >
-                              ✏️
-                            </button>
-                            <button
-                              className="delete-button"
-                              onClick={() => handleDeletePaciente(p.id)}
-                              title="Excluir paciente"
-                            >
-                              🗑️
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="note">Nenhum paciente encontrado com os filtros aplicados.</p>
-                )}
-              </div>
-            </div>
+      {isCentral && (
+        <div className="panel secao-central">
+          <h2>Secao da Central de Transplantes</h2>
+          <div className="acoes-rapidas">
+            <Link to="/dashboard-central" className="acao-card">
+              <h3>Painel Central</h3>
+              <p>Monitorar todos os pacientes em protocolo ME do estado</p>
+              <span className="link-arrow">-></span>
+            </Link>
+            <Link to="/cadastros/hospitais" className="acao-card">
+              <h3>Cadastro de Hospitais</h3>
+              <p>Gerenciar hospitais e suas informacoes</p>
+              <span className="link-arrow">-></span>
+            </Link>
           </div>
-
-          {podeGerenciarPacientes && mostrarFormularioPaciente && activeSection === "pacientes" && (
-            <div className="form-panel card">
-              <h3>{editingPaciente ? "Editar Paciente" : "Novo paciente"}</h3>
-              <p className="note">
-                {editingPaciente
-                  ? "Atualize as informações do paciente selecionado."
-                  : "Cadastro rápido para adicionar pacientes diretamente ao painel."
-                }
-              </p>
-              <PacienteForm
-                paciente={editingPaciente}
-                onSave={handleSavePaciente}
-                onCancel={handleFecharFormularioPaciente}
-              />
-              <div className="action-row" style={{ justifyContent: "flex-start", marginTop: 16 }}>
-                <button className="secondary-button" onClick={handleFecharFormularioPaciente}>
-                  Fechar cadastro
-                </button>
-              </div>
-            </div>
-          )}
         </div>
-        )}
+      )}
 
-        {activeSection === "pacientes" && podeGerenciarPacientes && (
-          <div className="dashboard-grid">
-            <div className="panel">
-              <header>
-                <div>
-                  <h2>Pacientes</h2>
-                  <p className="note">Gerencie os pacientes cadastrados e acompanhe o status dos protocolos.</p>
-                </div>
-              </header>
-
-              <div className="filter-panel">
-                <input
-                  className="input-field"
-                  type="search"
-                  placeholder="Buscar por nome"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <select className="select-field" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                  <option value="Todos">Todos os status</option>
-                  <option value="Aberto">Aberto</option>
-                  <option value="Em andamento">Em andamento</option>
-                  <option value="Concluído">Concluído</option>
-                  <option value="Cancelado">Cancelado</option>
-                </select>
-              </div>
-
-              <div className="list-panel">
-                {filteredPacientes.length > 0 ? (
-                  filteredPacientes.map((p) => (
-                    <div className="patient-card" key={p.id}>
-                      <div className="patient-info">
-                        <h4>{p.nome}</h4>
-                        <span>CPF: {p.cpf || "Não informado"}</span>
-                        <span>Telefone: {p.telefone || "Não informado"}</span>
-                        <span className="hospital-info">
-                          Hospital: {p.hospital ? `${p.hospital.nome} - ${p.hospital.cidade}` : "Não atribuído"}
-                        </span>
-                      </div>
-                      <div className="patient-actions">
-                        <span className={`status-pill ${p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("conclu") ? "status-closed" : p.statusProtocolo && p.statusProtocolo.toLowerCase().includes("andamento") ? "status-pending" : "status-open"}`}>
-                          {p.statusProtocolo || "Sem status"}
-                        </span>
-                        <div className="action-buttons">
-                          <button
-                            className="edit-button"
-                            onClick={() => handleEditPaciente(p)}
-                            title="Editar paciente"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            className="delete-button"
-                            onClick={() => handleDeletePaciente(p.id)}
-                            title="Excluir paciente"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="note">Nenhum paciente encontrado com os filtros aplicados.</p>
-                )}
-              </div>
-            </div>
-
-            {mostrarFormularioPaciente && (
-            <div className="form-panel card">
-              <h3>{editingPaciente ? "Editar Paciente" : "Novo paciente"}</h3>
-              <p className="note">
-                {editingPaciente
-                  ? "Atualize as informações do paciente selecionado."
-                  : "Cadastro rápido para adicionar pacientes diretamente ao painel."
-                }
-              </p>
-              <PacienteForm
-                paciente={editingPaciente}
-                onSave={handleSavePaciente}
-                onCancel={handleFecharFormularioPaciente}
-              />
-              <div className="action-row" style={{ justifyContent: "flex-start", marginTop: 16 }}>
-                <button className="secondary-button" onClick={handleFecharFormularioPaciente}>
-                  Fechar cadastro
-                </button>
-              </div>
-            </div>
-            )}
+      {isAdmin && (
+        <div className="panel secao-admin">
+          <h2>Secao Administrativa</h2>
+          <div className="acoes-rapidas">
+            <Link to="/admin/usuarios" className="acao-card">
+              <h3>Cadastro de Usuarios</h3>
+              <p>Gerenciar usuarios e suas permissoes</p>
+              <span className="link-arrow">-></span>
+            </Link>
+            <Link to="/dashboard-central" className="acao-card">
+              <h3>Painel Central</h3>
+              <p>Visualizar dados de todos os estados</p>
+              <span className="link-arrow">-></span>
+            </Link>
           </div>
-        )}
+        </div>
+      )}
 
-        {activeSection === "protocolos" && (
-          <div className="panel">
-            <header>
-              <div>
-                <h2>Protocolos</h2>
-                <p className="note">Resumo operacional de protocolos por status.</p>
-              </div>
-            </header>
-            <div className="stats-grid">
-              <div className="stat-card">
-                <h3>Abertos</h3>
-                <strong>{protocoloAberto}</strong>
-              </div>
-              <div className="stat-card">
-                <h3>Em andamento</h3>
-                <strong>{protocoloAndamento}</strong>
-              </div>
-              <div className="stat-card">
-                <h3>Concluídos</h3>
-                <strong>{protocoloConcluido}</strong>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeSection === "configuracoes" && (
-          <div className="panel">
-            <header>
-              <div>
-                <h2>Configurações</h2>
-                <p className="note">Ajustes rápidos da sua sessão.</p>
-              </div>
-            </header>
-            <div className="action-row" style={{ justifyContent: "flex-start" }}>
-              <button className="secondary-button" onClick={toggleTheme}>
-                {theme === "dark" ? "Modo Claro" : "Modo Escuro"}
-              </button>
-              <button className="secondary-button" onClick={() => { localStorage.removeItem("token"); onLogout(); }}>
-                Logout
-              </button>
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
+      <div className="panel info-usuario">
+        <h2>Sua Sessao</h2>
+        <p>
+          Perfil: <strong>{role || "Nao identificado"}</strong>
+        </p>
+        <p>Dados atualizados em tempo real a cada 30 segundos</p>
+      </div>
+    </section>
   );
 }
 

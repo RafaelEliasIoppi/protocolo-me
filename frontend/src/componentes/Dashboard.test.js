@@ -1,83 +1,71 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import Dashboard from './Dashboard';
-import pacienteService from '../services/pacienteService';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import Dashboard from "./Dashboard";
+import apiClient from "../services/apiClient";
+import pacienteService from "../services/pacienteService";
 
-jest.mock('./PacienteForm', () => () => <div data-testid="paciente-form-mock" />);
-
-jest.mock('../services/pacienteService', () => ({
-  listar: jest.fn(),
-  deletar: jest.fn(),
+jest.mock("../services/apiClient", () => ({
+  get: jest.fn(),
 }));
 
-describe('Dashboard', () => {
+jest.mock("../services/pacienteService", () => ({
+  listar: jest.fn(),
+}));
+
+describe("Dashboard", () => {
   beforeEach(() => {
-    localStorage.setItem('token', 'test-token');
+    jest.clearAllMocks();
+
     pacienteService.listar.mockResolvedValue({
       data: [
         {
           id: 1,
-          nome: 'João Silva',
-          cpf: '123.456.789-00',
-          telefone: '11999999999',
-          statusProtocolo: 'Aberto',
-          hospital: { id: 1, nome: 'Hospital Central', cidade: 'São Paulo' }
+          nome: "Joao Silva",
+          status: "INTERNADO",
+          protocolosME: [{ id: 10, status: "EM_PROCESSO" }],
         },
         {
           id: 2,
-          nome: 'Maria Souza',
-          cpf: '987.654.321-00',
-          telefone: '11888888888',
-          statusProtocolo: 'Concluído',
-          hospital: { id: 2, nome: 'Hospital Norte', cidade: 'Rio de Janeiro' }
+          nome: "Maria Souza",
+          status: "INTERNADO",
+          protocolosME: [],
         },
       ],
     });
-    pacienteService.deletar.mockResolvedValue({});
+
+    apiClient.get.mockResolvedValue({
+      data: [
+        {
+          id: 1,
+          protocolosME: [{ id: 10, status: "EM_PROCESSO" }],
+        },
+      ],
+    });
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
-    localStorage.clear();
+  it("renderiza cards principais e secao do medico", async () => {
+    render(
+      <MemoryRouter>
+        <Dashboard onLogout={jest.fn()} theme="dark" setTheme={jest.fn()} role="MEDICO" />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText("Dashboard Principal")).toBeInTheDocument();
+    expect(screen.getByText("Total de Pacientes")).toBeInTheDocument();
+    expect(screen.getByText("Notificacoes em Tempo Real")).toBeInTheDocument();
+    expect(screen.getByText("Secao do Medico/Enfermeiro")).toBeInTheDocument();
+    expect(screen.getByText("Meu Protocolo ME")).toBeInTheDocument();
   });
 
-  it('renderiza notificações, filtra pacientes e permite operações CRUD', async () => {
-    render(<Dashboard onLogout={jest.fn()} theme="dark" setTheme={jest.fn()} role="MEDICO" />);
+  it("mostra notificacao de internados sem protocolo", async () => {
+    render(
+      <MemoryRouter>
+        <Dashboard onLogout={jest.fn()} theme="light" setTheme={jest.fn()} role="MEDICO" />
+      </MemoryRouter>,
+    );
 
-    expect(await screen.findByText('Notificações')).toBeInTheDocument();
-    expect(screen.getByText('Protocolo novo recebido')).toBeInTheDocument();
-    expect(screen.getByText('Total de pacientes')).toBeInTheDocument();
-    expect(screen.queryByTestId('paciente-form-mock')).not.toBeInTheDocument();
-
-    await waitFor(() => expect(screen.getByText('João Silva')).toBeInTheDocument());
-    expect(screen.getByText('Maria Souza')).toBeInTheDocument();
-    expect(screen.getByText((content, node) => content.includes('Hospital Central') && content.includes('São Paulo'))).toBeInTheDocument();
-
-    // Teste de filtro por nome
-    const searchInput = screen.getByPlaceholderText('Buscar por nome');
-    fireEvent.change(searchInput, { target: { value: 'Maria' } });
-
-    expect(screen.queryByText('João Silva')).not.toBeInTheDocument();
-    expect(screen.getByText('Maria Souza')).toBeInTheDocument();
-
-    // Teste de filtro por status
-    fireEvent.change(searchInput, { target: { value: '' } });
-    const comboboxes = screen.getAllByRole('combobox');
-    const statusSelect = comboboxes[0];
-    fireEvent.change(statusSelect, { target: { value: 'Aberto' } });
-
-    expect(screen.getByText('João Silva')).toBeInTheDocument();
-    expect(screen.queryByText('Maria Souza')).not.toBeInTheDocument();
-
-    // Teste de edição (simula clique no botão de editar)
-    const editButtons = screen.getAllByTitle('Editar paciente');
-    expect(editButtons.length).toBeGreaterThan(0);
-    fireEvent.click(editButtons[0]);
-    expect(screen.getByTestId('paciente-form-mock')).toBeInTheDocument();
-
-    // Teste de exclusão (simula confirmação)
-    window.confirm = jest.fn(() => true);
-    const deleteButtons = screen.getAllByTitle('Excluir paciente');
-    expect(deleteButtons.length).toBeGreaterThan(0);
+    expect(await screen.findByText("1 Paciente(s) Internado(s) Sem Protocolo")).toBeInTheDocument();
+    expect(screen.getByText("Verificar possibilidade de iniciar protocolo ME")).toBeInTheDocument();
   });
 });

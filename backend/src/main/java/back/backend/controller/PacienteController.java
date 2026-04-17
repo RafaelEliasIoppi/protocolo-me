@@ -117,6 +117,29 @@ public class PacienteController {
     }
 
     /**
+     * GET /api/pacientes/em-protocolo-me - Listar apenas pacientes em Protocolo de ME
+     */
+    @GetMapping("/em-protocolo-me")
+    public ResponseEntity<List<Paciente>> listarPacientesEmProtocoloME() {
+        List<Paciente> pacientes = pacienteService.listarPacientesEmProtocoloME();
+        return ResponseEntity.ok(pacientes);
+    }
+
+    /**
+     * GET /api/pacientes/em-protocolo-me/hospital/{hospitalId} - Listar pacientes em Protocolo de ME por hospital
+     */
+    @GetMapping("/em-protocolo-me/hospital/{hospitalId}")
+    public ResponseEntity<?> listarPacientesEmProtocoloMEPorHospital(@PathVariable Long hospitalId) {
+        try {
+            List<Paciente> pacientes = pacienteService.listarPacientesEmProtocoloMEPorHospital(hospitalId);
+            return ResponseEntity.ok(pacientes);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("Hospital não encontrado: " + e.getMessage()));
+        }
+    }
+
+    /**
      * GET /api/pacientes/buscar?nome={nome} - Procurar pacientes por nome
      */
     @GetMapping("/buscar")

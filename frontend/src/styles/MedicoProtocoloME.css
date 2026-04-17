@@ -1,0 +1,585 @@
+/* MedicoProtocoloME.css */
+
+.medico-protocolo-me {
+  padding: 1rem;
+}
+
+.medico-protocolo-me .brand-bar {
+  background: linear-gradient(135deg, #8e44ad 0%, #3498db 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.medico-protocolo-me .brand-bar h1 {
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.medico-protocolo-me .brand-bar p {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.btn-primary {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #229954;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+}
+
+.btn-secondary {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.7rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #2980b9;
+  transform: translateY(-2px);
+}
+
+.btn-save {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-save:hover:not(:disabled) {
+  background-color: #229954;
+  transform: translateY(-2px);
+}
+
+.btn-save:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-cancel {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+}
+
+/* Mensagens */
+.mensagem {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.mensagem.erro {
+  background-color: #fadbd8;
+  color: #78281f;
+  border: 1px solid #f5b7b1;
+}
+
+.mensagem.sucesso {
+  background-color: #d5f4e6;
+  color: #186a3b;
+  border: 1px solid #a3e4d7;
+}
+
+/* Formulário de protocolo */
+.formulario-protocolo {
+  background: linear-gradient(135deg, #f5f7fa 0%, #ecf0f1 100%);
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  border-left: 4px solid #8e44ad;
+}
+
+.formulario-protocolo h2 {
+  color: #2c3e50;
+  margin-top: 0;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #34495e;
+  font-size: 0.95rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="date"],
+.form-group select,
+.form-group textarea {
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="date"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #8e44ad;
+  box-shadow: 0 0 0 3px rgba(142, 68, 173, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group small {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.form-info {
+  background-color: rgba(52, 152, 219, 0.1);
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1.5rem;
+  border-left: 4px solid #3498db;
+}
+
+.form-info strong {
+  color: #2c3e50;
+}
+
+.form-info ul {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1.5rem;
+}
+
+.form-info li {
+  color: #34495e;
+  margin: 0.3rem 0;
+  font-size: 0.9rem;
+}
+
+/* Pacientes em protocolo */
+.pacientes-em-protocolo {
+  margin-top: 2rem;
+}
+
+.pacientes-em-protocolo h2 {
+  color: #2c3e50;
+  margin-top: 0;
+}
+
+.pacientes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.protocolo-card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border-top: 4px solid #3498db;
+}
+
+.protocolo-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.protocolo-card.status-notificado {
+  border-top-color: #3498db;
+}
+
+.protocolo-card.status-em-processo {
+  border-top-color: #f39c12;
+}
+
+.protocolo-card.status-confirmado {
+  border-top-color: #e67e22;
+}
+
+.protocolo-card.status-entrevista {
+  border-top-color: #27ae60;
+}
+
+.protocolo-card.status-autorizado {
+  border-top-color: #16a085;
+}
+
+.protocolo-card.status-recusado {
+  border-top-color: #e74c3c;
+}
+
+.card-header {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.card-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: #2c3e50;
+  font-size: 1.1rem;
+}
+
+.card-header .cpf {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.status-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.status-notificado {
+  background-color: #d6eaf8;
+  color: #1a5276;
+}
+
+.status-badge.status-em-processo {
+  background-color: #fdeaa8;
+  color: #7d6608;
+}
+
+.status-badge.status-confirmado {
+  background-color: #fdebd0;
+  color: #7e4c04;
+}
+
+.status-badge.status-entrevista {
+  background-color: #d5f4e6;
+  color: #0b5345;
+}
+
+.status-badge.status-autorizado {
+  background-color: #d1f2eb;
+  color: #0a3d34;
+}
+
+.status-badge.status-recusado {
+  background-color: #fadbd8;
+  color: #78281f;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.info-row {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+}
+
+.info-row label {
+  font-weight: 600;
+  color: #34495e;
+  min-width: 130px;
+}
+
+.info-row span {
+  color: #2c3e50;
+  flex: 1;
+}
+
+/* Exames */
+.exames-resumo {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ecf0f1;
+}
+
+.exames-resumo label {
+  font-weight: 600;
+  color: #34495e;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.exames-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.exame {
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.exame.completo {
+  background-color: #d5f4e6;
+  color: #0b5345;
+}
+
+.exame.pendente {
+  background-color: #fdeaa8;
+  color: #7d6608;
+}
+
+.exames-count {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.exames-count strong {
+  color: #2c3e50;
+  font-weight: 700;
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 6px;
+  background-color: #ecf0f1;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.progress {
+  height: 100%;
+  background: linear-gradient(90deg, #27ae60 0%, #16a085 100%);
+  transition: width 0.3s ease;
+}
+
+.card-actions {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #ecf0f1;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.card-actions button {
+  flex: 1;
+}
+
+.vazio {
+  text-align: center;
+  padding: 3rem;
+  color: #7f8c8d;
+}
+
+.vazio p {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 1000;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1000px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #ecf0f1;
+  background-color: #f8f9fa;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #7f8c8d;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #2c3e50;
+}
+
+.modal-body {
+  padding: 2rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .medico-protocolo-me .brand-bar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .medico-protocolo-me .brand-bar h1 {
+    font-size: 1.4rem;
+  }
+
+  .pacientes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+
+  .card-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .status-badge {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .medico-protocolo-me .brand-bar {
+    padding: 1rem;
+  }
+
+  .medico-protocolo-me .brand-bar h1 {
+    font-size: 1.1rem;
+  }
+
+  .medico-protocolo-me .brand-bar p {
+    font-size: 0.85rem;
+  }
+
+  .btn-primary {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .formulario-protocolo {
+    padding: 1rem;
+  }
+
+  .info-row {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .info-row label {
+    min-width: auto;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+}

@@ -3,14 +3,17 @@ package back.backend.service;
 import back.backend.model.ProtocoloME;
 import back.backend.model.CentralTransplantes;
 import back.backend.model.ExameME;
+import back.backend.model.Paciente;
 import back.backend.repository.ProtocoloMERepository;
 import back.backend.repository.CentralTransplantesRepository;
 import back.backend.repository.ExameMERepository;
+import back.backend.repository.PacienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class ProtocoloMEService {
@@ -24,19 +27,99 @@ public class ProtocoloMEService {
     @Autowired
     private ExameMERepository exameMERepository;
 
+    @Autowired
+    private PacienteRepository pacienteRepository;
+
     // Criar novo protocolo de ME e auto-popular com 35 exames
     public ProtocoloME criarProtocolo(ProtocoloME protocolo) {
+        if (protocolo.getPaciente() == null || protocolo.getPaciente().getId() == null) {
+            throw new RuntimeException("Paciente é obrigatório para criar protocolo");
+        }
+
+        Paciente paciente = pacienteRepository.findById(protocolo.getPaciente().getId())
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+
+        if (protocolo.getCentralTransplantes() == null) {
+            CentralTransplantes central = centralRepository.findAll().stream()
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Nenhuma central de transplantes cadastrada"));
+            protocolo.setCentralTransplantes(central);
+        }
+
+        protocolo.setPaciente(paciente);
+
+        if (protocolo.getNumeroProtocolo() == null || protocolo.getNumeroProtocolo().trim().isEmpty()) {
+            protocolo.setNumeroProtocolo(gerarNumeroProtocolo());
+        }
+
+        if (protocolo.getHospitalOrigem() == null || protocolo.getHospitalOrigem().trim().isEmpty()) {
+            if (paciente.getHospitalOrigem() != null && !paciente.getHospitalOrigem().trim().isEmpty()) {
+                protocolo.setHospitalOrigem(paciente.getHospitalOrigem());
+            } else if (paciente.getHospital() != null) {
+                protocolo.setHospitalOrigem(paciente.getHospital().getNome());
+            }
+        }
+
+        if (protocolo.getStatus() == null) {
+            protocolo.setStatus(ProtocoloME.StatusProtocoloME.NOTIFICADO);
+        }
+
+        if (protocolo.getDataNotificacao() == null) {
+            protocolo.setDataNotificacao(LocalDateTime.now());
+        }
+
         if (protocoloRepository.findByNumeroProtocolo(protocolo.getNumeroProtocolo()).isPresent()) {
             throw new RuntimeException("Protocolo com número " + protocolo.getNumeroProtocolo() + " já existe");
         }
         
         // Salvar protocolo
         ProtocoloME protocoloSalvo = protocoloRepository.save(protocolo);
+
+        // Atualizar status do paciente para em protocolo
+        paciente.setStatus(Paciente.StatusPaciente.EM_PROTOCOLO_ME);
+        pacienteRepository.save(paciente);
         
         // Auto-popular com 35 exames (Clínicos, Complementares, Laboratoriais)
         preencherExamesAutomaticamente(protocoloSalvo);
         
         return protocoloSalvo;
+    }
+
+    public ProtocoloME criarProtocoloPorPacienteId(Long pacienteId, String diagnosticoBasico) {
+        Paciente paciente = pacienteRepository.findById(pacienteId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado com ID: " + pacienteId));
+
+        CentralTransplantes central = centralRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Nenhuma central de transplantes cadastrada"));
+
+        ProtocoloME protocolo = new ProtocoloME();
+        protocolo.setPaciente(paciente);
+        protocolo.setCentralTransplantes(central);
+        protocolo.setNumeroProtocolo(gerarNumeroProtocolo());
+        protocolo.setHospitalOrigem(
+                (paciente.getHospitalOrigem() != null && !paciente.getHospitalOrigem().trim().isEmpty())
+                        ? paciente.getHospitalOrigem()
+                        : (paciente.getHospital() != null ? paciente.getHospital().getNome() : "Hospital não informado")
+        );
+        protocolo.setStatus(ProtocoloME.StatusProtocoloME.NOTIFICADO);
+        protocolo.setDiagnosticoBasico(diagnosticoBasico);
+        protocolo.setDataNotificacao(LocalDateTime.now());
+
+        return criarProtocolo(protocolo);
+    }
+
+    private String gerarNumeroProtocolo() {
+        String base = "ME-" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        String candidato = base;
+        int sufixo = 1;
+
+        while (protocoloRepository.findByNumeroProtocolo(candidato).isPresent()) {
+            candidato = base + "-" + sufixo;
+            sufixo++;
+        }
+
+        return candidato;
     }
 
     /**
@@ -223,6 +306,76 @@ public class ProtocoloMEService {
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
         protocolo.setDataConfirmacaoME(LocalDateTime.now());
         protocolo.setStatus(ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA);
+        return protocoloRepository.save(protocolo);
+    }
+
+    /**
+     * Atualiza o status do protocolo automaticamente baseado nos exames realizados
+     * Chamado sempre que um exame é inserido ou atualizado
+     */
+    public ProtocoloME atualizarStatusAutomatico(Long protocolo_me_id) {
+        ProtocoloME protocolo = protocoloRepository.findById(protocolo_me_id)
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado com ID: " + protocolo_me_id));
+        
+        // Contar exames realizados por categoria
+        List<ExameME> exames = protocolo.getExames();
+        long clinicosRealizados = exames.stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO && e.getDataRealizacao() != null)
+                .count();
+        long complementaresRealizados = exames.stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && e.getDataRealizacao() != null)
+                .count();
+
+        // Atualizar os flags de testes realizados
+        if (clinicosRealizados >= 6) {
+            protocolo.setTesteClinico1Realizado(true);
+        }
+        if (clinicosRealizados >= 12) {
+            protocolo.setTesteClinico2Realizado(true);
+        }
+        if (complementaresRealizados >= 2) {
+            protocolo.setTestesComplementaresRealizados(true);
+        }
+
+        // Calcular novo status baseado nos testes
+        ProtocoloME.StatusProtocoloME novoStatus = protocolo.calcularStatusAutomatico();
+        protocolo.setStatus(novoStatus);
+        
+        return protocoloRepository.save(protocolo);
+    }
+
+    /**
+     * Marcar para entrevista familiar
+     */
+    public ProtocoloME marcarParaEntrevista(Long id) {
+        ProtocoloME protocolo = protocoloRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        
+        if (!protocolo.estaProtoProntoParaEntrevista()) {
+            throw new RuntimeException("Protocolo não está pronto para entrevista. Todos os testes devem estar completos.");
+        }
+        
+        protocolo.setStatus(ProtocoloME.StatusProtocoloME.ENTREVISTA_FAMILIAR);
+        return protocoloRepository.save(protocolo);
+    }
+
+    /**
+     * Registrar resultado da entrevista familiar
+     */
+    public ProtocoloME registrarResultadoEntrevista(Long id, boolean autorizouDoacao) {
+        ProtocoloME protocolo = protocoloRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+        
+        protocolo.setFamiliaNotificada(true);
+        protocolo.setDataNotificacaoFamilia(LocalDateTime.now());
+        protocolo.setAutopsiaAutorizada(autorizouDoacao);
+        
+        if (autorizouDoacao) {
+            protocolo.setStatus(ProtocoloME.StatusProtocoloME.DOACAO_AUTORIZADA);
+        } else {
+            protocolo.setStatus(ProtocoloME.StatusProtocoloME.FAMILIA_RECUSOU);
+        }
+        
         return protocoloRepository.save(protocolo);
     }
 

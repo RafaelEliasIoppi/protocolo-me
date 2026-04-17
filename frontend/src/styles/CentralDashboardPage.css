@@ -1,0 +1,490 @@
+/* Central Dashboard Page Styles */
+
+.central-dashboard {
+  padding: 1rem;
+}
+
+.dashboard-header {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-header h1 {
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.dashboard-header p {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.action-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.secondary-button {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.secondary-button:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Painel de Pacientes */
+.pacientes-painel {
+  background: white;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.painel-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.painel-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.painel-header .note {
+  margin: 0.5rem 0 0 0;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+}
+
+.painel-header .central-note-readonly {
+  color: #0e7490;
+  font-weight: 600;
+}
+
+/* Tabela */
+.pacientes-tabela-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #ecf0f1;
+}
+
+.tabela-pacientes {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabela-pacientes thead {
+  background-color: #34495e;
+  color: white;
+  font-weight: 600;
+}
+
+.tabela-pacientes th {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 2px solid #2c3e50;
+}
+
+.tabela-pacientes .col-nome {
+  min-width: 200px;
+}
+
+.tabela-pacientes .col-cpf {
+  min-width: 150px;
+}
+
+.tabela-pacientes .col-hospital {
+  min-width: 180px;
+}
+
+.tabela-pacientes .col-cidade {
+  min-width: 120px;
+}
+
+.tabela-pacientes .col-data {
+  min-width: 140px;
+}
+
+.tabela-pacientes .col-exames {
+  min-width: 160px;
+}
+
+.tabela-pacientes .col-faltantes {
+  min-width: 260px;
+}
+
+.tabela-pacientes .col-status {
+  min-width: 150px;
+}
+
+.tabela-pacientes tbody tr {
+  border-bottom: 1px solid #ecf0f1;
+  transition: background-color 0.2s ease;
+}
+
+.tabela-pacientes tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.tabela-pacientes td {
+  padding: 0.8rem 1rem;
+  vertical-align: top;
+}
+
+.lista-faltantes {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #4b5563;
+}
+
+.lista-faltantes li {
+  margin-bottom: 0.25rem;
+}
+
+.pendencia-ok {
+  color: #0f766e;
+  font-weight: 600;
+}
+
+/* Status Rows */
+.tabela-pacientes tr.row-status-warning {
+  border-left: 4px solid #f39c12;
+}
+
+.tabela-pacientes tr.row-status-processing {
+  border-left: 4px solid #9b59b6;
+}
+
+.tabela-pacientes tr.row-status-confirmed {
+  border-left: 4px solid #27ae60;
+}
+
+.tabela-pacientes tr.row-status-interview {
+  border-left: 4px solid #16a085;
+}
+
+.tabela-pacientes tr.row-status-authorized {
+  border-left: 4px solid #27ae60;
+}
+
+.tabela-pacientes tr.row-status-rejected {
+  border-left: 4px solid #e74c3c;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.status-warning {
+  background-color: #fef5e7;
+  color: #d68910;
+  border: 1px solid #f8c471;
+}
+
+.status-badge.status-processing {
+  background-color: #f4ecf7;
+  color: #7d3c98;
+  border: 1px solid #d7bde2;
+}
+
+.status-badge.status-confirmed {
+  background-color: #eafaf1;
+  color: #186a3b;
+  border: 1px solid #a9dfbf;
+}
+
+.status-badge.status-interview {
+  background-color: #e8f8f5;
+  color: #0e6251;
+  border: 1px solid #a3e4d7;
+}
+
+.status-badge.status-authorized {
+  background-color: #d5f4e6;
+  color: #186a3b;
+  border: 1px solid #a3e4d7;
+}
+
+.status-badge.status-rejected {
+  background-color: #fadbd8;
+  color: #78281f;
+  border: 1px solid #f5b7b1;
+}
+
+/* Messages */
+.loading-message {
+  text-align: center;
+  padding: 2rem;
+  color: #3498db;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 2rem;
+  color: #27ae60;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.mensagem {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.mensagem.erro {
+  background-color: #fadbd8;
+  color: #78281f;
+  border: 1px solid #f5b7b1;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .tabela-pacientes .col-nome {
+    min-width: 150px;
+  }
+}
+
+@media (max-width: 768px) {
+  .central-dashboard {
+    padding: 0.5rem;
+  }
+
+  .dashboard-header {
+    padding: 1rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.4rem;
+  }
+
+  .dashboard-header p {
+    font-size: 0.85rem;
+  }
+
+  .pacientes-painel {
+    padding: 1rem;
+  }
+
+  .tabela-pacientes {
+    font-size: 0.8rem;
+  }
+
+  .tabela-pacientes th,
+  .tabela-pacientes td {
+    padding: 0.6rem;
+  }
+
+  .status-badge {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+}
+
+/* Modal Styles */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 1000;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #ecf0f1;
+  background-color: #f8f9fa;
+  border-radius: 12px 12px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.3rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #7f8c8d;
+  transition: color 0.2s ease;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  color: #2c3e50;
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.readonly-alert {
+  background: #ecfeff;
+  color: #155e75;
+  border: 1px solid #a5f3fc;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.readonly-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.readonly-checklist,
+.readonly-pendencias {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.readonly-checklist h3,
+.readonly-pendencias h3 {
+  margin-top: 0;
+  margin-bottom: 0.8rem;
+  color: #1f2937;
+}
+
+.readonly-checklist ul,
+.readonly-pendencias ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+@media (max-width: 600px) {
+  .modal-overlay {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    max-height: 95vh;
+    border-radius: 8px;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .painel-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .pacientes-tabela-wrapper {
+    font-size: 0.75rem;
+  }
+
+  .tabela-pacientes {
+    font-size: 0.75rem;
+  }
+
+  .tabela-pacientes th,
+  .tabela-pacientes td {
+    padding: 0.4rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.1rem;
+  }
+}

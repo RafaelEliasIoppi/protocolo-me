@@ -4,11 +4,13 @@ import Login from "./componentes/login";
 import Dashboard from "./componentes/Dashboard";
 import AppLayout from "./componentes/AppLayout";
 import PacientesPage from "./componentes/PacientesPage";
+import PacientesProtocoloMEPage from "./componentes/PacientesProtocoloMEPage";
 import HospitaisPage from "./componentes/HospitaisPage";
 import CentraisPage from "./componentes/CentraisPage";
 import CentralDashboardPage from "./componentes/CentralDashboardPage";
 import UsuariosAdminPage from "./componentes/UsuariosAdminPage";
 import autenticarService from "./services/autenticarService";
+import MedicoProtocoloME from "./componentes/MedicoProtocoloME";
 import "./App.css";
 
 function AcessoNegado() {
@@ -91,11 +93,27 @@ function App() {
               </GuardedRoute>
             }
           />
+           <Route
+             path="protocolo-me-medico"
+             element={
+               <GuardedRoute isLogged={isLogged} allowedRoles={["MEDICO", "ENFERMEIRO"]}>
+                 <MedicoProtocoloME />
+               </GuardedRoute>
+             }
+           />
           <Route
             path="cadastros/pacientes"
             element={
               <GuardedRoute isLogged={isLogged} allowedRoles={["MEDICO", "ENFERMEIRO"]}>
                 <PacientesPage />
+              </GuardedRoute>
+            }
+          />
+          <Route
+            path="pacientes/protocolo-me"
+            element={
+              <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES", "ADMIN", "MEDICO"]}>
+                <PacientesProtocoloMEPage />
               </GuardedRoute>
             }
           />

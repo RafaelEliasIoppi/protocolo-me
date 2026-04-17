@@ -26,6 +26,9 @@ public class PacienteService {
      * Criar novo paciente
      */
     public Paciente criarPaciente(Paciente paciente) {
+        if (paciente.getStatus() == null || paciente.getStatus() == Paciente.StatusPaciente.EM_PROTOCOLO_ME) {
+            paciente.setStatus(Paciente.StatusPaciente.INTERNADO);
+        }
         preencherHospitalOrigemSeNecessario(paciente);
         validarPaciente(paciente);
         return pacienteRepository.save(paciente);
@@ -131,6 +134,22 @@ public class PacienteService {
         Hospital hospital = hospitalRepository.findById(hospitalId)
             .orElseThrow(() -> new IllegalArgumentException("Hospital não encontrado com ID: " + hospitalId));
         return pacienteRepository.findByHospitalAndNomeContainingIgnoreCase(hospital, nome);
+    }
+
+    /**
+     * Listar apenas pacientes que já entraram em Protocolo de ME
+     */
+    public List<Paciente> listarPacientesEmProtocoloME() {
+        return pacienteRepository.findPacientesEmProtocoloME();
+    }
+
+    /**
+     * Listar apenas pacientes em Protocolo de ME de um hospital específico
+     */
+    public List<Paciente> listarPacientesEmProtocoloMEPorHospital(Long hospitalId) {
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+            .orElseThrow(() -> new IllegalArgumentException("Hospital não encontrado com ID: " + hospitalId));
+        return pacienteRepository.findPacientesEmProtocoloMEPorHospital(hospital);
     }
 
     /**

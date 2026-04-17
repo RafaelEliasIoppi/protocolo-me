@@ -19,6 +19,9 @@ function AppLayout({ usuario, theme, setTheme, onLogout }) {
             <Link className="secondary-button" to="/dashboard-central">Painel da Central</Link>
           )}
           {(role === "MEDICO" || role === "ENFERMEIRO") && (
+             <Link className="secondary-button" to="/protocolo-me-medico">Meu Protocolo ME</Link>
+           )}
+           {(role === "MEDICO" || role === "ENFERMEIRO") && (
             <Link className="secondary-button" to="/cadastros/pacientes">Cadastro de Pacientes</Link>
           )}
           {role === "CENTRAL_TRANSPLANTES" && (

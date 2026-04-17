@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
+import GerenciadorAnexos from './GerenciadorAnexos';
 import '../styles/ExameMEManager.css';
 
 const ExameMEManager = ({ protocoloId }) => {
@@ -84,7 +85,7 @@ const ExameMEManager = ({ protocoloId }) => {
   const carregarExames = async () => {
     setCarregando(true);
     try {
-      const response = await axios.get(`/api/exames-me/protocolo/${protocoloId}`);
+      const response = await apiClient.get(`/api/exames-me/protocolo/${protocoloId}`);
       setExames(response.data);
     } catch (err) {
       setErro('Erro ao carregar exames');
@@ -95,7 +96,7 @@ const ExameMEManager = ({ protocoloId }) => {
 
   const carregarResumo = async () => {
     try {
-      const response = await axios.get(`/api/exames-me/protocolo/${protocoloId}/resumo`);
+      const response = await apiClient.get(`/api/exames-me/protocolo/${protocoloId}/resumo`);
       setResumoExames(response.data);
     } catch (err) {
       console.error('Erro ao carregar resumo');
@@ -137,7 +138,7 @@ const ExameMEManager = ({ protocoloId }) => {
         protocoloME: { id: protocoloId }
       };
 
-      const response = await axios.post('/api/exames-me', exame);
+      const response = await apiClient.post('/api/exames-me', exame);
       setExames([...exames, response.data]);
       setNovoExame({
         tipoExame: '',
@@ -166,7 +167,7 @@ const ExameMEManager = ({ protocoloId }) => {
         params.append('responsavel', exameSelecionado.responsavel);
       }
 
-      const response = await axios.post(
+      const response = await apiClient.post(
         `/api/exames-me/${exameId}/resultado`,
         {},
         { params: Object.fromEntries(params) }
@@ -184,7 +185,7 @@ const ExameMEManager = ({ protocoloId }) => {
   const deletarExame = async (exameId) => {
     if (window.confirm('Tem certeza que deseja deletar este exame?')) {
       try {
-        await axios.delete(`/api/exames-me/${exameId}`);
+        await apiClient.delete(`/api/exames-me/${exameId}`);
         setExames(exames.filter(e => e.id !== exameId));
         setSucesso('Exame deletado!');
         carregarResumo();
@@ -385,6 +386,12 @@ const ExameMEManager = ({ protocoloId }) => {
                       Cancelar
                     </button>
                   </div>
+
+                  <GerenciadorAnexos
+                    tipoAnexo="EXAME"
+                    idExameOuProtocolo={exame.id}
+                    titulo={`📎 Documentos - ${getTipoLabel(exame.tipoExame)}`}
+                  />
                 </div>
               )}
             </div>

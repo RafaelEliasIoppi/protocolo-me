@@ -54,6 +54,16 @@ export const pacienteService = {
 
   listarPorStatus: async (status) => {
     return api.get(`/api/pacientes/status/${status}`);
+  },
+
+  listarEmProtocoloME: async () => {
+    const response = await api.get('/api/pacientes/em-protocolo-me');
+    return response.data;
+  },
+
+  listarEmProtocoloMEPorHospital: async (hospitalId) => {
+    const response = await api.get(`/api/pacientes/em-protocolo-me/hospital/${hospitalId}`);
+    return response.data;
   }
 };
 

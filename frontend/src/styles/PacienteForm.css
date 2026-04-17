@@ -447,24 +447,18 @@
   transform: translateY(-2px);
 }
 
-.status-actions {
-  flex: 1;
+.status-badge-listagem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background-color: #eef3ff;
+  color: #2c3e50;
+  border: 1px solid #d6e4ff;
+  font-size: 0.85rem;
+  font-weight: 600;
   min-width: 150px;
-}
-
-.status-select {
-  width: 100%;
-  padding: 8px;
-  border: 2px solid #ecf0f1;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: border-color 0.3s ease;
-}
-
-.status-select:focus {
-  outline: none;
-  border-color: #3498db;
 }
 
 /* Responsivo */
@@ -531,7 +525,7 @@
 
   .btn-editar,
   .btn-deletar,
-  .status-actions {
+  .status-badge-listagem {
     width: 100%;
   }
 }

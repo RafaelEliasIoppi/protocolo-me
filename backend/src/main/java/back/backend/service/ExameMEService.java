@@ -19,12 +19,22 @@ public class ExameMEService {
     @Autowired
     private ProtocoloMERepository protocoloRepository;
 
+    @Autowired(required = false)
+    private ProtocoloMEService protocoloMEService;
+
     // Criar exame
     public ExameME criarExame(ExameME exame) {
         if (exame.getDataRealizacao() == null) {
             exame.setDataRealizacao(LocalDateTime.now());
         }
-        return exameRepository.save(exame);
+        ExameME exameSalvo = exameRepository.save(exame);
+        
+        // Atualizar o status do protocolo automaticamente
+        if (exameSalvo.getProtocoloME() != null && protocoloMEService != null) {
+            protocoloMEService.atualizarStatusAutomatico(exameSalvo.getProtocoloME().getId());
+        }
+        
+        return exameSalvo;
     }
 
     // Listar exames de um protocolo
@@ -84,7 +94,14 @@ public class ExameMEService {
         exame.setResponsavel(responsavel);
         exame.setDataRealizacao(LocalDateTime.now());
 
-        return exameRepository.save(exame);
+        ExameME exameSalvo = exameRepository.save(exame);
+        
+        // Atualizar o status do protocolo automaticamente
+        if (exameSalvo.getProtocoloME() != null && protocoloMEService != null) {
+            protocoloMEService.atualizarStatusAutomatico(exameSalvo.getProtocoloME().getId());
+        }
+
+        return exameSalvo;
     }
 
     // Deletar exame

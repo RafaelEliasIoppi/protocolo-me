@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.time.LocalDateTime;
 
@@ -21,12 +22,29 @@ public class ProtocoloMEController {
 
     // POST - Criar novo protocolo de ME
     @PostMapping
-    public ResponseEntity<ProtocoloME> criarProtocolo(@RequestBody ProtocoloME protocolo) {
+    public ResponseEntity<?> criarProtocolo(@RequestBody Map<String, Object> payload) {
         try {
-            ProtocoloME novoProtocolo = protocoloService.criarProtocolo(protocolo);
+            Object pacienteIdObj = payload.get("pacienteId");
+            if (pacienteIdObj == null && payload.get("paciente") instanceof Map) {
+                Object nestedId = ((Map<?, ?>) payload.get("paciente")).get("id");
+                pacienteIdObj = nestedId;
+            }
+
+            if (pacienteIdObj == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of("mensagem", "pacienteId é obrigatório"));
+            }
+
+            Long pacienteId = Long.valueOf(String.valueOf(pacienteIdObj));
+            String diagnosticoBasico = payload.get("diagnosticoBasico") != null
+                    ? String.valueOf(payload.get("diagnosticoBasico"))
+                    : null;
+
+            ProtocoloME novoProtocolo = protocoloService.criarProtocoloPorPacienteId(pacienteId, diagnosticoBasico);
             return ResponseEntity.status(HttpStatus.CREATED).body(novoProtocolo);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("mensagem", e.getMessage()));
         }
     }
 
@@ -207,6 +225,41 @@ public class ProtocoloMEController {
             return ResponseEntity.ok(protocolo);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // POST - Atualizar status automaticamente após inserção de exame
+    @PostMapping("/{id}/atualizar-status")
+    public ResponseEntity<ProtocoloME> atualizarStatusAutomatico(@PathVariable Long id) {
+        try {
+            ProtocoloME protocolo = protocoloService.atualizarStatusAutomatico(id);
+            return ResponseEntity.ok(protocolo);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // POST - Marcar para entrevista familiar
+    @PostMapping("/{id}/marcar-entrevista")
+    public ResponseEntity<ProtocoloME> marcarParaEntrevista(@PathVariable Long id) {
+        try {
+            ProtocoloME protocolo = protocoloService.marcarParaEntrevista(id);
+            return ResponseEntity.ok(protocolo);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    // POST - Registrar resultado da entrevista familiar
+    @PostMapping("/{id}/resultado-entrevista")
+    public ResponseEntity<ProtocoloME> registrarResultadoEntrevista(
+            @PathVariable Long id,
+            @RequestParam boolean autorizouDoacao) {
+        try {
+            ProtocoloME protocolo = protocoloService.registrarResultadoEntrevista(id, autorizouDoacao);
+            return ResponseEntity.ok(protocolo);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

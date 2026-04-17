@@ -1,7 +1,10 @@
 import axios from "axios";
 
+const rawBaseUrl = process.env.REACT_APP_API_URL;
+const baseURL = process.env.NODE_ENV === "production" ? (rawBaseUrl || "") : "";
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "",
+  baseURL,
   timeout: 10000,
 });
 
@@ -19,7 +22,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status;
+    const isLoginRequest = error.config?.url?.includes('/api/usuarios/login');
+
+    if (status === 401 && !isLoginRequest) {
       localStorage.removeItem("token");
       localStorage.removeItem("usuario");
       window.location.href = "/login";

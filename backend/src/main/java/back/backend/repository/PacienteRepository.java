@@ -42,4 +42,10 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     long countByHospital(Hospital hospital);
 
+    @Query("SELECT DISTINCT p FROM Paciente p JOIN p.protocolosME pm WHERE pm.status IN ('NOTIFICADO', 'EM_PROCESSO', 'MORTE_CEREBRAL_CONFIRMADA', 'ENTREVISTA_FAMILIAR') ORDER BY p.dataCriacao DESC")
+    List<Paciente> findPacientesEmProtocoloME();
+
+    @Query("SELECT DISTINCT p FROM Paciente p JOIN p.protocolosME pm WHERE p.hospital = :hospital AND pm.status IN ('NOTIFICADO', 'EM_PROCESSO', 'MORTE_CEREBRAL_CONFIRMADA', 'ENTREVISTA_FAMILIAR') ORDER BY p.dataCriacao DESC")
+    List<Paciente> findPacientesEmProtocoloMEPorHospital(@Param("hospital") Hospital hospital);
+
 }

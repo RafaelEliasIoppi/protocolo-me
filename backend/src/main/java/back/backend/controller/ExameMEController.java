@@ -127,4 +127,15 @@ public class ExameMEController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // POST - Criar exame com atualização automática de status (incremental)
+    @PostMapping("/incrementar")
+    public ResponseEntity<?> criarExameIncremental(@RequestBody ExameME exame) {
+        try {
+            ExameME novoExame = exameService.criarExame(exame);
+            return ResponseEntity.status(HttpStatus.CREATED).body(novoExame);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao criar exame: " + e.getMessage());
+        }
+    }
 }

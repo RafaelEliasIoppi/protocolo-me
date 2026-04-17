@@ -1,0 +1,316 @@
+/* PacientesProtocoloMEPage.css */
+
+.brand-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  color: white;
+}
+
+.brand-bar h1 {
+  font-size: 1.8rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.brand-bar p {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+.brand-bar .action-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.secondary-button {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 0.7rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.secondary-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.panel {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.mensagem {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.mensagem.erro {
+  background-color: #fee;
+  color: #c00;
+  border: 1px solid #fcc;
+}
+
+.mensagem.sucesso {
+  background-color: #efe;
+  color: #060;
+  border: 1px solid #cfc;
+}
+
+.filtro-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.filtro-section label {
+  font-weight: 600;
+  color: #333;
+  min-width: 150px;
+}
+
+.select-filtro {
+  padding: 0.7rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  flex: 1;
+  max-width: 300px;
+  cursor: pointer;
+  background-color: white;
+}
+
+.select-filtro:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.carregando {
+  text-align: center;
+  padding: 2rem;
+  color: #667eea;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.info-resumo {
+  background-color: #f5f7ff;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border-left: 4px solid #667eea;
+}
+
+.info-resumo p {
+  margin: 0;
+  color: #333;
+}
+
+.pacientes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.paciente-card {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.paciente-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.paciente-card.protocolo-me {
+  border-left: 4px solid #f39c12;
+  background: linear-gradient(to right, rgba(243, 156, 18, 0.02), white);
+}
+
+.card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-protocolo {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.card-body {
+  padding: 1.2rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row label {
+  font-weight: 600;
+  color: #555;
+  flex: 0 0 40%;
+}
+
+.info-row span {
+  color: #333;
+  text-align: right;
+  flex: 1;
+}
+
+.diagnostico {
+  font-style: italic;
+  color: #666;
+  word-break: break-word;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-ativo {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.card-protocols {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  margin-top: 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #f39c12;
+}
+
+.card-protocols h4 {
+  margin: 0 0 0.8rem 0;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.protocol-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.protocol-list li {
+  background-color: white;
+  padding: 0.8rem;
+  margin-bottom: 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  border-left: 2px solid #f39c12;
+}
+
+.protocol-list li:last-child {
+  margin-bottom: 0;
+}
+
+.protocol-list strong {
+  color: #667eea;
+  display: inline-block;
+  min-width: 120px;
+}
+
+.note {
+  text-align: center;
+  color: #666;
+  font-size: 0.95rem;
+  padding: 2rem;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .pacientes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brand-bar {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .brand-bar h1 {
+    font-size: 1.4rem;
+  }
+
+  .filtro-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .select-filtro {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-row span {
+    text-align: left;
+    margin-top: 0.3rem;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}

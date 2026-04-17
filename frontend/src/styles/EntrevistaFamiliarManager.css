@@ -1,0 +1,303 @@
+/* EntrevistaFamiliarManager.css */
+
+.entrevista-familiar-manager {
+  background: white;
+  border-radius: 10px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin: 2rem 0;
+}
+
+.entrevista-familiar-manager h2 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #ecf0f1;
+}
+
+.entrevista-familiar-manager h3 {
+  color: #34495e;
+  font-size: 1.1rem;
+  margin: 1.5rem 0 1rem 0;
+  font-weight: 600;
+}
+
+/* Mensagens */
+.mensagem {
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.mensagem.erro {
+  background-color: #fadbd8;
+  color: #78281f;
+  border: 1px solid #f5b7b1;
+}
+
+.mensagem.sucesso {
+  background-color: #d5f4e6;
+  color: #186a3b;
+  border: 1px solid #a3e4d7;
+}
+
+/* Status Cards */
+.entrevista-status {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.status-card {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #ecf0f1 100%);
+  border-radius: 8px;
+  border-left: 4px solid #3498db;
+}
+
+.status-card h4 {
+  margin: 0 0 0.8rem 0;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.status-card p {
+  margin: 0;
+  color: #34495e;
+  font-size: 1rem;
+}
+
+.status-texto {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.testes-lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.testes-lista li {
+  padding: 0.3rem 0;
+  font-size: 0.9rem;
+  color: #34495e;
+}
+
+/* Seção de Entrevista */
+.entrevista-secao {
+  background-color: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #16a085;
+  margin-bottom: 2rem;
+}
+
+.btn-marcar-entrevista {
+  background-color: #16a085;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.btn-marcar-entrevista:hover:not(:disabled) {
+  background-color: #138d75;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(22, 160, 133, 0.3);
+}
+
+.btn-marcar-entrevista:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Formulário de Entrevista */
+.form-entrevista {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-group input[type="checkbox"] {
+  margin-top: 0.25rem;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  accent-color: #16a085;
+}
+
+.form-group input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-group label[for="observacoes"] {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.textarea-observacoes {
+  width: 100%;
+  min-height: 120px;
+  padding: 0.8rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+}
+
+.textarea-observacoes:focus {
+  outline: none;
+  border-color: #16a085;
+  box-shadow: 0 0 0 3px rgba(22, 160, 133, 0.1);
+}
+
+.textarea-observacoes:disabled {
+  background-color: #ecf0f1;
+  cursor: not-allowed;
+}
+
+.btn-salvar-entrevista {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn-salvar-entrevista:hover:not(:disabled) {
+  background-color: #229954;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+}
+
+.btn-salvar-entrevista:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Resultado da Entrevista */
+.entrevista-resultado {
+  margin-bottom: 2rem;
+}
+
+.resultado-box {
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  color: white;
+}
+
+.resultado-box.resultado-autorizado {
+  background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+}
+
+.resultado-box.resultado-recusado {
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.resultado-box h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.3rem;
+  color: white;
+}
+
+.resultado-box p {
+  margin: 0;
+  font-size: 0.95rem;
+  opacity: 0.95;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .entrevista-familiar-manager {
+    padding: 1rem;
+  }
+
+  .entrevista-status {
+    grid-template-columns: 1fr;
+  }
+
+  .status-card {
+    padding: 1rem;
+  }
+
+  .entrevista-secao {
+    padding: 1rem;
+  }
+
+  .form-entrevista {
+    padding: 1rem;
+  }
+
+  .textarea-observacoes {
+    min-height: 100px;
+    font-size: 0.85rem;
+  }
+
+  .btn-marcar-entrevista,
+  .btn-salvar-entrevista {
+    width: 100%;
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .entrevista-familiar-manager h2 {
+    font-size: 1.2rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+  }
+
+  .status-card h4 {
+    font-size: 0.85rem;
+  }
+
+  .status-card p {
+    font-size: 0.9rem;
+  }
+}

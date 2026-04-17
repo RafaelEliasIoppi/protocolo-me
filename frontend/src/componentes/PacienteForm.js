@@ -39,7 +39,16 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
     'EXODO'
   ];
 
+  const statusOpcoesManuais = statusOpcoes.filter((s) => s !== 'EM_PROTOCOLO_ME');
+
   const generoOpcoes = ['MASCULINO', 'FEMININO', 'OUTRO'];
+
+  const normalizarLista = (dados) => {
+    if (Array.isArray(dados)) return dados;
+    if (Array.isArray(dados?.content)) return dados.content;
+    if (Array.isArray(dados?.data)) return dados.data;
+    return [];
+  };
 
   // Carregar hospitais e pacientes ao montar
   useEffect(() => {
@@ -73,9 +82,10 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
   const carregarHospitais = async () => {
     try {
       const response = await apiClient.get('/api/hospitais');
-      setHospitais(response.data);
+      setHospitais(normalizarLista(response.data));
     } catch (error) {
       console.error('Erro ao carregar hospitais:', error);
+      setHospitais([]);
     }
   };
 
@@ -95,11 +105,13 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       }
 
       const response = await apiClient.get(url);
-      setPacientes(response.data);
-      const total = Array.isArray(response.data) ? response.data.length : 0;
+      const listaPacientes = normalizarLista(response.data);
+      setPacientes(listaPacientes);
+      const total = listaPacientes.length;
       setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
     } catch (error) {
       console.error('Erro ao carregar pacientes:', error);
+      setPacientes([]);
       setMensagem({ tipo: 'erro', texto: 'Erro ao carregar pacientes' });
     } finally {
       setCarregando(false);
@@ -130,6 +142,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
 
       const dadosPaciente = {
         ...formData,
+        status: editandoId ? formData.status : 'INTERNADO',
         hospital: {
           id: parseInt(formData.hospitalId)
         }
@@ -163,7 +176,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       cpf: pacienteItem.cpf,
       dataNascimento: pacienteItem.dataNascimento,
       genero: pacienteItem.genero,
-      hospitalId: pacienteItem.hospital.id,
+      hospitalId: pacienteItem.hospital?.id || '',
       leito: pacienteItem.leito || '',
       dataInternacao: pacienteItem.dataInternacao || '',
       diagnosticoPrincipal: pacienteItem.diagnosticoPrincipal || '',
@@ -188,18 +201,6 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
         console.error('Erro ao deletar paciente:', error);
         setMensagem({ tipo: 'erro', texto: 'Erro ao deletar paciente' });
       }
-    }
-  };
-
-  const atualizarStatus = async (id, novoStatus) => {
-    try {
-      await apiClient.patch(`/api/pacientes/${id}/status`, { status: novoStatus });
-      setMensagem({ tipo: 'sucesso', texto: 'Status atualizado com sucesso!' });
-      carregarPacientes();
-      carregarEstatisticas();
-    } catch (error) {
-      console.error('Erro ao atualizar status:', error);
-      setMensagem({ tipo: 'erro', texto: 'Erro ao atualizar status' });
     }
   };
 
@@ -350,7 +351,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
             >
               <option value="">Selecione um hospital...</option>
               {hospitais.map(h => (
-                <option key={h.id} value={h.id}>{h.nome}</option>
+                <option key={h.id} value={h.id}>{h.nome || h.nomeHospital || 'Hospital sem nome'}</option>
               ))}
             </select>
           </div>
@@ -377,16 +378,26 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
             />
           </div>
           <div className="form-group">
-            <label>Status</label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleInputChange}
-            >
-              {statusOpcoes.map(s => (
-                <option key={s} value={s}>{formatarStatus(s)}</option>
-              ))}
-            </select>
+            {editandoId ? (
+              <>
+                <label>Status</label>
+                <select
+                  name="status"
+                  value={formData.status === 'EM_PROTOCOLO_ME' ? 'INTERNADO' : formData.status}
+                  onChange={handleInputChange}
+                >
+                  {statusOpcoesManuais.map(s => (
+                    <option key={s} value={s}>{formatarStatus(s)}</option>
+                  ))}
+                </select>
+              </>
+            ) : (
+              <>
+                <label>Status</label>
+                <input type="text" value="Internado" disabled />
+                <small>O status Em Protocolo ME é definido automaticamente ao iniciar o protocolo.</small>
+              </>
+            )}
           </div>
         </div>
 
@@ -487,7 +498,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
                 <select value={filtroHospital} onChange={(e) => setFiltroHospital(e.target.value)}>
                   <option value="">Todos</option>
                   {hospitais.map(h => (
-                    <option key={h.id} value={h.id}>{h.nome}</option>
+                    <option key={h.id} value={h.id}>{h.nome || h.nomeHospital || 'Hospital sem nome'}</option>
                   ))}
                 </select>
               </div>
@@ -505,10 +516,10 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
             {!carregando && pacientes.length > 0 && (
               <div className="pacientes-grid">
                 {pacientes.map(pItem => (
-                  <div key={pItem.id} className={`paciente-card status-${pItem.status.toLowerCase().replace(/_/g, '-')}`}>
+                  <div key={pItem.id} className={`paciente-card status-${(pItem.status || 'INTERNADO').toLowerCase().replace(/_/g, '-')}`}>
                     <div className="card-header">
                       <h3>{pItem.nome}</h3>
-                      <span className={`status-badge status-${pItem.status.toLowerCase().replace(/_/g, '-')}`}>
+                      <span className={`status-badge status-${(pItem.status || 'INTERNADO').toLowerCase().replace(/_/g, '-')}`}>
                         {formatarStatus(pItem.status)}
                       </span>
                     </div>
@@ -516,7 +527,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
                       <p><strong>CPF:</strong> {pItem.cpf}</p>
                       <p><strong>Gênero:</strong> {pItem.genero}</p>
                       <p><strong>Data Nascimento:</strong> {formatarData(pItem.dataNascimento)}</p>
-                      <p><strong>Hospital:</strong> {pItem.hospital.nome}</p>
+                      <p><strong>Hospital:</strong> {pItem.hospital?.nome || pItem.hospital?.nomeHospital || '-'}</p>
                       <p><strong>Leito:</strong> {pItem.leito || '-'}</p>
                       <p><strong>Data Internação:</strong> {formatarData(pItem.dataInternacao)}</p>
                       <p><strong>Diagnóstico:</strong> {pItem.diagnosticoPrincipal || '-'}</p>
@@ -526,17 +537,9 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
                     </div>
                     <div className="card-actions">
                       <button className="btn-editar" onClick={() => editar(pItem)}>Editar</button>
-                      <div className="status-actions">
-                        <select 
-                          value={pItem.status} 
-                          onChange={(e) => atualizarStatus(pItem.id, e.target.value)}
-                          className="status-select"
-                        >
-                          {statusOpcoes.map(s => (
-                            <option key={s} value={s}>{formatarStatus(s)}</option>
-                          ))}
-                        </select>
-                      </div>
+                      <span className="status-badge-listagem">
+                        {formatarStatus(pItem.status)}
+                      </span>
                       <button className="btn-deletar" onClick={() => deletar(pItem.id)}>Deletar</button>
                     </div>
                   </div>

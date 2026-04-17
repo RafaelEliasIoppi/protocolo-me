@@ -6,6 +6,7 @@ export const routes = {
   LOGIN: '/login',
   DASHBOARD: '/dashboard',
   PACIENTES: '/pacientes',
+  PACIENTES_PROTOCOLO_ME: '/pacientes/protocolo-me',
   HOSPITAIS: '/hospitais',
   EXAMES: '/exames',
   PROTOCOLOS: '/protocolos',

@@ -401,13 +401,52 @@ public class ProtocoloME {
         dataAtualizacao = LocalDateTime.now();
     }
 
+    /**
+     * Calcula o status automático do protocolo baseado nos exames realizados
+     * e na etapa de entrevista familiar
+     */
+    public StatusProtocoloME calcularStatusAutomatico() {
+        // Se família recusou, status é FAMILIA_RECUSOU
+        if (familiaNotificada && !autopsiaAutorizada && this.status == StatusProtocoloME.FAMILIA_RECUSOU) {
+            return StatusProtocoloME.FAMILIA_RECUSOU;
+        }
+
+        // Se já passou pela entrevista familiar e foi autorizado
+        if (familiaNotificada && autopsiaAutorizada) {
+            return StatusProtocoloME.DOACAO_AUTORIZADA;
+        }
+
+        // Se morte cerebral foi confirmada (testes + complementares)
+        if (testeClinico1Realizado && testeClinico2Realizado && testesComplementaresRealizados) {
+            return StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA;
+        }
+
+        // Se passou pelo menos um teste clínico
+        if (testeClinico1Realizado || testeClinico2Realizado) {
+            return StatusProtocoloME.EM_PROCESSO;
+        }
+
+        // Status inicial
+        return StatusProtocoloME.NOTIFICADO;
+    }
+
+    /**
+     * Verifica se todos os testes necessários foram realizados (pronto para entrevista)
+     */
+    public boolean estaProtoProntoParaEntrevista() {
+        return Boolean.TRUE.equals(testeClinico1Realizado) &&
+               Boolean.TRUE.equals(testeClinico2Realizado) &&
+               Boolean.TRUE.equals(testesComplementaresRealizados) &&
+               Boolean.TRUE.equals(dataConfirmacaoME != null);
+    }
+
     public enum StatusProtocoloME {
-        NOTIFICADO("Notificado", "Central notificada"),
+        NOTIFICADO("Notificado", "Central notificada - Aguardando testes clínicos"),
         EM_PROCESSO("Em Processo", "Testes clínicos em andamento"),
-        MORTE_CEREBRAL_CONFIRMADA("Morte Cerebral Confirmada", "ME confirmada"),
-        FAMILIA_INFORMADA("Família Informada", "Família foi informada"),
-        ORGAOS_PRESERVADOS("Órgãos Preservados", "Órgãos em preservação"),
-        APTO_TRANSPLANTE("Apto para Transplante", "Doador apto para transplante"),
+        MORTE_CEREBRAL_CONFIRMADA("Morte Cerebral Confirmada", "Morte cerebral confirmada por exames"),
+        ENTREVISTA_FAMILIAR("Entrevista Familiar", "Aguardando entrevista com a família"),
+        FAMILIA_RECUSOU("Família Recusou", "Família recusou a doação"),
+        DOACAO_AUTORIZADA("Doação Autorizada", "Autorização familiar obtida"),
         CONTRAINDICADO("Contraindicado", "Contraindicação para doação"),
         FINALIZADO("Finalizado", "Protocolo finalizado");
 
