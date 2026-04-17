@@ -1,5 +1,6 @@
 package back.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,10 +15,12 @@ public class ProtocoloME {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "central_transplantes_id")
+    @JsonIgnoreProperties({"protocolosME", "usuarios", "hospitaisParceados"})
     private CentralTransplantes centralTransplantes;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "paciente_id")
+    @JsonIgnoreProperties({"protocolosME", "examesEmProtocolo"})
     private Paciente paciente;
 
     @Column(nullable = false)
@@ -100,6 +103,7 @@ public class ProtocoloME {
     private LocalDateTime dataAtualizacao;
 
     @OneToMany(mappedBy = "protocoloME", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"protocoloME"})
     private List<ExameME> exames;
 
     // Construtores

@@ -1,5 +1,6 @@
 package back.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -65,6 +66,7 @@ public class Paciente {
     private StatusPaciente status = StatusPaciente.INTERNADO;
 
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"paciente", "centralTransplantes", "exames"})
     private List<ProtocoloME> protocolosME;
 
     // Exames adicionados quando em protocolo ME
