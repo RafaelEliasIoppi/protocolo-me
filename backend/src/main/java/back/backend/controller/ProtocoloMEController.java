@@ -256,9 +256,10 @@ public class ProtocoloMEController {
     @PostMapping("/{id}/resultado-entrevista")
     public ResponseEntity<ProtocoloME> registrarResultadoEntrevista(
             @PathVariable Long id,
-            @RequestParam boolean autorizouDoacao) {
+            @RequestParam boolean autorizouDoacao,
+            @RequestParam(required = false) String observacoes) {
         try {
-            ProtocoloME protocolo = protocoloService.registrarResultadoEntrevista(id, autorizouDoacao);
+            ProtocoloME protocolo = protocoloService.registrarResultadoEntrevista(id, autorizouDoacao, observacoes);
             return ResponseEntity.ok(protocolo);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

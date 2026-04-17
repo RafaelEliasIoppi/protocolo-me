@@ -1,4 +1,4 @@
-package back.security;
+package back.backend.security;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

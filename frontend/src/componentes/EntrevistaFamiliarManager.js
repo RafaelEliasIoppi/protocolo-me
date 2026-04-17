@@ -74,7 +74,8 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
         null,
         {
           params: {
-            autorizouDoacao: formEntrevista.autorizouDoacao
+            autorizouDoacao: formEntrevista.autorizouDoacao,
+            observacoes: formEntrevista.observacoes
           }
         }
       );
@@ -118,6 +119,13 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
           <h4>Status Atual</h4>
           <p className={`status-texto status-${protocolo.status.toLowerCase()}`}>
             {protocolo.status?.replace(/_/g, " ")}
+          </p>
+        </div>
+
+        <div className="status-card">
+          <h4>Resumo no Paciente</h4>
+          <p>
+            {protocolo.paciente?.statusEntrevistaFamiliar || "NÃO INICIADA"}
           </p>
         </div>
 

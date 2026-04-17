@@ -16,6 +16,9 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
     nomeResponsavel: '',
     telefoneResponsavel: '',
     emailResponsavel: '',
+    statusEntrevistaFamiliar: '',
+    observacoesEntrevistaFamiliar: '',
+    dataEntrevistaFamiliar: '',
     status: 'INTERNADO'
   });
 
@@ -73,6 +76,9 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
         nomeResponsavel: paciente.nomeResponsavel || '',
         telefoneResponsavel: paciente.telefoneResponsavel || '',
         emailResponsavel: paciente.emailResponsavel || '',
+        statusEntrevistaFamiliar: paciente.statusEntrevistaFamiliar || '',
+        observacoesEntrevistaFamiliar: paciente.observacoesEntrevistaFamiliar || '',
+        dataEntrevistaFamiliar: paciente.dataEntrevistaFamiliar || '',
         status: paciente.status || 'INTERNADO'
       });
       setEditandoId(paciente.id);
@@ -184,6 +190,9 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       nomeResponsavel: pacienteItem.nomeResponsavel || '',
       telefoneResponsavel: pacienteItem.telefoneResponsavel || '',
       emailResponsavel: pacienteItem.emailResponsavel || '',
+      statusEntrevistaFamiliar: pacienteItem.statusEntrevistaFamiliar || '',
+      observacoesEntrevistaFamiliar: pacienteItem.observacoesEntrevistaFamiliar || '',
+      dataEntrevistaFamiliar: pacienteItem.dataEntrevistaFamiliar || '',
       status: pacienteItem.status
     });
     setEditandoId(pacienteItem.id);
@@ -218,6 +227,9 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       nomeResponsavel: '',
       telefoneResponsavel: '',
       emailResponsavel: '',
+      statusEntrevistaFamiliar: '',
+      observacoesEntrevistaFamiliar: '',
+      dataEntrevistaFamiliar: '',
       status: 'INTERNADO'
     });
     setEditandoId(null);
@@ -244,6 +256,16 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
       'EXODO': 'Óbito'
     };
     return statusMap[status] || status;
+  };
+
+  const formatarStatusEntrevista = (status) => {
+    const statusMap = {
+      'NAO_INICIADA': 'Não iniciada',
+      'EM_ANDAMENTO': 'Em andamento',
+      'AUTORIZADA': 'Autorizada',
+      'RECUSADA': 'Recusada'
+    };
+    return statusMap[status] || status || 'Não iniciada';
   };
 
   return (
@@ -406,6 +428,26 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
         </div>
 
         <div className="form-group">
+          <label>Entrevista Familiar</label>
+          <input
+            type="text"
+            value={formatarStatusEntrevista(formData.statusEntrevistaFamiliar)}
+            disabled
+          />
+          <small>O resultado da entrevista é sincronizado automaticamente a partir do protocolo.</small>
+          {formData.dataEntrevistaFamiliar && (
+            <small>Última atualização: {formatarData(formData.dataEntrevistaFamiliar)}</small>
+          )}
+          {formData.observacoesEntrevistaFamiliar && (
+            <textarea
+              value={formData.observacoesEntrevistaFamiliar}
+              disabled
+              rows="3"
+            />
+          )}
+        </div>
+
+        <div className="form-group">
           <label>Diagnóstico Principal</label>
           <textarea
             name="diagnosticoPrincipal"
@@ -535,6 +577,7 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
                       <p><strong>Leito:</strong> {pItem.leito || '-'}</p>
                       <p><strong>Data Internação:</strong> {formatarData(pItem.dataInternacao)}</p>
                       <p><strong>Diagnóstico:</strong> {pItem.diagnosticoPrincipal || '-'}</p>
+                      <p><strong>Entrevista Familiar:</strong> {pItem.statusEntrevistaFamiliar || 'Não iniciada'}</p>
                       {pItem.nomeResponsavel && (
                         <p><strong>Responsável:</strong> {pItem.nomeResponsavel}</p>
                       )}

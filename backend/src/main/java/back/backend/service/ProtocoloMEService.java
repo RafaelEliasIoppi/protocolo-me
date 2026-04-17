@@ -82,6 +82,24 @@ public class ProtocoloMEService {
         }
     }
 
+    private void sincronizarEntrevistaPaciente(ProtocoloME protocolo, String statusEntrevista, String observacoes) {
+        if (protocolo == null || protocolo.getPaciente() == null || protocolo.getPaciente().getId() == null) {
+            return;
+        }
+
+        Paciente paciente = pacienteRepository.findById(protocolo.getPaciente().getId())
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+
+        paciente.setStatusEntrevistaFamiliar(statusEntrevista);
+        paciente.setDataEntrevistaFamiliar(LocalDateTime.now());
+        if (observacoes != null) {
+            String textoObservacoes = observacoes.trim();
+            paciente.setObservacoesEntrevistaFamiliar(textoObservacoes.isEmpty() ? null : textoObservacoes);
+        }
+
+        pacienteRepository.save(paciente);
+    }
+
     // Criar novo protocolo de ME e auto-popular com 35 exames
     public ProtocoloME criarProtocolo(ProtocoloME protocolo) {
         if (protocolo.getPaciente() == null || protocolo.getPaciente().getId() == null) {
@@ -413,6 +431,7 @@ public class ProtocoloMEService {
         
         protocolo.setStatus(ProtocoloME.StatusProtocoloME.ENTREVISTA_FAMILIAR);
         ProtocoloME protocoloAtualizado = protocoloRepository.save(protocolo);
+        sincronizarEntrevistaPaciente(protocoloAtualizado, "EM_ANDAMENTO", null);
         sincronizarStatusPacienteComProtocolo(protocoloAtualizado);
         return protocoloAtualizado;
     }
@@ -420,7 +439,7 @@ public class ProtocoloMEService {
     /**
      * Registrar resultado da entrevista familiar
      */
-    public ProtocoloME registrarResultadoEntrevista(Long id, boolean autorizouDoacao) {
+    public ProtocoloME registrarResultadoEntrevista(Long id, boolean autorizouDoacao, String observacoes) {
         ProtocoloME protocolo = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
         
@@ -435,6 +454,11 @@ public class ProtocoloMEService {
         }
 
         ProtocoloME protocoloAtualizado = protocoloRepository.save(protocolo);
+        sincronizarEntrevistaPaciente(
+            protocoloAtualizado,
+            autorizouDoacao ? "AUTORIZADA" : "RECUSADA",
+            observacoes
+        );
         sincronizarStatusPacienteComProtocolo(protocoloAtualizado);
         return protocoloAtualizado;
     }

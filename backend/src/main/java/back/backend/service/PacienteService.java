@@ -53,6 +53,9 @@ public class PacienteService {
         if (pacienteAtualizado.getNomeResponsavel() != null) paciente.setNomeResponsavel(pacienteAtualizado.getNomeResponsavel());
         if (pacienteAtualizado.getTelefoneResponsavel() != null) paciente.setTelefoneResponsavel(pacienteAtualizado.getTelefoneResponsavel());
         if (pacienteAtualizado.getEmailResponsavel() != null) paciente.setEmailResponsavel(pacienteAtualizado.getEmailResponsavel());
+        if (pacienteAtualizado.getStatusEntrevistaFamiliar() != null) paciente.setStatusEntrevistaFamiliar(pacienteAtualizado.getStatusEntrevistaFamiliar());
+        if (pacienteAtualizado.getObservacoesEntrevistaFamiliar() != null) paciente.setObservacoesEntrevistaFamiliar(pacienteAtualizado.getObservacoesEntrevistaFamiliar());
+        if (pacienteAtualizado.getDataEntrevistaFamiliar() != null) paciente.setDataEntrevistaFamiliar(pacienteAtualizado.getDataEntrevistaFamiliar());
         if (pacienteAtualizado.getStatus() != null) paciente.setStatus(pacienteAtualizado.getStatus());
 
         preencherHospitalOrigemSeNecessario(paciente);

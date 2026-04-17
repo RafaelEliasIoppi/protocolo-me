@@ -3,7 +3,7 @@ package back.backend.controller;
 import back.backend.model.Usuario;
 import back.backend.model.Role;
 import back.backend.service.UsuarioService;
-import back.security.JwtUtil;
+import back.backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

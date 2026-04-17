@@ -176,6 +176,17 @@ function CentralDashboardPage() {
     }
   };
 
+  const formatarStatusEntrevista = (status) => {
+    const mapa = {
+      NAO_INICIADA: "Não iniciada",
+      EM_ANDAMENTO: "Em andamento",
+      AUTORIZADA: "Autorizada",
+      RECUSADA: "Recusada"
+    };
+
+    return mapa[status] || status || "Não iniciada";
+  };
+
   const abrirVisualizacaoSomenteLeitura = (paciente, protocolo) => {
     if (!protocolo) return;
     setPacienteSelecionado({
@@ -184,6 +195,7 @@ function CentralDashboardPage() {
       cpf: paciente.cpf,
       hospital: obterNomeHospital(paciente, protocolo),
       cidade: paciente.hospital?.cidade || "N/A",
+      statusEntrevistaFamiliar: paciente.statusEntrevistaFamiliar,
       protocolo
     });
   };
@@ -280,6 +292,9 @@ function CentralDashboardPage() {
                         >
                           {protocolo?.status?.replace(/_/g, " ") || "SEM STATUS"}
                         </span>
+                        <div className="status-subinfo">
+                          Entrevista: {formatarStatusEntrevista(paciente.statusEntrevistaFamiliar)}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -324,6 +339,9 @@ function CentralDashboardPage() {
                 </div>
                 <div>
                   <strong>Exames Concluídos:</strong> {obterExamesConcluidos(pacienteSelecionado.protocolo)}/3
+                </div>
+                <div>
+                  <strong>Resumo da Entrevista:</strong> {formatarStatusEntrevista(pacienteSelecionado.statusEntrevistaFamiliar)}
                 </div>
               </div>
 

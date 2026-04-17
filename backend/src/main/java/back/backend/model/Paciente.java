@@ -61,6 +61,15 @@ public class Paciente {
     @Column
     private String emailResponsavel;
 
+    @Column(length = 30)
+    private String statusEntrevistaFamiliar;
+
+    @Column(columnDefinition = "TEXT")
+    private String observacoesEntrevistaFamiliar;
+
+    @Column
+    private LocalDateTime dataEntrevistaFamiliar;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusPaciente status = StatusPaciente.INTERNADO;
@@ -147,6 +156,15 @@ public class Paciente {
 
     public String getEmailResponsavel() { return emailResponsavel; }
     public void setEmailResponsavel(String emailResponsavel) { this.emailResponsavel = emailResponsavel; }
+
+    public String getStatusEntrevistaFamiliar() { return statusEntrevistaFamiliar; }
+    public void setStatusEntrevistaFamiliar(String statusEntrevistaFamiliar) { this.statusEntrevistaFamiliar = statusEntrevistaFamiliar; }
+
+    public String getObservacoesEntrevistaFamiliar() { return observacoesEntrevistaFamiliar; }
+    public void setObservacoesEntrevistaFamiliar(String observacoesEntrevistaFamiliar) { this.observacoesEntrevistaFamiliar = observacoesEntrevistaFamiliar; }
+
+    public LocalDateTime getDataEntrevistaFamiliar() { return dataEntrevistaFamiliar; }
+    public void setDataEntrevistaFamiliar(LocalDateTime dataEntrevistaFamiliar) { this.dataEntrevistaFamiliar = dataEntrevistaFamiliar; }
 
     public StatusPaciente getStatus() { return status; }
     public void setStatus(StatusPaciente status) { this.status = status; }

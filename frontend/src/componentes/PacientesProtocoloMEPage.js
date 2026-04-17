@@ -55,6 +55,17 @@ function PacientesProtocoloMEPage() {
     }
   };
 
+  const formatarStatusEntrevista = (status) => {
+    const mapa = {
+      NAO_INICIADA: "Não iniciada",
+      EM_ANDAMENTO: "Em andamento",
+      AUTORIZADA: "Autorizada",
+      RECUSADA: "Recusada"
+    };
+
+    return mapa[status] || status || "Não iniciada";
+  };
+
   return (
     <section>
       <div className="brand-bar">
@@ -139,6 +150,12 @@ function PacientesProtocoloMEPage() {
                     <div className="info-row">
                       <label>Status:</label>
                       <span className="status-badge status-ativo">{paciente.status}</span>
+                    </div>
+                    <div className="info-row">
+                      <label>Entrevista Familiar:</label>
+                      <span className="status-badge status-ativo">
+                        {formatarStatusEntrevista(paciente.statusEntrevistaFamiliar)}
+                      </span>
                     </div>
                     {paciente.diagnosticoPrincipal && (
                       <div className="info-row">

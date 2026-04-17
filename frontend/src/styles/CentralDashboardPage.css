@@ -259,6 +259,13 @@
   border: 1px solid #d7bde2;
 }
 
+.status-subinfo {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: #5b6472;
+  white-space: normal;
+}
+
 .status-badge.status-confirmed {
   background-color: #eafaf1;
   color: #186a3b;
