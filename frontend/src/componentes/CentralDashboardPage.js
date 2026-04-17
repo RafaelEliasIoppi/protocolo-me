@@ -8,6 +8,8 @@ function CentralDashboardPage() {
   const [erro, setErro] = useState("");
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState(null);
   const [pacienteSelecionado, setPacienteSelecionado] = useState(null);
+  const [relatorioFinalPaciente, setRelatorioFinalPaciente] = useState(null);
+  const [carregandoRelatorio, setCarregandoRelatorio] = useState(false);
 
   const statusAtivos = [
     "NOTIFICADO",
@@ -189,6 +191,7 @@ function CentralDashboardPage() {
 
   const abrirVisualizacaoSomenteLeitura = (paciente, protocolo) => {
     if (!protocolo) return;
+    setRelatorioFinalPaciente(null);
     setPacienteSelecionado({
       id: paciente.id,
       nome: paciente.nome,
@@ -198,6 +201,164 @@ function CentralDashboardPage() {
       statusEntrevistaFamiliar: paciente.statusEntrevistaFamiliar,
       protocolo
     });
+  };
+
+  const carregarRelatorioFinalPaciente = async (pacienteId) => {
+    if (!pacienteId) return;
+    try {
+      setCarregandoRelatorio(true);
+      const response = await apiClient.get(`/api/pacientes/${pacienteId}/relatorio-final`);
+      setRelatorioFinalPaciente(response.data);
+    } catch (e) {
+      setErro("Não foi possível carregar o relatório final do paciente.");
+    } finally {
+      setCarregandoRelatorio(false);
+    }
+  };
+
+  const gerarNomeArquivoRelatorio = (relatorio, extensao) => {
+    const nome = (relatorio?.nomePaciente || "paciente").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const id = relatorio?.pacienteId || "sem-id";
+    return `relatorio-final-${nome}-${id}.${extensao}`;
+  };
+
+  const baixarBlob = (conteudo, tipoMime, nomeArquivo) => {
+    const blob = new Blob([conteudo], { type: tipoMime });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = nomeArquivo;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const exportarRelatorioCSV = () => {
+    if (!relatorioFinalPaciente) return;
+
+    const linhas = [];
+    linhas.push(["Paciente ID", relatorioFinalPaciente.pacienteId]);
+    linhas.push(["Paciente", relatorioFinalPaciente.nomePaciente]);
+    linhas.push(["CPF", relatorioFinalPaciente.cpf]);
+    linhas.push(["Hospital", relatorioFinalPaciente.hospital || ""]);
+    linhas.push(["Status Paciente", relatorioFinalPaciente.statusPaciente || ""]);
+    linhas.push(["Status Entrevista", relatorioFinalPaciente.statusEntrevistaFamiliar || ""]);
+    linhas.push(["Status Final Protocolo", relatorioFinalPaciente.statusFinalProtocolo || ""]);
+    linhas.push(["Conclusao Final", relatorioFinalPaciente.conclusaoFinal || ""]);
+    linhas.push([]);
+    linhas.push([
+      "Protocolo ID",
+      "Numero",
+      "Status",
+      "Data Notificacao",
+      "Data Confirmacao ME",
+      "Total Exames",
+      "Realizados",
+      "Pendentes",
+      "Clinicos",
+      "Complementares",
+      "Laboratoriais",
+      "Familia Notificada",
+      "Autopsia Autorizada"
+    ]);
+
+    (relatorioFinalPaciente.protocolos || []).forEach((p) => {
+      linhas.push([
+        p.protocoloId,
+        p.numeroProtocolo || "",
+        p.statusProtocolo || "",
+        p.dataNotificacao || "",
+        p.dataConfirmacaoME || "",
+        p.totalExames,
+        p.examesRealizados,
+        p.examesPendentes,
+        p.examesClinicosRealizados,
+        p.examesComplementaresRealizados,
+        p.examesLaboratoriaisRealizados,
+        p.familiaNotificada ? "SIM" : "NAO",
+        p.autopsiaAutorizada ? "SIM" : "NAO"
+      ]);
+    });
+
+    const csv = linhas
+      .map((colunas) =>
+        (colunas || []).map((valor) => {
+          const texto = String(valor ?? "").replace(/"/g, '""');
+          return `"${texto}"`;
+        }).join(";")
+      )
+      .join("\n");
+
+    baixarBlob(csv, "text/csv;charset=utf-8", gerarNomeArquivoRelatorio(relatorioFinalPaciente, "csv"));
+  };
+
+  const exportarRelatorioPDF = () => {
+    if (!relatorioFinalPaciente) return;
+
+    const protocolosHtml = (relatorioFinalPaciente.protocolos || []).map((p) => `
+      <tr>
+        <td>${p.protocoloId ?? ""}</td>
+        <td>${p.numeroProtocolo ?? ""}</td>
+        <td>${p.statusProtocolo ?? ""}</td>
+        <td>${p.examesRealizados ?? 0}/${p.totalExames ?? 0}</td>
+        <td>${p.examesClinicosRealizados ?? 0}</td>
+        <td>${p.examesComplementaresRealizados ?? 0}</td>
+        <td>${p.examesLaboratoriaisRealizados ?? 0}</td>
+      </tr>
+    `).join("");
+
+    const janela = window.open("", "_blank", "width=1024,height=768");
+    if (!janela) return;
+
+    janela.document.write(`
+      <html>
+        <head>
+          <title>Relatorio Final - ${relatorioFinalPaciente.nomePaciente || "Paciente"}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }
+            h1 { margin: 0 0 8px 0; }
+            h2 { margin-top: 24px; }
+            .meta { margin: 4px 0; }
+            table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+            th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; font-size: 12px; }
+            th { background: #f3f4f6; }
+            .conclusao { padding: 12px; background: #eef2ff; border-left: 4px solid #4f46e5; margin-top: 12px; }
+          </style>
+        </head>
+        <body>
+          <h1>Relatorio Final do Paciente</h1>
+          <div class="meta"><strong>Paciente:</strong> ${relatorioFinalPaciente.nomePaciente || ""}</div>
+          <div class="meta"><strong>CPF:</strong> ${relatorioFinalPaciente.cpf || ""}</div>
+          <div class="meta"><strong>Hospital:</strong> ${relatorioFinalPaciente.hospital || ""}</div>
+          <div class="meta"><strong>Status Paciente:</strong> ${relatorioFinalPaciente.statusPaciente || ""}</div>
+          <div class="meta"><strong>Status Final Protocolo:</strong> ${relatorioFinalPaciente.statusFinalProtocolo || ""}</div>
+          <div class="meta"><strong>Status Entrevista:</strong> ${relatorioFinalPaciente.statusEntrevistaFamiliar || ""}</div>
+          <div class="conclusao"><strong>Conclusao:</strong> ${relatorioFinalPaciente.conclusaoFinal || ""}</div>
+
+          <h2>Protocolos</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Numero</th>
+                <th>Status</th>
+                <th>Exames</th>
+                <th>Clinicos</th>
+                <th>Complementares</th>
+                <th>Laboratoriais</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${protocolosHtml}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `);
+    janela.document.close();
+    janela.focus();
+    janela.print();
   };
 
   return (
@@ -344,6 +505,51 @@ function CentralDashboardPage() {
                   <strong>Resumo da Entrevista:</strong> {formatarStatusEntrevista(pacienteSelecionado.statusEntrevistaFamiliar)}
                 </div>
               </div>
+
+              <div className="action-row" style={{ justifyContent: "flex-start", margin: "1rem 0" }}>
+                <button
+                  className="secondary-button"
+                  onClick={() => carregarRelatorioFinalPaciente(pacienteSelecionado.id)}
+                  disabled={carregandoRelatorio}
+                >
+                  {carregandoRelatorio ? "Gerando relatório..." : "Gerar Relatório Final"}
+                </button>
+              </div>
+
+              {relatorioFinalPaciente && (
+                <div className="readonly-pendencias">
+                  <h3>Relatório Final do Paciente</h3>
+                  <div className="action-row relatorio-actions">
+                    <button className="modal-report-button" onClick={exportarRelatorioCSV}>Exportar CSV</button>
+                    <button className="modal-report-button" onClick={exportarRelatorioPDF}>Exportar PDF</button>
+                  </div>
+                  <div className="readonly-grid">
+                    <div><strong>Paciente:</strong> {relatorioFinalPaciente.nomePaciente}</div>
+                    <div><strong>CPF:</strong> {relatorioFinalPaciente.cpf}</div>
+                    <div><strong>Status Paciente:</strong> {relatorioFinalPaciente.statusPaciente}</div>
+                    <div><strong>Status Final Protocolo:</strong> {relatorioFinalPaciente.statusFinalProtocolo}</div>
+                    <div><strong>Total Protocolos:</strong> {relatorioFinalPaciente.totalProtocolos}</div>
+                    <div><strong>Entrevista:</strong> {formatarStatusEntrevista(relatorioFinalPaciente.statusEntrevistaFamiliar)}</div>
+                  </div>
+                  <p className="note" style={{ marginTop: "0.75rem" }}>
+                    <strong>Conclusão:</strong> {relatorioFinalPaciente.conclusaoFinal}
+                  </p>
+                  {Array.isArray(relatorioFinalPaciente.protocolos) && relatorioFinalPaciente.protocolos.length > 0 && (
+                    <ul className="lista-faltantes">
+                      {relatorioFinalPaciente.protocolos.map((protocoloResumo) => (
+                        <li key={`relatorio-protocolo-${protocoloResumo.protocoloId}`}>
+                          <strong>{protocoloResumo.numeroProtocolo || `Protocolo ${protocoloResumo.protocoloId}`}</strong>
+                          {` - ${protocoloResumo.statusProtocolo}`}
+                          {` | Exames: ${protocoloResumo.examesRealizados}/${protocoloResumo.totalExames}`}
+                          {` | Clínicos: ${protocoloResumo.examesClinicosRealizados}`}
+                          {` | Complementares: ${protocoloResumo.examesComplementaresRealizados}`}
+                          {` | Laboratoriais: ${protocoloResumo.examesLaboratoriaisRealizados}`}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
 
               <div className="readonly-checklist">
                 <h3>Checklist de Exames</h3>

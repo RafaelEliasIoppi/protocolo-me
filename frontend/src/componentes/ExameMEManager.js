@@ -237,6 +237,11 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     return temResultadoTexto || temResultadoBooleano || temData;
   };
 
+  const isExameQueImpactaStatus = (exame) => {
+    if (!exame) return false;
+    return exame.categoria === 'CLINICO' || exame.categoria === 'COMPLEMENTAR';
+  };
+
   return (
     <div className="exame-manager-container">
       <h2>Gerenciador de Exames - Protocolo ME</h2>
@@ -340,6 +345,10 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
         <button onClick={carregarExames} className="btn-recarregar">🔄 Atualizar</button>
       </div>
 
+      <p className="impacto-legenda">
+        <strong>Impacta status automático:</strong> exames clínicos e complementares contam para evolução do protocolo.
+      </p>
+
       {carregando && <div className="carregando">Carregando...</div>}
 
       <div className="exames-lista">
@@ -350,6 +359,9 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
                 <div>
                   <h4>{getTipoLabel(exame.tipoExame)}</h4>
                   <span className="categoria-badge">{getCategoriaLabel(exame.categoria)}</span>
+                  {isExameQueImpactaStatus(exame) && (
+                    <span className="impacta-status-badge">Impacta status</span>
+                  )}
                 </div>
                 <div className="exame-status">
                   {isExameRealizado(exame) ? (

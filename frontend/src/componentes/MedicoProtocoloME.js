@@ -33,16 +33,44 @@ function MedicoProtocoloME() {
       return [];
     }
 
-    return protocolos
+    const porPaciente = new Map();
+
+    protocolos
       .filter((protocolo) => protocolo?.paciente?.id)
       .filter((protocolo) => statusAtivos.includes(protocolo?.status))
-      .map((protocolo) => {
+      .forEach((protocolo) => {
         const paciente = protocolo.paciente;
-        return {
-          ...paciente,
-          protocolosME: [protocolo]
-        };
+        const pacienteId = paciente.id;
+        const atual = porPaciente.get(pacienteId);
+
+        const dataAtual = atual?.protocolosME?.[0]?.dataNotificacao || atual?.protocolosME?.[0]?.dataCriacao;
+        const dataNova = protocolo?.dataNotificacao || protocolo?.dataCriacao;
+
+        if (!atual || (dataNova && (!dataAtual || new Date(dataNova) > new Date(dataAtual)))) {
+          porPaciente.set(pacienteId, {
+            ...paciente,
+            protocolosME: [protocolo]
+          });
+        }
       });
+
+    return Array.from(porPaciente.values());
+  };
+
+  const tratarErroAutenticacaoOuPermissao = (e, fallbackMensagem) => {
+    const status = e?.response?.status;
+    if (status === 401) {
+      setErro("Sessão expirada. Faça login novamente para continuar.");
+      return true;
+    }
+    if (status === 403) {
+      setErro("Sem permissão para acessar este protocolo. Verifique o perfil logado.");
+      return true;
+    }
+    if (fallbackMensagem) {
+      setErro(fallbackMensagem);
+    }
+    return false;
   };
 
   // Carregar pacientes em protocolo e disponíveis
@@ -54,25 +82,29 @@ function MedicoProtocoloME() {
   const carregarPacientesProtocolo = async () => {
     try {
       const response = await apiClient.get("/api/protocolos-me");
-      setPacientesProtocolo(mapearProtocolosParaPacientes(response.data));
+      const pacientesMapeados = mapearProtocolosParaPacientes(response.data);
+      setPacientesProtocolo(pacientesMapeados);
       setErro("");
+      return pacientesMapeados;
     } catch (e) {
       console.error("Erro ao carregar pacientes em protocolo:", e);
-      setErro("Não foi possível carregar os protocolos de ME.");
+      tratarErroAutenticacaoOuPermissao(e, "Não foi possível carregar os protocolos de ME.");
+      return [];
     }
   };
 
   const atualizarPainelAposExame = async () => {
-    await carregarPacientesProtocolo();
+    const pacientesAtualizados = await carregarPacientesProtocolo();
     if (!protocoloSelecionado?.id) {
       return;
     }
 
-    try {
-      const response = await apiClient.get(`/api/protocolos-me/${protocoloSelecionado.id}`);
-      setProtocoloSelecionado(response.data);
-    } catch (e) {
-      console.error("Erro ao atualizar protocolo após exame:", e);
+    const pacienteComProtocolo = pacientesAtualizados.find(
+      (paciente) => paciente?.protocolosME?.[0]?.id === protocoloSelecionado.id,
+    );
+
+    if (pacienteComProtocolo?.protocolosME?.[0]) {
+      setProtocoloSelecionado(pacienteComProtocolo.protocolosME[0]);
     }
   };
 
@@ -84,7 +116,7 @@ function MedicoProtocoloME() {
       setPacientesDisponiveis(semProtocolo);
     } catch (e) {
       console.error("Erro ao carregar pacientes disponíveis:", e);
-      setErro("Não foi possível carregar os pacientes internados para iniciar protocolo.");
+      tratarErroAutenticacaoOuPermissao(e, "Não foi possível carregar os pacientes internados para iniciar protocolo.");
     }
   };
 
@@ -152,6 +184,32 @@ function MedicoProtocoloME() {
     if (protocolo.testeClinico2Realizado) exames++;
     if (protocolo.testesComplementaresRealizados) exames++;
     return exames;
+  };
+
+  const obterProximoPasso = (protocolo, paciente) => {
+    if (!protocolo) return "Inicie o protocolo e registre os exames obrigatórios.";
+
+    if (protocolo.status === "NOTIFICADO" || protocolo.status === "EM_PROCESSO") {
+      return "Próximo passo: concluir 2 testes clínicos e 1 exame complementar.";
+    }
+
+    if (protocolo.status === "MORTE_CEREBRAL_CONFIRMADA") {
+      const entrevistaStatus = paciente?.statusEntrevistaFamiliar;
+      if (!entrevistaStatus || entrevistaStatus === "NAO_INICIADA") {
+        return "Próximo passo: abrir Entrevista Familiar e marcar início da entrevista.";
+      }
+      return "Próximo passo: concluir o resultado final da entrevista familiar.";
+    }
+
+    if (protocolo.status === "ENTREVISTA_FAMILIAR") {
+      return "Próximo passo: registrar decisão da família (autorizada ou recusada).";
+    }
+
+    if (protocolo.status === "DOACAO_AUTORIZADA" || protocolo.status === "FAMILIA_RECUSOU") {
+      return "Entrevista concluída. Protocolo finalizado nesta etapa.";
+    }
+
+    return "Acompanhe o status e atualize os dados necessários no protocolo.";
   };
 
   return (
@@ -255,7 +313,7 @@ function MedicoProtocoloME() {
           </div>
         ) : (
           <div className="pacientes-grid">
-            {pacientesProtocolo.map((paciente) => {
+            {pacientesProtocolo.map((paciente, index) => {
               const protocolo = paciente.protocolosME?.[0];
               const statusBadge = obterBadgeStatus(protocolo?.status);
               const examesRealizados = obterExamesRealizados(protocolo);
@@ -263,7 +321,7 @@ function MedicoProtocoloME() {
               const entrevistaConcluida = paciente.statusEntrevistaFamiliar === "AUTORIZADA" || paciente.statusEntrevistaFamiliar === "RECUSADA";
 
               return (
-                <div key={paciente.id} className={`protocolo-card status-${statusBadge.cor}`}>
+                <div key={`${paciente.id}-${protocolo?.id || index}`} className={`protocolo-card status-${statusBadge.cor}`}>
                   <div className="card-header">
                     <div>
                       <h3>{paciente.nome}</h3>
@@ -295,13 +353,31 @@ function MedicoProtocoloME() {
                           : "N/A"}
                       </span>
                     </div>
-                    <div className="info-row">
-                      <label>Entrevista Familiar:</label>
-                      <span>
+
+                    <div className="entrevista-resumo">
+                      <div className="entrevista-resumo-header">
+                        <label>Entrevista Familiar</label>
                         <span className={`status-badge status-${paciente.statusEntrevistaFamiliar ? paciente.statusEntrevistaFamiliar.toLowerCase() : "nao-iniciada"}`}>
                           {statusEntrevista}
                         </span>
-                      </span>
+                      </div>
+                      <p className="entrevista-resumo-texto">
+                        {entrevistaConcluida
+                          ? "Entrevista concluída dentro deste protocolo."
+                          : protocolo?.status === "MORTE_CEREBRAL_CONFIRMADA"
+                            ? "A entrevista já pode ser iniciada neste perfil."
+                            : "A entrevista será liberada após a confirmação da morte cerebral."}
+                      </p>
+                      <button
+                        className="btn-entrevista-inline"
+                        onClick={() => {
+                          setProtocoloSelecionado(protocolo);
+                          setAbaProtocoloAberta("entrevista");
+                          setMostraExames(true);
+                        }}
+                      >
+                        {entrevistaConcluida ? "👀 Ver entrevista" : "👨‍👩‍👧 Abrir entrevista"}
+                      </button>
                     </div>
 
                     {/* Exames realizados */}
@@ -326,6 +402,10 @@ function MedicoProtocoloME() {
                     {/* Progresso */}
                     <div className="progress-bar">
                       <div className="progress" style={{ width: `${(examesRealizados / 3) * 100}%` }}></div>
+                    </div>
+
+                    <div className="proximo-passo-box">
+                      <strong>Próximo passo:</strong> {obterProximoPasso(protocolo, paciente)}
                     </div>
                   </div>
 

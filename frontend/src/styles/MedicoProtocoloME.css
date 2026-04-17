@@ -384,6 +384,52 @@
   flex: 1;
 }
 
+.entrevista-resumo {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #eefaf6 0%, #e8f8f5 100%);
+  border: 1px solid #d1f2eb;
+}
+
+.entrevista-resumo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.entrevista-resumo-header label {
+  font-weight: 700;
+  color: #0b5345;
+  font-size: 0.95rem;
+}
+
+.entrevista-resumo-texto {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: #1f3a3d;
+}
+
+.btn-entrevista-inline {
+  background: #16a085;
+  color: white;
+  border: none;
+  padding: 0.7rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-entrevista-inline:hover {
+  background: #138d75;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(22, 160, 133, 0.25);
+}
+
 /* Exames */
 .exames-resumo {
   margin-top: 1rem;
@@ -448,6 +494,21 @@
   height: 100%;
   background: linear-gradient(90deg, #27ae60 0%, #16a085 100%);
   transition: width 0.3s ease;
+}
+
+.proximo-passo-box {
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  background: #f3f7fb;
+  border-left: 4px solid #3498db;
+  font-size: 0.86rem;
+  color: #2c3e50;
+  line-height: 1.35;
+}
+
+.proximo-passo-box strong {
+  color: #1f618d;
 }
 
 .card-actions {
@@ -607,6 +668,15 @@
 
   .info-row label {
     min-width: auto;
+  }
+
+  .entrevista-resumo-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-entrevista-inline {
+    width: 100%;
   }
 
   .modal-header {

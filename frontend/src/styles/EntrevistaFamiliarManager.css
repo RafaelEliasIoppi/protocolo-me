@@ -193,6 +193,78 @@
   color: #34495e;
 }
 
+.grupo-radio-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.radio-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: #f4f6f7;
+  border: 1px solid #d5dbdb;
+  cursor: pointer;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.radio-option input[type="radio"] {
+  accent-color: #16a085;
+  width: 16px;
+  height: 16px;
+}
+
+.radio-option:has(input:checked) {
+  background: #e8f8f5;
+  border-color: #16a085;
+}
+
+.resultado-ajuda {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #566573;
+}
+
+.resultado-resumo {
+  display: inline-block;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.resultado-positivo {
+  background: #d5f4e6;
+  color: #0b5345;
+}
+
+.resultado-negativo {
+  background: #fadbd8;
+  color: #78281f;
+}
+
+.resultado-não-definido,
+.resultado-nao-definido {
+  background: #ecf0f1;
+  color: #566573;
+}
+
+.resultado-não-iniciado,
+.resultado-nao-iniciado {
+  background: #ecf0f1;
+  color: #566573;
+}
+
 .textarea-observacoes {
   width: 100%;
   min-height: 120px;

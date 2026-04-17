@@ -495,6 +495,27 @@
   padding-left: 1.1rem;
 }
 
+.relatorio-actions {
+  margin: 0.75rem 0 1rem;
+}
+
+.modal-report-button {
+  background: #1f4e79;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.modal-report-button:hover {
+  background: #163a5c;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 600px) {
   .modal-overlay {
     padding: 1rem;

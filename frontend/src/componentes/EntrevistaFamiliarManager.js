@@ -11,6 +11,7 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
   const [salvando, setSalvando] = useState(false);
   const [formEntrevista, setFormEntrevista] = useState({
     familiaNotificada: false,
+    resultadoEntrevista: "",
     autorizouDoacao: false,
     observacoes: ""
   });
@@ -26,6 +27,7 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
       setProtocolo(response.data);
       setFormEntrevista({
         familiaNotificada: response.data.familiaNotificada || false,
+        resultadoEntrevista: response.data.autopsiaAutorizada ? "POSITIVO" : response.data.status === "FAMILIA_RECUSOU" ? "NEGATIVO" : "",
         autorizouDoacao: response.data.autopsiaAutorizada || false,
         observacoes: response.data.observacoes || ""
       });
@@ -42,6 +44,34 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
       ...formEntrevista,
       [name]: type === "checkbox" ? checked : value
     });
+  };
+
+  const definirResultadoEntrevista = (resultado) => {
+    setFormEntrevista((atual) => ({
+      ...atual,
+      resultadoEntrevista: resultado,
+      autorizouDoacao: resultado === "POSITIVO"
+    }));
+  };
+
+  const obterResultadoDaEntrevista = (protocoloAtual) => {
+    if (!protocoloAtual) {
+      return "Não iniciado";
+    }
+
+    if (protocoloAtual.status === "DOACAO_AUTORIZADA") {
+      return "Positivo";
+    }
+
+    if (protocoloAtual.status === "FAMILIA_RECUSOU") {
+      return "Negativo";
+    }
+
+    return formEntrevista.resultadoEntrevista === "POSITIVO"
+      ? "Positivo"
+      : formEntrevista.resultadoEntrevista === "NEGATIVO"
+        ? "Negativo"
+        : "Não definido";
   };
 
   const marcarParaEntrevista = async () => {
@@ -65,6 +95,11 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
       return;
     }
 
+    if (!formEntrevista.resultadoEntrevista) {
+      setErro("Selecione o resultado da entrevista: Positivo ou Negativo");
+      return;
+    }
+
     setSalvando(true);
     setErro("");
     setSucesso("");
@@ -80,9 +115,9 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
         }
       );
       setSucesso(
-        formEntrevista.autorizouDoacao
-          ? "Doação autorizada pela família"
-          : "Doação recusada pela família"
+        formEntrevista.resultadoEntrevista === "POSITIVO"
+          ? "Resultado positivo registrado na entrevista"
+          : "Resultado negativo registrado na entrevista"
       );
       await carregarProtocolo();
     } catch (e) {
@@ -119,6 +154,13 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
           <h4>Status Atual</h4>
           <p className={`status-texto status-${protocolo.status.toLowerCase()}`}>
             {protocolo.status?.replace(/_/g, " ")}
+          </p>
+        </div>
+
+        <div className="status-card">
+          <h4>Resultado da Entrevista</h4>
+          <p className={`resultado-resumo resultado-${obterResultadoDaEntrevista(protocolo).toLowerCase().replace(/\s+/g, "-")}`}>
+            {obterResultadoDaEntrevista(protocolo)}
           </p>
         </div>
 
@@ -175,16 +217,34 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
               </div>
 
               <div className="form-group">
-                <label>
-                  <input
-                    type="checkbox"
-                    name="autorizouDoacao"
-                    checked={formEntrevista.autorizouDoacao}
-                    onChange={handleInputChange}
-                    disabled={!formEntrevista.familiaNotificada || salvando || entrevistaFinalizada}
-                  />
-                  Família autorizou a doação de órgãos
-                </label>
+                <label className="grupo-radio-label">Resultado da entrevista</label>
+                <div className="radio-group">
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="resultadoEntrevista"
+                      value="POSITIVO"
+                      checked={formEntrevista.resultadoEntrevista === "POSITIVO"}
+                      onChange={() => definirResultadoEntrevista("POSITIVO")}
+                      disabled={!formEntrevista.familiaNotificada || salvando || entrevistaFinalizada}
+                    />
+                    Positivo
+                  </label>
+                  <label className="radio-option">
+                    <input
+                      type="radio"
+                      name="resultadoEntrevista"
+                      value="NEGATIVO"
+                      checked={formEntrevista.resultadoEntrevista === "NEGATIVO"}
+                      onChange={() => definirResultadoEntrevista("NEGATIVO")}
+                      disabled={!formEntrevista.familiaNotificada || salvando || entrevistaFinalizada}
+                    />
+                    Negativo
+                  </label>
+                </div>
+                <p className="resultado-ajuda">
+                  Resultado selecionado: <strong>{obterResultadoDaEntrevista(protocolo)}</strong>
+                </p>
               </div>
 
               <div className="form-group">
@@ -203,7 +263,7 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
               <button
                 className="btn-salvar-entrevista"
                 onClick={salvarResultadoEntrevista}
-                disabled={!formEntrevista.familiaNotificada || salvando}
+                disabled={!formEntrevista.familiaNotificada || !formEntrevista.resultadoEntrevista || salvando}
               >
                 {salvando ? "⏳ Salvando..." : "💾 Salvar Resultado"}
               </button>
@@ -218,13 +278,15 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
           <div className={`resultado-box resultado-${protocolo.status === "DOACAO_AUTORIZADA" ? "autorizado" : "recusado"}`}>
             {protocolo.status === "DOACAO_AUTORIZADA" ? (
               <>
-                <h3>✅ Doação Autorizada</h3>
-                <p>A família autorizou a doação de órgãos em {new Date(protocolo.dataNotificacaoFamilia).toLocaleDateString("pt-BR")}</p>
+                <h3>✅ Resultado Positivo</h3>
+                <p>Status técnico: {protocolo.status.replace(/_/g, " ")}</p>
+                <p>A entrevista teve resultado positivo em {new Date(protocolo.dataNotificacaoFamilia).toLocaleDateString("pt-BR")}</p>
               </>
             ) : (
               <>
-                <h3>❌ Doação Recusada</h3>
-                <p>A família recusou a doação de órgãos em {new Date(protocolo.dataNotificacaoFamilia).toLocaleDateString("pt-BR")}</p>
+                <h3>❌ Resultado Negativo</h3>
+                <p>Status técnico: {protocolo.status.replace(/_/g, " ")}</p>
+                <p>A entrevista teve resultado negativo em {new Date(protocolo.dataNotificacaoFamilia).toLocaleDateString("pt-BR")}</p>
               </>
             )}
           </div>

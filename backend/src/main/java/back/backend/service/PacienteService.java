@@ -2,6 +2,8 @@ package back.backend.service;
 
 import back.backend.model.Paciente;
 import back.backend.model.Hospital;
+import back.backend.model.ExameME;
+import back.backend.model.ProtocoloME;
 import back.backend.repository.PacienteRepository;
 import back.backend.repository.HospitalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -176,6 +181,130 @@ public class PacienteService {
         return stats;
     }
 
+    public RelatorioFinalPaciente gerarRelatorioFinalPaciente(Long pacienteId) {
+        Paciente paciente = obterPacientePorId(pacienteId);
+        RelatorioFinalPaciente relatorio = new RelatorioFinalPaciente();
+
+        relatorio.setGeradoEm(LocalDateTime.now());
+        relatorio.setPacienteId(paciente.getId());
+        relatorio.setNomePaciente(paciente.getNome());
+        relatorio.setCpf(paciente.getCpf());
+        relatorio.setHospital(paciente.getHospital() != null ? paciente.getHospital().getNome() : null);
+        relatorio.setStatusPaciente(paciente.getStatus() != null ? paciente.getStatus().name() : null);
+        relatorio.setStatusEntrevistaFamiliar(paciente.getStatusEntrevistaFamiliar());
+
+        List<ProtocoloME> protocolosPaciente = paciente.getProtocolosME() != null
+            ? new ArrayList<>(paciente.getProtocolosME())
+            : new ArrayList<>();
+
+        protocolosPaciente.sort(
+            Comparator.comparing(ProtocoloME::getDataNotificacao, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(ProtocoloME::getDataCriacao, Comparator.nullsLast(Comparator.naturalOrder()))
+        );
+
+        List<ResumoProtocoloRelatorio> resumos = new ArrayList<>();
+        for (ProtocoloME protocolo : protocolosPaciente) {
+            ResumoProtocoloRelatorio resumo = new ResumoProtocoloRelatorio();
+            resumo.setProtocoloId(protocolo.getId());
+            resumo.setNumeroProtocolo(protocolo.getNumeroProtocolo());
+            resumo.setStatusProtocolo(protocolo.getStatus() != null ? protocolo.getStatus().name() : null);
+            resumo.setDataNotificacao(protocolo.getDataNotificacao());
+            resumo.setDataConfirmacaoME(protocolo.getDataConfirmacaoME());
+            resumo.setDiagnosticoBasico(protocolo.getDiagnosticoBasico());
+            resumo.setHospitalOrigem(protocolo.getHospitalOrigem());
+
+            List<ExameME> exames = protocolo.getExames() != null ? protocolo.getExames() : new ArrayList<>();
+            int totalExames = exames.size();
+            int examesRealizados = (int) exames.stream().filter(this::exameRealizado).count();
+            int examesClinicosRealizados = (int) exames.stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO && exameRealizado(e))
+                .count();
+            int examesComplementaresRealizados = (int) exames.stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && exameRealizado(e))
+                .count();
+            int examesLaboratoriaisRealizados = (int) exames.stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL && exameRealizado(e))
+                .count();
+
+            resumo.setTotalExames(totalExames);
+            resumo.setExamesRealizados(examesRealizados);
+            resumo.setExamesPendentes(Math.max(0, totalExames - examesRealizados));
+            resumo.setExamesClinicosRealizados(examesClinicosRealizados);
+            resumo.setExamesComplementaresRealizados(examesComplementaresRealizados);
+            resumo.setExamesLaboratoriaisRealizados(examesLaboratoriaisRealizados);
+
+            resumo.setFamiliaNotificada(Boolean.TRUE.equals(protocolo.getFamiliaNotificada()));
+            resumo.setAutopsiaAutorizada(Boolean.TRUE.equals(protocolo.getAutopsiaAutorizada()));
+            resumo.setDataNotificacaoFamilia(protocolo.getDataNotificacaoFamilia());
+
+            resumos.add(resumo);
+        }
+
+        relatorio.setTotalProtocolos(resumos.size());
+        relatorio.setProtocolos(resumos);
+
+        if (!resumos.isEmpty()) {
+            ResumoProtocoloRelatorio ultimoProtocolo = resumos.get(resumos.size() - 1);
+            relatorio.setStatusFinalProtocolo(ultimoProtocolo.getStatusProtocolo());
+            relatorio.setConclusaoFinal(obterConclusaoFinal(ultimoProtocolo.getStatusProtocolo()));
+        } else {
+            relatorio.setStatusFinalProtocolo("SEM_PROTOCOLO");
+            relatorio.setConclusaoFinal("Paciente sem protocolo de ME registrado.");
+        }
+
+        return relatorio;
+    }
+
+    public List<RelatorioFinalPaciente> gerarRelatoriosFinaisPacientes() {
+        List<Paciente> pacientes = listarTodos();
+        List<RelatorioFinalPaciente> relatorios = new ArrayList<>();
+
+        for (Paciente paciente : pacientes) {
+            relatorios.add(gerarRelatorioFinalPaciente(paciente.getId()));
+        }
+
+        return relatorios;
+    }
+
+    private boolean exameRealizado(ExameME exame) {
+        if (exame == null) {
+            return false;
+        }
+
+        boolean temResultadoTexto = exame.getResultado() != null && !exame.getResultado().trim().isEmpty();
+        boolean temResultadoBooleano = exame.getResultado_positivo() != null;
+        boolean temDataRealizacao = exame.getDataRealizacao() != null;
+
+        return temResultadoTexto || temResultadoBooleano || temDataRealizacao;
+    }
+
+    private String obterConclusaoFinal(String statusProtocolo) {
+        if (statusProtocolo == null) {
+            return "Status final não identificado.";
+        }
+
+        switch (statusProtocolo) {
+            case "DOACAO_AUTORIZADA":
+                return "Protocolo concluído com autorização familiar para doação.";
+            case "FAMILIA_RECUSOU":
+                return "Protocolo concluído com recusa familiar.";
+            case "MORTE_CEREBRAL_CONFIRMADA":
+                return "Morte cerebral confirmada; pendente etapa de entrevista familiar.";
+            case "ENTREVISTA_FAMILIAR":
+                return "Protocolo na etapa de entrevista familiar.";
+            case "EM_PROCESSO":
+                return "Protocolo em andamento, com exames ainda pendentes.";
+            case "NOTIFICADO":
+                return "Protocolo notificado, aguardando início dos exames.";
+            case "CONTRAINDICADO":
+                return "Protocolo finalizado por contraindicação para doação.";
+            case "FINALIZADO":
+                return "Protocolo finalizado.";
+            default:
+                return "Status final: " + statusProtocolo;
+        }
+    }
+
     /**
      * Validar dados do paciente
      */
@@ -251,6 +380,120 @@ public class PacienteService {
 
         public long getPacientesNaoAptos() { return pacientesNaoAptos; }
         public void setPacientesNaoAptos(long qt) { this.pacientesNaoAptos = qt; }
+    }
+
+    public static class RelatorioFinalPaciente {
+        private Long pacienteId;
+        private String nomePaciente;
+        private String cpf;
+        private String hospital;
+        private String statusPaciente;
+        private String statusEntrevistaFamiliar;
+        private LocalDateTime geradoEm;
+        private int totalProtocolos;
+        private String statusFinalProtocolo;
+        private String conclusaoFinal;
+        private List<ResumoProtocoloRelatorio> protocolos;
+
+        public Long getPacienteId() { return pacienteId; }
+        public void setPacienteId(Long pacienteId) { this.pacienteId = pacienteId; }
+
+        public String getNomePaciente() { return nomePaciente; }
+        public void setNomePaciente(String nomePaciente) { this.nomePaciente = nomePaciente; }
+
+        public String getCpf() { return cpf; }
+        public void setCpf(String cpf) { this.cpf = cpf; }
+
+        public String getHospital() { return hospital; }
+        public void setHospital(String hospital) { this.hospital = hospital; }
+
+        public String getStatusPaciente() { return statusPaciente; }
+        public void setStatusPaciente(String statusPaciente) { this.statusPaciente = statusPaciente; }
+
+        public String getStatusEntrevistaFamiliar() { return statusEntrevistaFamiliar; }
+        public void setStatusEntrevistaFamiliar(String statusEntrevistaFamiliar) { this.statusEntrevistaFamiliar = statusEntrevistaFamiliar; }
+
+        public LocalDateTime getGeradoEm() { return geradoEm; }
+        public void setGeradoEm(LocalDateTime geradoEm) { this.geradoEm = geradoEm; }
+
+        public int getTotalProtocolos() { return totalProtocolos; }
+        public void setTotalProtocolos(int totalProtocolos) { this.totalProtocolos = totalProtocolos; }
+
+        public String getStatusFinalProtocolo() { return statusFinalProtocolo; }
+        public void setStatusFinalProtocolo(String statusFinalProtocolo) { this.statusFinalProtocolo = statusFinalProtocolo; }
+
+        public String getConclusaoFinal() { return conclusaoFinal; }
+        public void setConclusaoFinal(String conclusaoFinal) { this.conclusaoFinal = conclusaoFinal; }
+
+        public List<ResumoProtocoloRelatorio> getProtocolos() { return protocolos; }
+        public void setProtocolos(List<ResumoProtocoloRelatorio> protocolos) { this.protocolos = protocolos; }
+    }
+
+    public static class ResumoProtocoloRelatorio {
+        private Long protocoloId;
+        private String numeroProtocolo;
+        private String statusProtocolo;
+        private LocalDateTime dataNotificacao;
+        private LocalDateTime dataConfirmacaoME;
+        private String diagnosticoBasico;
+        private String hospitalOrigem;
+        private int totalExames;
+        private int examesRealizados;
+        private int examesPendentes;
+        private int examesClinicosRealizados;
+        private int examesComplementaresRealizados;
+        private int examesLaboratoriaisRealizados;
+        private boolean familiaNotificada;
+        private boolean autopsiaAutorizada;
+        private LocalDateTime dataNotificacaoFamilia;
+
+        public Long getProtocoloId() { return protocoloId; }
+        public void setProtocoloId(Long protocoloId) { this.protocoloId = protocoloId; }
+
+        public String getNumeroProtocolo() { return numeroProtocolo; }
+        public void setNumeroProtocolo(String numeroProtocolo) { this.numeroProtocolo = numeroProtocolo; }
+
+        public String getStatusProtocolo() { return statusProtocolo; }
+        public void setStatusProtocolo(String statusProtocolo) { this.statusProtocolo = statusProtocolo; }
+
+        public LocalDateTime getDataNotificacao() { return dataNotificacao; }
+        public void setDataNotificacao(LocalDateTime dataNotificacao) { this.dataNotificacao = dataNotificacao; }
+
+        public LocalDateTime getDataConfirmacaoME() { return dataConfirmacaoME; }
+        public void setDataConfirmacaoME(LocalDateTime dataConfirmacaoME) { this.dataConfirmacaoME = dataConfirmacaoME; }
+
+        public String getDiagnosticoBasico() { return diagnosticoBasico; }
+        public void setDiagnosticoBasico(String diagnosticoBasico) { this.diagnosticoBasico = diagnosticoBasico; }
+
+        public String getHospitalOrigem() { return hospitalOrigem; }
+        public void setHospitalOrigem(String hospitalOrigem) { this.hospitalOrigem = hospitalOrigem; }
+
+        public int getTotalExames() { return totalExames; }
+        public void setTotalExames(int totalExames) { this.totalExames = totalExames; }
+
+        public int getExamesRealizados() { return examesRealizados; }
+        public void setExamesRealizados(int examesRealizados) { this.examesRealizados = examesRealizados; }
+
+        public int getExamesPendentes() { return examesPendentes; }
+        public void setExamesPendentes(int examesPendentes) { this.examesPendentes = examesPendentes; }
+
+        public int getExamesClinicosRealizados() { return examesClinicosRealizados; }
+        public void setExamesClinicosRealizados(int examesClinicosRealizados) { this.examesClinicosRealizados = examesClinicosRealizados; }
+
+        public int getExamesComplementaresRealizados() { return examesComplementaresRealizados; }
+        public void setExamesComplementaresRealizados(int examesComplementaresRealizados) { this.examesComplementaresRealizados = examesComplementaresRealizados; }
+
+        public int getExamesLaboratoriaisRealizados() { return examesLaboratoriaisRealizados; }
+        public void setExamesLaboratoriaisRealizados(int examesLaboratoriaisRealizados) { this.examesLaboratoriaisRealizados = examesLaboratoriaisRealizados; }
+
+        public boolean isFamiliaNotificada() { return familiaNotificada; }
+        public void setFamiliaNotificada(boolean familiaNotificada) { this.familiaNotificada = familiaNotificada; }
+
+        public boolean isAutopsiaAutorizada() { return autopsiaAutorizada; }
+        public void setAutopsiaAutorizada(boolean autopsiaAutorizada) { this.autopsiaAutorizada = autopsiaAutorizada; }
+
+        public LocalDateTime getDataNotificacaoFamilia() { return dataNotificacaoFamilia; }
+        public void setDataNotificacaoFamilia(LocalDateTime dataNotificacaoFamilia) { this.dataNotificacaoFamilia = dataNotificacaoFamilia; }
     }
 
 }

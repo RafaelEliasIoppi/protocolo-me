@@ -45,7 +45,7 @@ public class PacienteController {
     /**
      * GET /api/pacientes/{id} - Obter paciente por ID
      */
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<?> obterPorId(@PathVariable Long id) {
         try {
             Paciente paciente = pacienteService.obterPacientePorId(id);
@@ -140,6 +140,29 @@ public class PacienteController {
     }
 
     /**
+     * GET /api/pacientes/{id}/relatorio-final - Relatório final completo de um paciente
+     */
+    @GetMapping("/{id:\\d+}/relatorio-final")
+    public ResponseEntity<?> obterRelatorioFinalPaciente(@PathVariable Long id) {
+        try {
+            PacienteService.RelatorioFinalPaciente relatorio = pacienteService.gerarRelatorioFinalPaciente(id);
+            return ResponseEntity.ok(relatorio);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("Paciente não encontrado: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * GET /api/pacientes/relatorios-finais - Relatório final de todos os pacientes
+     */
+    @GetMapping("/relatorios-finais")
+    public ResponseEntity<List<PacienteService.RelatorioFinalPaciente>> listarRelatoriosFinaisPacientes() {
+        List<PacienteService.RelatorioFinalPaciente> relatorios = pacienteService.gerarRelatoriosFinaisPacientes();
+        return ResponseEntity.ok(relatorios);
+    }
+
+    /**
      * GET /api/pacientes/buscar?nome={nome} - Procurar pacientes por nome
      */
     @GetMapping("/buscar")
@@ -172,7 +195,7 @@ public class PacienteController {
     /**
      * PUT /api/pacientes/{id} - Atualizar paciente
      */
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Paciente paciente) {
         try {
             Paciente pacienteAtualizado = pacienteService.atualizarPaciente(id, paciente);
@@ -186,7 +209,7 @@ public class PacienteController {
     /**
      * PATCH /api/pacientes/{id}/status - Atualizar status do paciente
      */
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/{id:\\d+}/status")
     public ResponseEntity<?> atualizarStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
@@ -204,7 +227,7 @@ public class PacienteController {
     /**
      * DELETE /api/pacientes/{id} - Deletar paciente
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<?> deletar(@PathVariable Long id) {
         try {
             pacienteService.deletarPaciente(id);
