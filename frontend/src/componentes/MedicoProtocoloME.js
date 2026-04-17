@@ -178,6 +178,20 @@ function MedicoProtocoloME() {
     return mapa[status] || status || "Não iniciada";
   };
 
+  const formatarResultadoEntrevista = (paciente, protocolo) => {
+    const status = paciente?.statusEntrevistaFamiliar;
+
+    if (status === "AUTORIZADA" || protocolo?.status === "DOACAO_AUTORIZADA") {
+      return { label: "Positivo", cor: "positivo" };
+    }
+
+    if (status === "RECUSADA" || protocolo?.status === "FAMILIA_RECUSOU") {
+      return { label: "Negativo", cor: "negativo" };
+    }
+
+    return { label: "Não definido", cor: "nao-definido" };
+  };
+
   const obterExamesRealizados = (protocolo) => {
     let exames = 0;
     if (protocolo.testeClinico1Realizado) exames++;
@@ -318,6 +332,7 @@ function MedicoProtocoloME() {
               const statusBadge = obterBadgeStatus(protocolo?.status);
               const examesRealizados = obterExamesRealizados(protocolo);
               const statusEntrevista = formatarStatusEntrevista(paciente.statusEntrevistaFamiliar);
+              const resultadoEntrevista = formatarResultadoEntrevista(paciente, protocolo);
               const entrevistaConcluida = paciente.statusEntrevistaFamiliar === "AUTORIZADA" || paciente.statusEntrevistaFamiliar === "RECUSADA";
 
               return (
@@ -359,6 +374,12 @@ function MedicoProtocoloME() {
                         <label>Entrevista Familiar</label>
                         <span className={`status-badge status-${paciente.statusEntrevistaFamiliar ? paciente.statusEntrevistaFamiliar.toLowerCase() : "nao-iniciada"}`}>
                           {statusEntrevista}
+                        </span>
+                      </div>
+                      <div className="entrevista-resumo-resultado">
+                        <span>Resultado:</span>
+                        <span className={`resultado-badge resultado-${resultadoEntrevista.cor}`}>
+                          {resultadoEntrevista.label}
                         </span>
                       </div>
                       <p className="entrevista-resumo-texto">
