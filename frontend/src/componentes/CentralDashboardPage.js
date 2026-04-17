@@ -15,8 +15,20 @@ function CentralDashboardPage() {
     "MORTE_CEREBRAL_CONFIRMADA",
     "ENTREVISTA_FAMILIAR",
     "DOACAO_AUTORIZADA",
-    "FAMILIA_RECUSOU"
+    "FAMILIA_RECUSOU",
+    "CONTRAINDICADO",
+    "FINALIZADO"
   ];
+
+  const obterNomeHospital = (paciente, protocolo) => {
+    return (
+      paciente?.hospital?.nomeHospital ||
+      paciente?.hospital?.nome ||
+      protocolo?.hospitalOrigem ||
+      paciente?.hospitalOrigem ||
+      "N/A"
+    );
+  };
 
   const mapearProtocolosParaPacientes = (protocolos) => {
     if (!Array.isArray(protocolos)) {
@@ -66,6 +78,22 @@ function CentralDashboardPage() {
       return ["Teste clínico 1", "Teste clínico 2", "Exames complementares"];
     }
 
+    // Quando os exames vierem no payload, calcula pendências pela execução real.
+    if (Array.isArray(protocolo.exames) && protocolo.exames.length > 0) {
+      const clinicosRealizados = protocolo.exames.filter(
+        (e) => e?.categoria === "CLINICO" && !!e?.dataRealizacao,
+      ).length;
+      const complementaresRealizados = protocolo.exames.filter(
+        (e) => e?.categoria === "COMPLEMENTAR" && !!e?.dataRealizacao,
+      ).length;
+
+      const pendentes = [];
+      if (clinicosRealizados < 6) pendentes.push("Teste clínico 1");
+      if (clinicosRealizados < 12) pendentes.push("Teste clínico 2");
+      if (complementaresRealizados < 2) pendentes.push("Exames complementares");
+      return pendentes;
+    }
+
     const pendentes = [];
     if (!protocolo.testeClinico1Realizado) pendentes.push("Teste clínico 1");
     if (!protocolo.testeClinico2Realizado) pendentes.push("Teste clínico 2");
@@ -75,6 +103,22 @@ function CentralDashboardPage() {
 
   const obterExamesConcluidos = (protocolo) => {
     if (!protocolo) return 0;
+
+    if (Array.isArray(protocolo.exames) && protocolo.exames.length > 0) {
+      let concluidos = 0;
+      const clinicosRealizados = protocolo.exames.filter(
+        (e) => e?.categoria === "CLINICO" && !!e?.dataRealizacao,
+      ).length;
+      const complementaresRealizados = protocolo.exames.filter(
+        (e) => e?.categoria === "COMPLEMENTAR" && !!e?.dataRealizacao,
+      ).length;
+
+      if (clinicosRealizados >= 6) concluidos += 1;
+      if (clinicosRealizados >= 12) concluidos += 1;
+      if (complementaresRealizados >= 2) concluidos += 1;
+      return concluidos;
+    }
+
     let concluidos = 0;
     if (protocolo.testeClinico1Realizado) concluidos += 1;
     if (protocolo.testeClinico2Realizado) concluidos += 1;
@@ -107,7 +151,7 @@ function CentralDashboardPage() {
       id: paciente.id,
       nome: paciente.nome,
       cpf: paciente.cpf,
-      hospital: paciente.hospital?.nomeHospital || "N/A",
+      hospital: obterNomeHospital(paciente, protocolo),
       cidade: paciente.hospital?.cidade || "N/A",
       protocolo
     });
@@ -178,7 +222,7 @@ function CentralDashboardPage() {
                         <strong>{paciente.nome}</strong>
                       </td>
                       <td className="col-cpf">{paciente.cpf}</td>
-                      <td className="col-hospital">{paciente.hospital?.nomeHospital || "N/A"}</td>
+                      <td className="col-hospital">{obterNomeHospital(paciente, protocolo)}</td>
                       <td className="col-cidade">{paciente.hospital?.cidade || "N/A"}</td>
                       <td className="col-data">
                         {protocolo?.dataCriacao

@@ -1,5 +1,6 @@
 package back.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +20,7 @@ public class ExameME {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "protocolo_me_id")
+    @JsonIgnoreProperties({"exames", "paciente", "centralTransplantes"})
     private ProtocoloME protocoloME;
 
     @Enumerated(EnumType.STRING)

@@ -2,6 +2,8 @@
 
 .central-dashboard {
   padding: 1rem;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .dashboard-header {
@@ -92,6 +94,7 @@
 
 /* Tabela */
 .pacientes-tabela-wrapper {
+  width: 100%;
   overflow-x: auto;
   border-radius: 8px;
   border: 1px solid #ecf0f1;
@@ -113,6 +116,7 @@
   padding: 1rem;
   text-align: left;
   border-bottom: 2px solid #2c3e50;
+  white-space: nowrap;
 }
 
 .tabela-pacientes .col-nome {
@@ -159,6 +163,7 @@
 .tabela-pacientes td {
   padding: 0.8rem 1rem;
   vertical-align: top;
+  word-break: break-word;
 }
 
 .lista-faltantes {
@@ -349,8 +354,10 @@
   border-radius: 12px;
   width: 100%;
   max-width: 900px;
+  min-width: 0;
   max-height: 90vh;
   overflow-y: auto;
+  overflow-x: hidden;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
   animation: slideIn 0.3s ease-out;
 }

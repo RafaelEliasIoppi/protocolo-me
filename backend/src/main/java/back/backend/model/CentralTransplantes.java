@@ -1,5 +1,6 @@
 package back.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,9 +65,11 @@ public class CentralTransplantes {
     private List<Hospital> hospitaisParceados;
 
     @OneToMany(mappedBy = "centralTransplantes", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<ProtocoloME> protocolosME;
 
     @OneToMany(mappedBy = "centralTransplantes")
+    @JsonIgnore
     private List<Usuario> usuarios;
 
     @Column(name = "data_criacao", nullable = false, updatable = false)
