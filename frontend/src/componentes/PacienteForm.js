@@ -383,13 +383,17 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
                 <label>Status</label>
                 <select
                   name="status"
-                  value={formData.status === 'EM_PROTOCOLO_ME' ? 'INTERNADO' : formData.status}
+                  value={formData.status}
                   onChange={handleInputChange}
+                  disabled={formData.status === 'EM_PROTOCOLO_ME'}
                 >
                   {statusOpcoesManuais.map(s => (
                     <option key={s} value={s}>{formatarStatus(s)}</option>
                   ))}
                 </select>
+                {formData.status === 'EM_PROTOCOLO_ME' && (
+                  <small>Paciente em protocolo ME: status controlado automaticamente pelo protocolo.</small>
+                )}
               </>
             ) : (
               <>

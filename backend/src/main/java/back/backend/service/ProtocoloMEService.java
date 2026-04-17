@@ -30,6 +30,58 @@ public class ProtocoloMEService {
     @Autowired
     private PacienteRepository pacienteRepository;
 
+    private boolean exameRealizado(ExameME exame) {
+        if (exame == null) {
+            return false;
+        }
+
+        boolean temResultadoTexto = exame.getResultado() != null && !exame.getResultado().trim().isEmpty();
+        boolean temResultadoBooleano = exame.getResultado_positivo() != null;
+        boolean temDataRealizacao = exame.getDataRealizacao() != null;
+
+        return temResultadoTexto || temResultadoBooleano || temDataRealizacao;
+    }
+
+    private void sincronizarStatusPacienteComProtocolo(ProtocoloME protocolo) {
+        if (protocolo == null || protocolo.getPaciente() == null || protocolo.getPaciente().getId() == null) {
+            return;
+        }
+
+        Paciente paciente = pacienteRepository.findById(protocolo.getPaciente().getId())
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+
+        ProtocoloME.StatusProtocoloME statusProtocolo = protocolo.getStatus();
+        if (statusProtocolo == null) {
+            return;
+        }
+
+        Paciente.StatusPaciente novoStatusPaciente;
+        switch (statusProtocolo) {
+            case NOTIFICADO:
+            case EM_PROCESSO:
+            case MORTE_CEREBRAL_CONFIRMADA:
+            case ENTREVISTA_FAMILIAR:
+                novoStatusPaciente = Paciente.StatusPaciente.EM_PROTOCOLO_ME;
+                break;
+            case DOACAO_AUTORIZADA:
+                novoStatusPaciente = Paciente.StatusPaciente.APTO_TRANSPLANTE;
+                break;
+            case FAMILIA_RECUSOU:
+            case CONTRAINDICADO:
+            case FINALIZADO:
+                novoStatusPaciente = Paciente.StatusPaciente.NAO_APTO;
+                break;
+            default:
+                novoStatusPaciente = Paciente.StatusPaciente.EM_PROTOCOLO_ME;
+                break;
+        }
+
+        if (paciente.getStatus() != novoStatusPaciente) {
+            paciente.setStatus(novoStatusPaciente);
+            pacienteRepository.save(paciente);
+        }
+    }
+
     // Criar novo protocolo de ME e auto-popular com 35 exames
     public ProtocoloME criarProtocolo(ProtocoloME protocolo) {
         if (protocolo.getPaciente() == null || protocolo.getPaciente().getId() == null) {
@@ -320,37 +372,32 @@ public class ProtocoloMEService {
         // Contar exames realizados por categoria
         List<ExameME> exames = protocolo.getExames();
         long clinicosRealizados = exames.stream()
-                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO && e.getDataRealizacao() != null)
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO && exameRealizado(e))
                 .count();
         long complementaresRealizados = exames.stream()
-                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && e.getDataRealizacao() != null)
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && exameRealizado(e))
                 .count();
 
-        // Atualizar os flags de testes realizados.
-        // Regra prática para refletir o fluxo real do sistema:
-        // - 1 exame clínico realizado => teste clínico 1
-        // - 2 exames clínicos realizados => teste clínico 2
-        // - 1 exame complementar realizado => testes complementares
-        if (clinicosRealizados >= 1) {
-            protocolo.setTesteClinico1Realizado(true);
-        }
-        if (clinicosRealizados >= 2) {
-            protocolo.setTesteClinico2Realizado(true);
-        }
-        if (complementaresRealizados >= 1) {
-            protocolo.setTestesComplementaresRealizados(true);
-        }
+        // Recalcula flags sempre, inclusive para cenários de edição/exclusão de exames.
+        protocolo.setTesteClinico1Realizado(clinicosRealizados >= 1);
+        protocolo.setTesteClinico2Realizado(clinicosRealizados >= 2);
+        protocolo.setTestesComplementaresRealizados(complementaresRealizados >= 1);
 
         // Calcular novo status baseado nos testes
         ProtocoloME.StatusProtocoloME novoStatus = protocolo.calcularStatusAutomatico();
         protocolo.setStatus(novoStatus);
 
-        if (novoStatus == ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA
-                && protocolo.getDataConfirmacaoME() == null) {
-            protocolo.setDataConfirmacaoME(LocalDateTime.now());
+        if (novoStatus == ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA) {
+            if (protocolo.getDataConfirmacaoME() == null) {
+                protocolo.setDataConfirmacaoME(LocalDateTime.now());
+            }
+        } else {
+            protocolo.setDataConfirmacaoME(null);
         }
-        
-        return protocoloRepository.save(protocolo);
+
+        ProtocoloME protocoloAtualizado = protocoloRepository.save(protocolo);
+        sincronizarStatusPacienteComProtocolo(protocoloAtualizado);
+        return protocoloAtualizado;
     }
 
     /**
@@ -365,7 +412,9 @@ public class ProtocoloMEService {
         }
         
         protocolo.setStatus(ProtocoloME.StatusProtocoloME.ENTREVISTA_FAMILIAR);
-        return protocoloRepository.save(protocolo);
+        ProtocoloME protocoloAtualizado = protocoloRepository.save(protocolo);
+        sincronizarStatusPacienteComProtocolo(protocoloAtualizado);
+        return protocoloAtualizado;
     }
 
     /**
@@ -384,8 +433,10 @@ public class ProtocoloMEService {
         } else {
             protocolo.setStatus(ProtocoloME.StatusProtocoloME.FAMILIA_RECUSOU);
         }
-        
-        return protocoloRepository.save(protocolo);
+
+        ProtocoloME protocoloAtualizado = protocoloRepository.save(protocolo);
+        sincronizarStatusPacienteComProtocolo(protocoloAtualizado);
+        return protocoloAtualizado;
     }
 
     // Alterar status do protocolo
@@ -393,7 +444,9 @@ public class ProtocoloMEService {
         ProtocoloME protocolo = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado com ID: " + id));
         protocolo.setStatus(novoStatus);
-        return protocoloRepository.save(protocolo);
+        ProtocoloME protocoloAtualizado = protocoloRepository.save(protocolo);
+        sincronizarStatusPacienteComProtocolo(protocoloAtualizado);
+        return protocoloAtualizado;
     }
 
     // Deletar protocolo (será cascade delete dos exames)

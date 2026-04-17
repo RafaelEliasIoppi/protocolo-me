@@ -88,9 +88,10 @@ function CentralDashboardPage() {
       ).length;
 
       const pendentes = [];
-      if (clinicosRealizados < 6) pendentes.push("Teste clínico 1");
-      if (clinicosRealizados < 12) pendentes.push("Teste clínico 2");
-      if (complementaresRealizados < 2) pendentes.push("Exames complementares");
+      // Mesma regra usada no backend para status automático.
+      if (clinicosRealizados < 1) pendentes.push("Teste clínico 1");
+      if (clinicosRealizados < 2) pendentes.push("Teste clínico 2");
+      if (complementaresRealizados < 1) pendentes.push("Exames complementares");
       return pendentes;
     }
 
@@ -113,9 +114,10 @@ function CentralDashboardPage() {
         (e) => e?.categoria === "COMPLEMENTAR" && !!e?.dataRealizacao,
       ).length;
 
-      if (clinicosRealizados >= 6) concluidos += 1;
-      if (clinicosRealizados >= 12) concluidos += 1;
-      if (complementaresRealizados >= 2) concluidos += 1;
+      // Mesma regra usada no backend para status automático.
+      if (clinicosRealizados >= 1) concluidos += 1;
+      if (clinicosRealizados >= 2) concluidos += 1;
+      if (complementaresRealizados >= 1) concluidos += 1;
       return concluidos;
     }
 
@@ -124,6 +126,35 @@ function CentralDashboardPage() {
     if (protocolo.testeClinico2Realizado) concluidos += 1;
     if (protocolo.testesComplementaresRealizados) concluidos += 1;
     return concluidos;
+  };
+
+  const obterExamesRealizadosDetalhados = (protocolo) => {
+    if (!protocolo || !Array.isArray(protocolo.exames)) {
+      return [];
+    }
+
+    return protocolo.exames.filter((exame) => {
+      const temResultadoTexto = exame?.resultado && exame.resultado.trim() !== "";
+      const temResultadoBooleano = exame?.resultado_positivo !== null && exame?.resultado_positivo !== undefined;
+      const temData = !!exame?.dataRealizacao;
+      return temResultadoTexto || temResultadoBooleano || temData;
+    });
+  };
+
+  const formatarResultadoExame = (exame) => {
+    if (exame?.resultado && exame.resultado.trim() !== "") {
+      return exame.resultado;
+    }
+
+    if (exame?.resultado_positivo === true) {
+      return "Positivo";
+    }
+
+    if (exame?.resultado_positivo === false) {
+      return "Negativo";
+    }
+
+    return "Sem resultado informado";
   };
 
   const obterCorStatus = (status) => {
@@ -319,6 +350,26 @@ function CentralDashboardPage() {
                   <ul className="lista-faltantes">
                     {obterExamesPendentes(pacienteSelecionado.protocolo).map((item) => (
                       <li key={`pendente-${pacienteSelecionado.id}-${item}`}>{item}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <div className="readonly-pendencias">
+                <h3>Exames Realizados (com resultado)</h3>
+                {obterExamesRealizadosDetalhados(pacienteSelecionado.protocolo).length === 0 ? (
+                  <p className="note">Nenhum exame com resultado registrado até o momento.</p>
+                ) : (
+                  <ul className="lista-faltantes">
+                    {obterExamesRealizadosDetalhados(pacienteSelecionado.protocolo).map((exame) => (
+                      <li key={`realizado-${pacienteSelecionado.id}-${exame.id}`}>
+                        <strong>{exame.descricao || exame.tipoExame}</strong>
+                        {` - ${formatarResultadoExame(exame)}`}
+                        {exame.responsavel ? ` (Resp.: ${exame.responsavel})` : ""}
+                        {exame.dataRealizacao
+                          ? ` - ${new Date(exame.dataRealizacao).toLocaleString("pt-BR")}`
+                          : ""}
+                      </li>
                     ))}
                   </ul>
                 )}

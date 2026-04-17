@@ -22,6 +22,18 @@ public class ExameMEService {
     @Autowired(required = false)
     private ProtocoloMEService protocoloMEService;
 
+    private boolean exameRealizado(ExameME exame) {
+        if (exame == null) {
+            return false;
+        }
+
+        boolean temResultadoTexto = exame.getResultado() != null && !exame.getResultado().trim().isEmpty();
+        boolean temResultadoBooleano = exame.getResultado_positivo() != null;
+        boolean temDataRealizacao = exame.getDataRealizacao() != null;
+
+        return temResultadoTexto || temResultadoBooleano || temDataRealizacao;
+    }
+
     // Criar exame
     public ExameME criarExame(ExameME exame) {
         // Exame criado sem resultado deve permanecer pendente.
@@ -125,7 +137,7 @@ public class ExameMEService {
         
         ExameResumo resumo = new ExameResumo();
         int totalExames = exames.size();
-        int examesRealizados = (int) exames.stream().filter(e -> e.getDataRealizacao() != null).count();
+        int examesRealizados = (int) exames.stream().filter(this::exameRealizado).count();
         int examesPendentes = totalExames - examesRealizados;
 
         int examesClinicosTotal = (int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO).count();
@@ -133,13 +145,13 @@ public class ExameMEService {
         int examesLaboratoriaisTotal = (int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL).count();
 
         int examesClinicosRealizados = (int) exames.stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO && e.getDataRealizacao() != null)
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO && exameRealizado(e))
             .count();
         int examesComplementaresRealizados = (int) exames.stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && e.getDataRealizacao() != null)
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && exameRealizado(e))
             .count();
         int examesLaboratoriaisRealizados = (int) exames.stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL && e.getDataRealizacao() != null)
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL && exameRealizado(e))
             .count();
 
         resumo.setTotalExames(totalExames);

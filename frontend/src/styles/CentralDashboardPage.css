@@ -96,12 +96,14 @@
 .pacientes-tabela-wrapper {
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   border-radius: 8px;
   border: 1px solid #ecf0f1;
 }
 
 .tabela-pacientes {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
@@ -164,6 +166,34 @@
   padding: 0.8rem 1rem;
   vertical-align: top;
   word-break: break-word;
+  background: #ffffff;
+}
+
+/* Colunas essenciais sempre visíveis */
+.tabela-pacientes .col-nome {
+  position: sticky;
+  left: 0;
+  z-index: 4;
+  background: #ffffff;
+  box-shadow: 2px 0 0 #ecf0f1;
+}
+
+.tabela-pacientes thead .col-nome {
+  z-index: 6;
+  background: #34495e;
+}
+
+.tabela-pacientes .col-status {
+  position: sticky;
+  right: 0;
+  z-index: 4;
+  background: #ffffff;
+  box-shadow: -2px 0 0 #ecf0f1;
+}
+
+.tabela-pacientes thead .col-status {
+  z-index: 6;
+  background: #34495e;
 }
 
 .lista-faltantes {
@@ -329,6 +359,14 @@
   .status-badge {
     padding: 0.3rem 0.5rem;
     font-size: 0.7rem;
+  }
+
+  .tabela-pacientes .col-nome {
+    min-width: 140px;
+  }
+
+  .tabela-pacientes .col-status {
+    min-width: 130px;
   }
 }
 

@@ -219,6 +219,14 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     return t ? t.label : tipo;
   };
 
+  const isExameRealizado = (exame) => {
+    if (!exame) return false;
+    const temResultadoTexto = exame.resultado && exame.resultado.trim() !== '';
+    const temResultadoBooleano = exame.resultado_positivo !== null && exame.resultado_positivo !== undefined;
+    const temData = !!exame.dataRealizacao;
+    return temResultadoTexto || temResultadoBooleano || temData;
+  };
+
   return (
     <div className="exame-manager-container">
       <h2>Gerenciador de Exames - Protocolo ME</h2>
@@ -330,7 +338,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
                   <span className="categoria-badge">{getCategoriaLabel(exame.categoria)}</span>
                 </div>
                 <div className="exame-status">
-                  {exame.dataRealizacao ? (
+                  {isExameRealizado(exame) ? (
                     <span className="realizado">✓ Realizado</span>
                   ) : (
                     <span className="pendente">⏱ Pendente</span>
