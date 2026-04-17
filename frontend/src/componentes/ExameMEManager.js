@@ -3,7 +3,7 @@ import apiClient from '../services/apiClient';
 import GerenciadorAnexos from './GerenciadorAnexos';
 import '../styles/ExameMEManager.css';
 
-const ExameMEManager = ({ protocoloId }) => {
+const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   const [exames, setExames] = useState([]);
   const [examesFiltrados, setExamesFiltrados] = useState([]);
   const [resumoExames, setResumoExames] = useState(null);
@@ -151,6 +151,9 @@ const ExameMEManager = ({ protocoloId }) => {
       setSucesso('Exame adicionado!');
       setTimeout(() => setSucesso(''), 2000);
       carregarResumo();
+      if (onAtualizacao) {
+        onAtualizacao();
+      }
     } catch (err) {
       setErro('Erro ao criar exame');
     }
@@ -177,6 +180,9 @@ const ExameMEManager = ({ protocoloId }) => {
       setExameSelecionado(null);
       setSucesso('Resultado registrado!');
       carregarResumo();
+      if (onAtualizacao) {
+        onAtualizacao();
+      }
     } catch (err) {
       setErro('Erro ao registrar resultado');
     }
@@ -189,6 +195,9 @@ const ExameMEManager = ({ protocoloId }) => {
         setExames(exames.filter(e => e.id !== exameId));
         setSucesso('Exame deletado!');
         carregarResumo();
+        if (onAtualizacao) {
+          onAtualizacao();
+        }
       } catch (err) {
         setErro('Erro ao deletar exame');
       }
@@ -222,19 +231,19 @@ const ExameMEManager = ({ protocoloId }) => {
           </div>
           <div className="card-resumo">
             <h4>Exames Realizados</h4>
-            <p className="valor">{resumoExames.examesRealizados}</p>
+            <p className="valor">{resumoExames.examesRealizados}/{resumoExames.totalExames}</p>
           </div>
           <div className="card-resumo clinicos">
             <h4>Clínicos</h4>
-            <p className="valor">{resumoExames.exames_Clinicos}</p>
+            <p className="valor">{resumoExames.exames_Clinicos}/{resumoExames.examesClinicosTotal}</p>
           </div>
           <div className="card-resumo complementares">
             <h4>Complementares</h4>
-            <p className="valor">{resumoExames.examesComplementares}</p>
+            <p className="valor">{resumoExames.examesComplementares}/{resumoExames.examesComplementaresTotal}</p>
           </div>
           <div className="card-resumo laboratoriais">
             <h4>Laboratoriais</h4>
-            <p className="valor">{resumoExames.examesLaboratoriais}</p>
+            <p className="valor">{resumoExames.examesLaboratoriais}/{resumoExames.examesLaboratoriaisTotal}</p>
           </div>
         </div>
       )}

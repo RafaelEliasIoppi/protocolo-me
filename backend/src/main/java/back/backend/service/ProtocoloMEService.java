@@ -326,20 +326,29 @@ public class ProtocoloMEService {
                 .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && e.getDataRealizacao() != null)
                 .count();
 
-        // Atualizar os flags de testes realizados
-        if (clinicosRealizados >= 6) {
+        // Atualizar os flags de testes realizados.
+        // Regra prática para refletir o fluxo real do sistema:
+        // - 1 exame clínico realizado => teste clínico 1
+        // - 2 exames clínicos realizados => teste clínico 2
+        // - 1 exame complementar realizado => testes complementares
+        if (clinicosRealizados >= 1) {
             protocolo.setTesteClinico1Realizado(true);
         }
-        if (clinicosRealizados >= 12) {
+        if (clinicosRealizados >= 2) {
             protocolo.setTesteClinico2Realizado(true);
         }
-        if (complementaresRealizados >= 2) {
+        if (complementaresRealizados >= 1) {
             protocolo.setTestesComplementaresRealizados(true);
         }
 
         // Calcular novo status baseado nos testes
         ProtocoloME.StatusProtocoloME novoStatus = protocolo.calcularStatusAutomatico();
         protocolo.setStatus(novoStatus);
+
+        if (novoStatus == ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA
+                && protocolo.getDataConfirmacaoME() == null) {
+            protocolo.setDataConfirmacaoME(LocalDateTime.now());
+        }
         
         return protocoloRepository.save(protocolo);
     }

@@ -58,6 +58,20 @@ function MedicoProtocoloME() {
     }
   };
 
+  const atualizarPainelAposExame = async () => {
+    await carregarPacientesProtocolo();
+    if (!protocoloSelecionado?.id) {
+      return;
+    }
+
+    try {
+      const response = await apiClient.get(`/api/protocolos-me/${protocoloSelecionado.id}`);
+      setProtocoloSelecionado(response.data);
+    } catch (e) {
+      console.error("Erro ao atualizar protocolo após exame:", e);
+    }
+  };
+
   const carregarPacientesDisponiveis = async () => {
     try {
       const response = await apiClient.get("/api/pacientes/status/INTERNADO");
@@ -317,7 +331,10 @@ function MedicoProtocoloME() {
               <button className="modal-close" onClick={() => setMostraExames(false)}>✕</button>
             </div>
             <div className="modal-body">
-              <ExameMEManager protocoloId={protocoloSelecionado.id} />
+              <ExameMEManager
+                protocoloId={protocoloSelecionado.id}
+                onAtualizacao={atualizarPainelAposExame}
+              />
             </div>
           </div>
         </div>

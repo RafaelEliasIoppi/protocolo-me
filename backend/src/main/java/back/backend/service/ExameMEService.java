@@ -24,7 +24,11 @@ public class ExameMEService {
 
     // Criar exame
     public ExameME criarExame(ExameME exame) {
-        if (exame.getDataRealizacao() == null) {
+        // Exame criado sem resultado deve permanecer pendente.
+        // A data de realização é preenchida quando o resultado for registrado.
+        if (exame.getResultado() == null || exame.getResultado().trim().isEmpty()) {
+            exame.setDataRealizacao(null);
+        } else if (exame.getDataRealizacao() == null) {
             exame.setDataRealizacao(LocalDateTime.now());
         }
         ExameME exameSalvo = exameRepository.save(exame);
@@ -120,11 +124,33 @@ public class ExameMEService {
         List<ExameME> exames = exameRepository.findByProtocoloME(protocolo);
         
         ExameResumo resumo = new ExameResumo();
-        resumo.setTotalExames(exames.size());
-        resumo.setExamesRealizados((int) exames.stream().filter(e -> e.getDataRealizacao() != null).count());
-        resumo.setExames_Clinicos((int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO).count());
-        resumo.setExamesComplementares((int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR).count());
-        resumo.setExamesLaboratoriais((int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL).count());
+        int totalExames = exames.size();
+        int examesRealizados = (int) exames.stream().filter(e -> e.getDataRealizacao() != null).count();
+        int examesPendentes = totalExames - examesRealizados;
+
+        int examesClinicosTotal = (int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO).count();
+        int examesComplementaresTotal = (int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR).count();
+        int examesLaboratoriaisTotal = (int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL).count();
+
+        int examesClinicosRealizados = (int) exames.stream()
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO && e.getDataRealizacao() != null)
+            .count();
+        int examesComplementaresRealizados = (int) exames.stream()
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && e.getDataRealizacao() != null)
+            .count();
+        int examesLaboratoriaisRealizados = (int) exames.stream()
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL && e.getDataRealizacao() != null)
+            .count();
+
+        resumo.setTotalExames(totalExames);
+        resumo.setExamesRealizados(examesRealizados);
+        resumo.setExamesPendentes(examesPendentes);
+        resumo.setExames_Clinicos(examesClinicosRealizados);
+        resumo.setExamesClinicosTotal(examesClinicosTotal);
+        resumo.setExamesComplementares(examesComplementaresRealizados);
+        resumo.setExamesComplementaresTotal(examesComplementaresTotal);
+        resumo.setExamesLaboratoriais(examesLaboratoriaisRealizados);
+        resumo.setExamesLaboratoriaisTotal(examesLaboratoriaisTotal);
 
         return resumo;
     }
@@ -133,9 +159,13 @@ public class ExameMEService {
     public static class ExameResumo {
         private int totalExames;
         private int examesRealizados;
+        private int examesPendentes;
         private int exames_Clinicos;
+        private int examesClinicosTotal;
         private int examesComplementares;
+        private int examesComplementaresTotal;
         private int examesLaboratoriais;
+        private int examesLaboratoriaisTotal;
 
         // Getters e Setters
         public int getTotalExames() { return totalExames; }
@@ -144,13 +174,25 @@ public class ExameMEService {
         public int getExamesRealizados() { return examesRealizados; }
         public void setExamesRealizados(int examesRealizados) { this.examesRealizados = examesRealizados; }
 
+        public int getExamesPendentes() { return examesPendentes; }
+        public void setExamesPendentes(int examesPendentes) { this.examesPendentes = examesPendentes; }
+
         public int getExames_Clinicos() { return exames_Clinicos; }
         public void setExames_Clinicos(int exames_Clinicos) { this.exames_Clinicos = exames_Clinicos; }
+
+        public int getExamesClinicosTotal() { return examesClinicosTotal; }
+        public void setExamesClinicosTotal(int examesClinicosTotal) { this.examesClinicosTotal = examesClinicosTotal; }
 
         public int getExamesComplementares() { return examesComplementares; }
         public void setExamesComplementares(int examesComplementares) { this.examesComplementares = examesComplementares; }
 
+        public int getExamesComplementaresTotal() { return examesComplementaresTotal; }
+        public void setExamesComplementaresTotal(int examesComplementaresTotal) { this.examesComplementaresTotal = examesComplementaresTotal; }
+
         public int getExamesLaboratoriais() { return examesLaboratoriais; }
         public void setExamesLaboratoriais(int examesLaboratoriais) { this.examesLaboratoriais = examesLaboratoriais; }
+
+        public int getExamesLaboratoriaisTotal() { return examesLaboratoriaisTotal; }
+        public void setExamesLaboratoriaisTotal(int examesLaboratoriaisTotal) { this.examesLaboratoriaisTotal = examesLaboratoriaisTotal; }
     }
 }
