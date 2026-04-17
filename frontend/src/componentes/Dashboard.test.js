@@ -14,6 +14,11 @@ jest.mock("../services/pacienteService", () => ({
 }));
 
 describe("Dashboard", () => {
+  const routerFutureFlags = {
+    v7_startTransition: true,
+    v7_relativeSplatPath: true,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -46,7 +51,7 @@ describe("Dashboard", () => {
 
   it("renderiza cards principais e secao do medico", async () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFutureFlags}>
         <Dashboard onLogout={jest.fn()} theme="dark" setTheme={jest.fn()} role="MEDICO" />
       </MemoryRouter>,
     );
@@ -60,7 +65,7 @@ describe("Dashboard", () => {
 
   it("mostra notificacao de internados sem protocolo", async () => {
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFutureFlags}>
         <Dashboard onLogout={jest.fn()} theme="light" setTheme={jest.fn()} role="MEDICO" />
       </MemoryRouter>,
     );

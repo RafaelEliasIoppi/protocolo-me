@@ -422,21 +422,21 @@ function CentralDashboardPage() {
                       onClick={() => abrirVisualizacaoSomenteLeitura(paciente, protocolo)}
                       style={{ cursor: protocolo ? "pointer" : "default" }}
                     >
-                      <td className="col-nome">
+                      <td className="col-nome" data-label="Nome">
                         <strong>{paciente.nome}</strong>
                       </td>
-                      <td className="col-cpf">{paciente.cpf}</td>
-                      <td className="col-hospital">{obterNomeHospital(paciente, protocolo)}</td>
-                      <td className="col-cidade">{paciente.hospital?.cidade || "N/A"}</td>
-                      <td className="col-data">
+                      <td className="col-cpf" data-label="CPF">{paciente.cpf}</td>
+                      <td className="col-hospital" data-label="Hospital">{obterNomeHospital(paciente, protocolo)}</td>
+                      <td className="col-cidade" data-label="Cidade">{paciente.hospital?.cidade || "N/A"}</td>
+                      <td className="col-data" data-label="Data Notificação">
                         {protocolo?.dataNotificacao
                           ? new Date(protocolo.dataNotificacao).toLocaleDateString("pt-BR")
                           : "N/A"}
                       </td>
-                      <td className="col-exames">
+                      <td className="col-exames" data-label="Exames (Concluídos)">
                         <strong>{examesConcluidos}/3</strong>
                       </td>
-                      <td className="col-faltantes">
+                      <td className="col-faltantes" data-label="Exames Faltantes">
                         {examesPendentes.length === 0 ? (
                           <span className="pendencia-ok">Todos concluídos</span>
                         ) : (
@@ -447,7 +447,7 @@ function CentralDashboardPage() {
                           </ul>
                         )}
                       </td>
-                      <td className="col-status">
+                      <td className="col-status" data-label="Status">
                         <span
                           className={`status-badge status-${obterCorStatus(protocolo?.status)}`}
                         >

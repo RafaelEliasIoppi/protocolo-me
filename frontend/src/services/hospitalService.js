@@ -27,8 +27,27 @@ export const hospitalService = {
   },
 
   obterEstatisticas: async (id) => {
-    const response = await api.get(`/api/hospitais/${id}/estatisticas`);
-    return response.data;
+    if (id != null) {
+      const response = await api.get(`/api/hospitais/${id}`);
+      return {
+        total: 1,
+        ativos: response.data?.status === 'ATIVO' ? 1 : 0,
+        inativos: response.data?.status === 'INATIVO' ? 1 : 0,
+        manutencao: response.data?.status === 'MANUTENCAO' ? 1 : 0,
+        suspensao: response.data?.status === 'SUSPENSAO' ? 1 : 0,
+        hospital: response.data
+      };
+    }
+
+    const response = await api.get('/api/hospitais');
+    const hospitais = Array.isArray(response.data) ? response.data : [];
+    return {
+      total: hospitais.length,
+      ativos: hospitais.filter((h) => h?.status === 'ATIVO').length,
+      inativos: hospitais.filter((h) => h?.status === 'INATIVO').length,
+      manutencao: hospitais.filter((h) => h?.status === 'MANUTENCAO').length,
+      suspensao: hospitais.filter((h) => h?.status === 'SUSPENSAO').length
+    };
   }
 };
 

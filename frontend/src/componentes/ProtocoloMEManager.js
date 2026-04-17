@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
 import '../styles/ProtocoloMEManager.css';
 
 const ProtocoloMEManager = () => {
@@ -27,9 +27,9 @@ const ProtocoloMEManager = () => {
     { valor: 'NOTIFICADO', label: 'Notificado', cor: 'azul' },
     { valor: 'EM_PROCESSO', label: 'Em Processo', cor: 'amarelo' },
     { valor: 'MORTE_CEREBRAL_CONFIRMADA', label: 'Morte Cerebral Confirmada', cor: 'laranja' },
-    { valor: 'FAMILIA_INFORMADA', label: 'Família Informada', cor: 'verde' },
-    { valor: 'ORGAOS_PRESERVADOS', label: 'Órgãos Preservados', cor: 'roxo' },
-    { valor: 'APTO_TRANSPLANTE', label: 'Apto para Transplante', cor: 'verde-escuro' },
+    { valor: 'ENTREVISTA_FAMILIAR', label: 'Entrevista Familiar', cor: 'roxo' },
+    { valor: 'DOACAO_AUTORIZADA', label: 'Doação Autorizada', cor: 'verde-escuro' },
+    { valor: 'FAMILIA_RECUSOU', label: 'Família Recusou', cor: 'vermelho' },
     { valor: 'CONTRAINDICADO', label: 'Contraindicado', cor: 'vermelho' },
     { valor: 'FINALIZADO', label: 'Finalizado', cor: 'cinza' }
   ];
@@ -41,7 +41,7 @@ const ProtocoloMEManager = () => {
   const carregarProtocolos = async () => {
     setCarregando(true);
     try {
-      const response = await axios.get('/api/protocolos-me');
+      const response = await apiClient.get('/api/protocolos-me');
       setProtocolos(response.data);
     } catch (err) {
       setErro('Erro ao carregar protocolos');
@@ -63,13 +63,19 @@ const ProtocoloMEManager = () => {
     setErro('');
     setSucesso('');
 
-    if (!formProtocolo.numeroProtocolo || !formProtocolo.hospitalOrigem) {
-      setErro('Número do protocolo e hospital origem são obrigatórios');
+    if (!formProtocolo.pacienteId || !formProtocolo.diagnosticoBasico) {
+      setErro('Paciente e diagnóstico básico são obrigatórios');
       return;
     }
 
     try {
-      const response = await axios.post('/api/protocolos-me', formProtocolo);
+      const payload = {
+        pacienteId: parseInt(formProtocolo.pacienteId, 10),
+        diagnosticoBasico: formProtocolo.diagnosticoBasico,
+        observacoes: formProtocolo.observacoes
+      };
+
+      const response = await apiClient.post('/api/protocolos-me', payload);
       setProtocolos([...protocolos, response.data]);
       setFormProtocolo({
         numeroProtocolo: '',
@@ -92,7 +98,7 @@ const ProtocoloMEManager = () => {
 
   const registrarTesteClinco1 = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/teste-clinico-1`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/teste-clinico-1`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Teste clínico 1 registrado!');
     } catch (err) {
@@ -102,7 +108,7 @@ const ProtocoloMEManager = () => {
 
   const registrarTesteClinco2 = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/teste-clinico-2`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/teste-clinico-2`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Teste clínico 2 registrado!');
     } catch (err) {
@@ -112,7 +118,7 @@ const ProtocoloMEManager = () => {
 
   const confirmarMorteCerebral = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/confirmar-morte-cerebral`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/confirmar-morte-cerebral`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Morte cerebral confirmada!');
     } catch (err) {
@@ -122,7 +128,7 @@ const ProtocoloMEManager = () => {
 
   const registrarNotificacaoFamilia = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/notificar-familia`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/notificar-familia`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Notificação da família registrada!');
     } catch (err) {
@@ -132,7 +138,7 @@ const ProtocoloMEManager = () => {
 
   const registrarPreservacaoOrgaos = async (protocoloId) => {
     try {
-      const response = await axios.post(`/api/protocolos-me/${protocoloId}/preservacao-orgaos`);
+      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/preservacao-orgaos`);
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Preservação de órgãos registrada!');
     } catch (err) {
@@ -142,7 +148,7 @@ const ProtocoloMEManager = () => {
 
   const alterarStatus = async (protocoloId, novoStatus) => {
     try {
-      const response = await axios.patch(
+      const response = await apiClient.patch(
         `/api/protocolos-me/${protocoloId}/status`,
         {},
         { params: { status: novoStatus } }
@@ -185,20 +191,26 @@ const ProtocoloMEManager = () => {
         <form onSubmit={handleCriarProtocolo}>
           <div className="form-row">
             <input
-              type="text"
-              name="numeroProtocolo"
-              placeholder="Número do Protocolo *"
-              value={formProtocolo.numeroProtocolo}
+              type="number"
+              name="pacienteId"
+              placeholder="ID do Paciente *"
+              value={formProtocolo.pacienteId}
               onChange={handleChangeForm}
               required
             />
             <input
               type="text"
+              name="numeroProtocolo"
+              placeholder="Número do Protocolo (opcional)"
+              value={formProtocolo.numeroProtocolo}
+              onChange={handleChangeForm}
+            />
+            <input
+              type="text"
               name="hospitalOrigem"
-              placeholder="Hospital Origem *"
+              placeholder="Hospital Origem (opcional)"
               value={formProtocolo.hospitalOrigem}
               onChange={handleChangeForm}
-              required
             />
             <input
               type="text"

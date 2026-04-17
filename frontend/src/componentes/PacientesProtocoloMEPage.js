@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../services/apiClient";
 import "../styles/PacientesProtocoloMEPage.css";
 
 function PacientesProtocoloMEPage() {
@@ -18,7 +18,7 @@ function PacientesProtocoloMEPage() {
       if (hospitalId) {
         endpoint = `/api/pacientes/em-protocolo-me/hospital/${hospitalId}`;
       }
-      const response = await axios.get(endpoint);
+      const response = await apiClient.get(endpoint);
       setPacientes(response.data);
     } catch (err) {
       setErro("Erro ao carregar pacientes em protocolo de ME");
@@ -31,7 +31,7 @@ function PacientesProtocoloMEPage() {
   // Carregar lista de hospitais para filtro
   const carregarHospitais = async () => {
     try {
-      const response = await axios.get("/api/hospitais");
+      const response = await apiClient.get("/api/hospitais");
       setHospitais(response.data);
     } catch (err) {
       console.error("Erro ao carregar hospitais:", err);
@@ -67,7 +67,7 @@ function PacientesProtocoloMEPage() {
   };
 
   return (
-    <section>
+    <section className="pacientes-protocolo-me-page">
       <div className="brand-bar">
         <div>
           <h1>Pacientes em Protocolo de Morte Encefálica</h1>

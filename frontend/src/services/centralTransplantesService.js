@@ -22,7 +22,15 @@ export const centralTransplantesService = {
   },
 
   obterEstatisticas: async () => {
-    return api.get('/api/centrais-transplantes/estatisticas');
+    const response = await api.get('/api/centrais-transplantes');
+    const centrais = Array.isArray(response.data) ? response.data : [];
+    return {
+      total: centrais.length,
+      ativas: centrais.filter((c) => c?.statusOperacional === 'ATIVO').length,
+      inativas: centrais.filter((c) => c?.statusOperacional === 'INATIVO').length,
+      plantao: centrais.filter((c) => c?.statusOperacional === 'PLANTAO').length,
+      manutencao: centrais.filter((c) => c?.statusOperacional === 'MANUTENCAO').length
+    };
   }
 };
 

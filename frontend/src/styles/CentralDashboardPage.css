@@ -6,36 +6,43 @@
   overflow-x: hidden;
 }
 
-.dashboard-header {
+.central-dashboard .dashboard-header {
   background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
   color: white;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
   padding: 2rem;
   border-radius: 10px;
   margin-bottom: 2rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.dashboard-header h1 {
+.central-dashboard .dashboard-header > div:first-child {
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.central-dashboard .dashboard-header h1 {
   font-size: 1.8rem;
   margin: 0;
   font-weight: 700;
 }
 
-.dashboard-header p {
+.central-dashboard .dashboard-header p {
   margin: 0.5rem 0 0 0;
   font-size: 0.95rem;
   opacity: 0.9;
 }
 
-.action-row {
+.central-dashboard .action-row {
   display: flex;
   gap: 1rem;
 }
 
-.secondary-button {
+.central-dashboard .secondary-button {
   background-color: rgba(255, 255, 255, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.4);
   color: white;
@@ -53,7 +60,7 @@
   }
 }
 
-.secondary-button:hover {
+.central-dashboard .secondary-button:hover {
   background-color: rgba(255, 255, 255, 0.25);
   border-color: rgba(255, 255, 255, 0.6);
   transform: translateY(-2px);
@@ -95,15 +102,16 @@
 /* Tabela */
 .pacientes-tabela-wrapper {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
   overflow-y: hidden;
   border-radius: 8px;
   border: 1px solid #ecf0f1;
 }
 
 .tabela-pacientes {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
@@ -118,39 +126,40 @@
   padding: 1rem;
   text-align: left;
   border-bottom: 2px solid #2c3e50;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .tabela-pacientes .col-nome {
-  min-width: 200px;
+  width: 15%;
 }
 
 .tabela-pacientes .col-cpf {
-  min-width: 150px;
+  width: 12%;
 }
 
 .tabela-pacientes .col-hospital {
-  min-width: 180px;
+  width: 15%;
 }
 
 .tabela-pacientes .col-cidade {
-  min-width: 120px;
+  width: 10%;
 }
 
 .tabela-pacientes .col-data {
-  min-width: 140px;
+  width: 12%;
 }
 
 .tabela-pacientes .col-exames {
-  min-width: 160px;
+  width: 12%;
 }
 
 .tabela-pacientes .col-faltantes {
-  min-width: 260px;
+  width: 16%;
 }
 
 .tabela-pacientes .col-status {
-  min-width: 150px;
+  width: 8%;
 }
 
 .tabela-pacientes tbody tr {
@@ -166,16 +175,15 @@
   padding: 0.8rem 1rem;
   vertical-align: top;
   word-break: break-word;
+  overflow-wrap: anywhere;
   background: #ffffff;
 }
 
 /* Colunas essenciais sempre visíveis */
 .tabela-pacientes .col-nome {
-  position: sticky;
-  left: 0;
-  z-index: 4;
+  position: static;
   background: #ffffff;
-  box-shadow: 2px 0 0 #ecf0f1;
+  box-shadow: none;
 }
 
 .tabela-pacientes thead .col-nome {
@@ -184,11 +192,9 @@
 }
 
 .tabela-pacientes .col-status {
-  position: sticky;
-  right: 0;
-  z-index: 4;
+  position: static;
   background: #ffffff;
-  box-shadow: -2px 0 0 #ecf0f1;
+  box-shadow: none;
 }
 
 .tabela-pacientes thead .col-status {
@@ -320,12 +326,105 @@
   border: 1px solid #f5b7b1;
 }
 
+/* Tema Escuro/Claro baseado no seletor global do app */
+[data-theme="dark"] .central-dashboard .pacientes-painel {
+  background: #0f3460;
+  color: #e5e7eb;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+[data-theme="dark"] .central-dashboard .painel-header {
+  border-bottom-color: rgba(148, 163, 184, 0.28);
+}
+
+[data-theme="dark"] .central-dashboard .painel-header h2 {
+  color: #e1f5ff;
+}
+
+[data-theme="dark"] .central-dashboard .painel-header .note {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .central-dashboard .painel-header .central-note-readonly {
+  color: #67e8f9;
+}
+
+[data-theme="dark"] .central-dashboard .pacientes-tabela-wrapper {
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+[data-theme="dark"] .central-dashboard .tabela-pacientes thead {
+  background-color: #0b2947;
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .central-dashboard .tabela-pacientes th {
+  border-bottom-color: rgba(148, 163, 184, 0.4);
+}
+
+[data-theme="dark"] .central-dashboard .tabela-pacientes tbody tr {
+  border-bottom-color: rgba(148, 163, 184, 0.2);
+}
+
+[data-theme="dark"] .central-dashboard .tabela-pacientes tbody tr:hover {
+  background-color: #13355b;
+}
+
+[data-theme="dark"] .central-dashboard .tabela-pacientes td {
+  background: #123a63;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .central-dashboard .tabela-pacientes .col-nome,
+[data-theme="dark"] .central-dashboard .tabela-pacientes .col-status {
+  background: #123a63;
+  box-shadow: none;
+}
+
+[data-theme="dark"] .central-dashboard .tabela-pacientes thead .col-nome,
+[data-theme="dark"] .central-dashboard .tabela-pacientes thead .col-status {
+  background: #0b2947;
+}
+
+[data-theme="dark"] .central-dashboard .lista-faltantes,
+[data-theme="dark"] .central-dashboard .status-subinfo {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .central-dashboard .pendencia-ok {
+  color: #86efac;
+}
+
+[data-theme="dark"] .central-dashboard .loading-message {
+  color: #7dd3fc;
+}
+
+[data-theme="dark"] .central-dashboard .no-data-message {
+  color: #86efac;
+}
+
+[data-theme="light"] .central-dashboard .pacientes-painel,
+[data-theme="light"] .central-dashboard .tabela-pacientes td,
+[data-theme="light"] .central-dashboard .tabela-pacientes .col-nome,
+[data-theme="light"] .central-dashboard .tabela-pacientes .col-status {
+  color: #1f2937;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
-  .dashboard-header {
+  .central-dashboard .dashboard-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+  }
+
+  .pacientes-tabela-wrapper {
+    overflow-x: auto;
+  }
+
+  .tabela-pacientes {
+    min-width: 1100px;
+    table-layout: auto;
   }
 
   .tabela-pacientes .col-nome {
@@ -338,15 +437,15 @@
     padding: 0.5rem;
   }
 
-  .dashboard-header {
+  .central-dashboard .dashboard-header {
     padding: 1rem;
   }
 
-  .dashboard-header h1 {
+  .central-dashboard .dashboard-header h1 {
     font-size: 1.4rem;
   }
 
-  .dashboard-header p {
+  .central-dashboard .dashboard-header p {
     font-size: 0.85rem;
   }
 
@@ -354,13 +453,79 @@
     padding: 1rem;
   }
 
+  .pacientes-tabela-wrapper {
+    overflow: visible;
+    border: none;
+    box-shadow: none;
+  }
+
   .tabela-pacientes {
+    width: 100%;
+    min-width: 0;
+    table-layout: auto;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.8rem;
   }
 
-  .tabela-pacientes th,
+  .tabela-pacientes thead {
+    display: none;
+  }
+
+  .tabela-pacientes tbody {
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .tabela-pacientes tbody tr {
+    display: block;
+    border: 1px solid #dbe7f3;
+    border-left-width: 4px;
+    border-radius: 10px;
+    padding: 0.5rem 0.75rem;
+    background: #ffffff;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+  }
+
   .tabela-pacientes td {
-    padding: 0.6rem;
+    display: grid;
+    grid-template-columns: minmax(118px, 40%) 1fr;
+    align-items: start;
+    gap: 0.6rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed #e5edf5;
+    background: transparent;
+  }
+
+  .tabela-pacientes td:last-child {
+    border-bottom: none;
+  }
+
+  .tabela-pacientes td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 0.74rem;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .tabela-pacientes .col-nome,
+  .tabela-pacientes .col-status {
+    position: static;
+    box-shadow: none;
+  }
+
+  .tabela-pacientes .col-faltantes .lista-faltantes {
+    margin: 0;
+  }
+
+  .tabela-pacientes .col-status .status-badge {
+    justify-self: start;
+  }
+
+  .tabela-pacientes .col-status .status-subinfo {
+    margin-top: 0.25rem;
   }
 
   .status-badge {
@@ -374,6 +539,22 @@
 
   .tabela-pacientes .col-status {
     min-width: 130px;
+  }
+}
+
+@media (max-width: 768px) {
+  [data-theme="dark"] .central-dashboard .tabela-pacientes tbody tr {
+    background: #123a63;
+    border-color: rgba(148, 163, 184, 0.26);
+    box-shadow: 0 2px 12px rgba(2, 6, 23, 0.35);
+  }
+
+  [data-theme="dark"] .central-dashboard .tabela-pacientes td {
+    border-bottom-color: rgba(148, 163, 184, 0.2);
+  }
+
+  [data-theme="dark"] .central-dashboard .tabela-pacientes td::before {
+    color: #93c5fd;
   }
 }
 
@@ -557,7 +738,7 @@
     padding: 0.4rem;
   }
 
-  .dashboard-header h1 {
+  .central-dashboard .dashboard-header h1 {
     font-size: 1.1rem;
   }
 }

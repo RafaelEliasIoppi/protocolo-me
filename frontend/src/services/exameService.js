@@ -1,8 +1,16 @@
 import api from './apiClient';
 
 export const exameService = {
-  listar: async () => {
-    const response = await api.get('/api/exames-me');
+  listar: async (protocoloId) => {
+    if (!protocoloId) {
+      return [];
+    }
+    const response = await api.get(`/api/exames-me/protocolo/${protocoloId}`);
+    return response.data;
+  },
+
+  listarPorProtocolo: async (protocoloId) => {
+    const response = await api.get(`/api/exames-me/protocolo/${protocoloId}`);
     return response.data;
   },
 
@@ -27,8 +35,21 @@ export const exameService = {
   },
 
   obterPorPaciente: async (pacienteId) => {
-    const response = await api.get(`/api/exames-me/paciente/${pacienteId}`);
-    return response.data;
+    const protocolosResponse = await api.get('/api/protocolos-me');
+    const protocolosDoPaciente = protocolosResponse.data.filter((protocolo) => {
+      const id = protocolo?.paciente?.id ?? protocolo?.pacienteId;
+      return String(id) === String(pacienteId);
+    });
+
+    if (protocolosDoPaciente.length === 0) {
+      return [];
+    }
+
+    const examesPorProtocolo = await Promise.all(
+      protocolosDoPaciente.map((protocolo) => api.get(`/api/exames-me/protocolo/${protocolo.id}`))
+    );
+
+    return examesPorProtocolo.flatMap((response) => response.data || []);
   }
 };
 

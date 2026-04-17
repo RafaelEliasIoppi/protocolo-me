@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../services/apiClient';
 import '../styles/HospitalStatus.css';
 
 const HospitalStatus = () => {
@@ -24,7 +24,7 @@ const HospitalStatus = () => {
     setCarregando(true);
     setErro('');
     try {
-      const response = await axios.get('/api/hospitais');
+      const response = await apiClient.get('/api/hospitais');
       setHospitais(response.data);
     } catch (err) {
       setErro('Erro ao carregar hospitais');
@@ -38,7 +38,7 @@ const HospitalStatus = () => {
     setErro('');
 
     try {
-      const response = await axios.patch(
+      const response = await apiClient.patch(
         `/api/hospitais/${hospitalId}/status`,
         {},
         { params: { status: novoStatus } }

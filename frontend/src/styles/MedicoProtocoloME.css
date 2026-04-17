@@ -758,6 +758,90 @@
     width: 100%;
   }
 
+
+/* Tema do app (não depender do tema do sistema) */
+[data-theme="dark"] .medico-protocolo-me .panel,
+[data-theme="dark"] .medico-protocolo-me .formulario-protocolo,
+[data-theme="dark"] .medico-protocolo-me .protocolo-card,
+[data-theme="dark"] .medico-protocolo-me .modal-content,
+[data-theme="dark"] .medico-protocolo-me .modal-header {
+  background: #0f3460;
+  color: #e5e7eb;
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+[data-theme="dark"] .medico-protocolo-me .card-header,
+[data-theme="dark"] .medico-protocolo-me .card-body,
+[data-theme="dark"] .medico-protocolo-me .card-actions,
+[data-theme="dark"] .medico-protocolo-me .exames-resumo,
+[data-theme="dark"] .medico-protocolo-me .proximo-passo-box,
+[data-theme="dark"] .medico-protocolo-me .entrevista-resumo {
+  background: #123a63;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .medico-protocolo-me .pacientes-em-protocolo h2,
+[data-theme="dark"] .medico-protocolo-me .formulario-protocolo h2,
+[data-theme="dark"] .medico-protocolo-me .card-header h3,
+[data-theme="dark"] .medico-protocolo-me .info-row label,
+[data-theme="dark"] .medico-protocolo-me .info-row span,
+[data-theme="dark"] .medico-protocolo-me .form-group label,
+[data-theme="dark"] .medico-protocolo-me .form-info strong,
+[data-theme="dark"] .medico-protocolo-me .form-info li,
+[data-theme="dark"] .medico-protocolo-me .entrevista-resumo-topo label,
+[data-theme="dark"] .medico-protocolo-me .entrevista-resumo-subtitulo,
+[data-theme="dark"] .medico-protocolo-me .entrevista-resumo-texto,
+[data-theme="dark"] .medico-protocolo-me .entrevista-resumo-resultado,
+[data-theme="dark"] .medico-protocolo-me .exames-resumo-topo label,
+[data-theme="dark"] .medico-protocolo-me .exames-count,
+[data-theme="dark"] .medico-protocolo-me .exames-count strong,
+[data-theme="dark"] .medico-protocolo-me .proximo-passo-box,
+[data-theme="dark"] .medico-protocolo-me .proximo-passo-box strong,
+[data-theme="dark"] .medico-protocolo-me .vazio,
+[data-theme="dark"] .medico-protocolo-me .modal-header h2,
+[data-theme="dark"] .medico-protocolo-me .modal-close {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .medico-protocolo-me .form-info {
+  background-color: rgba(56, 189, 248, 0.15);
+  border-left-color: #38bdf8;
+}
+
+[data-theme="dark"] .medico-protocolo-me .form-group input[type="text"],
+[data-theme="dark"] .medico-protocolo-me .form-group input[type="email"],
+[data-theme="dark"] .medico-protocolo-me .form-group input[type="date"],
+[data-theme="dark"] .medico-protocolo-me .form-group select,
+[data-theme="dark"] .medico-protocolo-me .form-group textarea {
+  background: #0b2947;
+  border-color: rgba(148, 163, 184, 0.28);
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .medico-protocolo-me .form-group input::placeholder,
+[data-theme="dark"] .medico-protocolo-me .form-group textarea::placeholder {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .medico-protocolo-me .status-badge.status-nao-iniciada,
+[data-theme="dark"] .medico-protocolo-me .resultado-badge.resultado-nao-definido {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+[data-theme="light"] .medico-protocolo-me .panel,
+[data-theme="light"] .medico-protocolo-me .formulario-protocolo,
+[data-theme="light"] .medico-protocolo-me .protocolo-card,
+[data-theme="light"] .medico-protocolo-me .card-header,
+[data-theme="light"] .medico-protocolo-me .card-body,
+[data-theme="light"] .medico-protocolo-me .card-actions,
+[data-theme="light"] .medico-protocolo-me .exames-resumo,
+[data-theme="light"] .medico-protocolo-me .proximo-passo-box,
+[data-theme="light"] .medico-protocolo-me .entrevista-resumo,
+[data-theme="light"] .medico-protocolo-me .modal-content,
+[data-theme="light"] .medico-protocolo-me .modal-header {
+  color: #1f2937;
+}
   .entrevista-resumo-topo,
   .entrevista-resumo-resultado,
   .entrevista-resumo-footer {
