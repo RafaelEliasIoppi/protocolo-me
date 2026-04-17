@@ -102,16 +102,18 @@
 /* Tabela */
 .pacientes-tabela-wrapper {
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: hidden;
   border-radius: 8px;
   border: 1px solid #ecf0f1;
+  scrollbar-width: thin;
+  scrollbar-color: #9fb4c9 transparent;
 }
 
 .tabela-pacientes {
   width: 100%;
-  min-width: 0;
-  table-layout: fixed;
+  min-width: 980px;
+  table-layout: auto;
   border-collapse: collapse;
   font-size: 0.9rem;
 }
@@ -131,35 +133,35 @@
 }
 
 .tabela-pacientes .col-nome {
-  width: 15%;
+  min-width: 180px;
 }
 
 .tabela-pacientes .col-cpf {
-  width: 12%;
+  min-width: 145px;
 }
 
 .tabela-pacientes .col-hospital {
-  width: 15%;
+  min-width: 180px;
 }
 
 .tabela-pacientes .col-cidade {
-  width: 10%;
+  min-width: 120px;
 }
 
 .tabela-pacientes .col-data {
-  width: 12%;
+  min-width: 135px;
 }
 
 .tabela-pacientes .col-exames {
-  width: 12%;
+  min-width: 150px;
 }
 
 .tabela-pacientes .col-faltantes {
-  width: 16%;
+  min-width: 250px;
 }
 
 .tabela-pacientes .col-status {
-  width: 8%;
+  min-width: 170px;
 }
 
 .tabela-pacientes tbody tr {
@@ -174,7 +176,7 @@
 .tabela-pacientes td {
   padding: 0.8rem 1rem;
   vertical-align: top;
-  word-break: break-word;
+  word-break: normal;
   overflow-wrap: anywhere;
   background: #ffffff;
 }
