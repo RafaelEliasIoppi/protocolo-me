@@ -442,6 +442,11 @@ public class ProtocoloMEService {
     public ProtocoloME registrarResultadoEntrevista(Long id, boolean autorizouDoacao, String observacoes) {
         ProtocoloME protocolo = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+
+        if (protocolo.getStatus() == ProtocoloME.StatusProtocoloME.DOACAO_AUTORIZADA
+                || protocolo.getStatus() == ProtocoloME.StatusProtocoloME.FAMILIA_RECUSOU) {
+            throw new RuntimeException("Entrevista já foi finalizada para este protocolo");
+        }
         
         protocolo.setFamiliaNotificada(true);
         protocolo.setDataNotificacaoFamilia(LocalDateTime.now());

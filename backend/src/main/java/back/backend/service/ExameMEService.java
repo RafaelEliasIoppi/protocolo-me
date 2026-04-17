@@ -36,6 +36,24 @@ public class ExameMEService {
 
     // Criar exame
     public ExameME criarExame(ExameME exame) {
+        if (exame.getProtocoloME() == null || exame.getProtocoloME().getId() == null) {
+            throw new RuntimeException("Protocolo é obrigatório para criar exame");
+        }
+
+        if (exame.getTipoExame() == null) {
+            throw new RuntimeException("Tipo de exame é obrigatório");
+        }
+
+        ProtocoloME protocolo = protocoloRepository.findById(exame.getProtocoloME().getId())
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+
+        boolean exameJaExiste = exameRepository.findFirstByProtocoloME_IdAndTipoExame(protocolo.getId(), exame.getTipoExame())
+            .isPresent();
+
+        if (exameJaExiste) {
+            throw new RuntimeException("Esse exame já existe para este protocolo e não pode ser criado novamente");
+        }
+
         // Exame criado sem resultado deve permanecer pendente.
         // A data de realização é preenchida quando o resultado for registrado.
         if (exame.getResultado() == null || exame.getResultado().trim().isEmpty()) {
@@ -43,6 +61,8 @@ public class ExameMEService {
         } else if (exame.getDataRealizacao() == null) {
             exame.setDataRealizacao(LocalDateTime.now());
         }
+
+        exame.setProtocoloME(protocolo);
         ExameME exameSalvo = exameRepository.save(exame);
         
         // Atualizar o status do protocolo automaticamente
@@ -92,6 +112,10 @@ public class ExameMEService {
         ExameME exame = exameRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Exame não encontrado"));
 
+        if (exameRealizado(exame)) {
+            throw new RuntimeException("Exame já realizado não pode ser alterado novamente");
+        }
+
         exame.setResultado(exameAtualizado.getResultado());
         exame.setResultado_positivo(exameAtualizado.getResultado_positivo());
         exame.setResponsavel(exameAtualizado.getResponsavel());
@@ -104,6 +128,10 @@ public class ExameMEService {
     public ExameME registrarResultado(Long id, String resultado, Boolean resultado_positivo, String responsavel) {
         ExameME exame = exameRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Exame não encontrado"));
+
+        if (exameRealizado(exame)) {
+            throw new RuntimeException("Exame já realizado e aprovado não pode ser registrado novamente");
+        }
 
         exame.setResultado(resultado);
         exame.setResultado_positivo(resultado_positivo);

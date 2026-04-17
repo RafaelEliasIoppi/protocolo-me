@@ -268,8 +268,8 @@ function CentralDashboardPage() {
                       <td className="col-hospital">{obterNomeHospital(paciente, protocolo)}</td>
                       <td className="col-cidade">{paciente.hospital?.cidade || "N/A"}</td>
                       <td className="col-data">
-                        {protocolo?.dataCriacao
-                          ? new Date(protocolo.dataCriacao).toLocaleDateString("pt-BR")
+                        {protocolo?.dataNotificacao
+                          ? new Date(protocolo.dataNotificacao).toLocaleDateString("pt-BR")
                           : "N/A"}
                       </td>
                       <td className="col-exames">

@@ -71,6 +71,10 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     { valor: 'LABORATORIAL', label: 'Exames Laboratoriais', cor: 'roxo' }
   ];
 
+  const tiposExameDisponiveis = tiposExame.filter(
+    (tipo) => !exames.some((exame) => exame.tipoExame === tipo.valor)
+  );
+
   useEffect(() => {
     if (protocoloId) {
       carregarExames();
@@ -126,6 +130,12 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
     if (!novoExame.tipoExame) {
       setErro('Selecione um tipo de exame');
+      return;
+    }
+
+    const exameExistente = exames.find((exame) => exame.tipoExame === novoExame.tipoExame);
+    if (exameExistente) {
+      setErro('Esse exame já existe para este protocolo e não pode ser criado novamente');
       return;
     }
 
@@ -261,6 +271,9 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
       <div className="novo-exame-section">
         <h3>Adicionar Novo Exame</h3>
+        {tiposExameDisponiveis.length === 0 ? (
+          <p className="note">Todos os tipos de exame já foram gerados para este protocolo. Não é necessário adicionar novos exames.</p>
+        ) : (
         <form onSubmit={handleCriarExame}>
           <div className="form-row">
             <div className="form-group">
@@ -274,7 +287,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
                 <option value="">Selecione um exame...</option>
                 {categorias.map(cat => (
                   <optgroup key={cat.valor} label={cat.label}>
-                    {tiposExame
+                    {tiposExameDisponiveis
                       .filter(t => t.categoria === cat.valor)
                       .map(tipo => (
                         <option key={tipo.valor} value={tipo.valor}>
@@ -311,6 +324,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
           <button type="submit" className="btn-adicionar">+ Adicionar Exame</button>
         </form>
+        )}
       </div>
 
       <div className="filtro-section">
@@ -355,9 +369,14 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
               <div className="exame-actions">
                 <button
                   className="btn-resultado"
-                  onClick={() => setExameSelecionado(exame)}
+                    onClick={() => {
+                      if (!isExameRealizado(exame)) {
+                        setExameSelecionado(exame);
+                      }
+                    }}
+                    disabled={isExameRealizado(exame)}
                 >
-                  {exame.resultado ? '✏️ Editar' : '📝 Registrar'} Resultado
+                  {isExameRealizado(exame) ? '🔒 Realizado' : '📝 Registrar Resultado'}
                 </button>
                 <button
                   className="btn-deletar"
@@ -367,7 +386,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
                 </button>
               </div>
 
-              {exameSelecionado?.id === exame.id && (
+              {exameSelecionado?.id === exame.id && !isExameRealizado(exame) && (
                 <div className="resultado-form">
                   <h5>Registrar Resultado</h5>
                   <div className="form-row">

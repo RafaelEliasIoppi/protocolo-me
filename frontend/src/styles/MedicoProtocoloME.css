@@ -328,6 +328,40 @@
   color: #78281f;
 }
 
+.status-badge.status-nao-iniciada {
+  background-color: #ecf0f1;
+  color: #566573;
+}
+
+.status-badge.status-em-andamento {
+  background-color: #d6eaf8;
+  color: #1f618d;
+}
+
+.status-badge.status-autorizada {
+  background-color: #d5f4e6;
+  color: #0b5345;
+}
+
+.status-badge.status-recusada {
+  background-color: #fadbd8;
+  color: #78281f;
+}
+
+.info-banner {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.entrevista-banner {
+  background: linear-gradient(135deg, #e8f8f5 0%, #d1f2eb 100%);
+  border-left: 4px solid #16a085;
+  color: #0b5345;
+}
+
 .card-body {
   padding: 1.5rem;
 }

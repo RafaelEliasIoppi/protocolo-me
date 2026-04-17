@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import apiClient from "../services/apiClient";
 import ExameMEManager from "./ExameMEManager";
+import EntrevistaFamiliarManager from "./EntrevistaFamiliarManager";
 import "../styles/MedicoProtocoloME.css";
 
 function MedicoProtocoloME() {
@@ -14,6 +15,7 @@ function MedicoProtocoloME() {
   const [pacienteSelecionado, setPacienteSelecionado] = useState("");
   const [diagnostico, setDiagnostico] = useState("");
   const [mostraExames, setMostraExames] = useState(false);
+  const [abaProtocoloAberta, setAbaProtocoloAberta] = useState("exames");
 
   const statusAtivos = [
     "NOTIFICADO",
@@ -21,7 +23,9 @@ function MedicoProtocoloME() {
     "MORTE_CEREBRAL_CONFIRMADA",
     "ENTREVISTA_FAMILIAR",
     "DOACAO_AUTORIZADA",
-    "FAMILIA_RECUSOU"
+    "FAMILIA_RECUSOU",
+    "CONTRAINDICADO",
+    "FINALIZADO"
   ];
 
   const mapearProtocolosParaPacientes = (protocolos) => {
@@ -129,6 +133,17 @@ function MedicoProtocoloME() {
       "FAMILIA_RECUSOU": { cor: "recusado", label: "❌ DOAÇÃO RECUSADA" }
     };
     return statusMap[status] || { cor: "default", label: status };
+  };
+
+  const formatarStatusEntrevista = (status) => {
+    const mapa = {
+      NAO_INICIADA: "Não iniciada",
+      EM_ANDAMENTO: "Em andamento",
+      AUTORIZADA: "Autorizada",
+      RECUSADA: "Recusada"
+    };
+
+    return mapa[status] || status || "Não iniciada";
   };
 
   const obterExamesRealizados = (protocolo) => {
@@ -244,6 +259,8 @@ function MedicoProtocoloME() {
               const protocolo = paciente.protocolosME?.[0];
               const statusBadge = obterBadgeStatus(protocolo?.status);
               const examesRealizados = obterExamesRealizados(protocolo);
+              const statusEntrevista = formatarStatusEntrevista(paciente.statusEntrevistaFamiliar);
+              const entrevistaConcluida = paciente.statusEntrevistaFamiliar === "AUTORIZADA" || paciente.statusEntrevistaFamiliar === "RECUSADA";
 
               return (
                 <div key={paciente.id} className={`protocolo-card status-${statusBadge.cor}`}>
@@ -273,9 +290,17 @@ function MedicoProtocoloME() {
                     <div className="info-row">
                       <label>Data de Notificação:</label>
                       <span>
-                        {protocolo?.dataCriacao
-                          ? new Date(protocolo.dataCriacao).toLocaleDateString("pt-BR")
+                        {protocolo?.dataNotificacao
+                          ? new Date(protocolo.dataNotificacao).toLocaleDateString("pt-BR")
                           : "N/A"}
+                      </span>
+                    </div>
+                    <div className="info-row">
+                      <label>Entrevista Familiar:</label>
+                      <span>
+                        <span className={`status-badge status-${paciente.statusEntrevistaFamiliar ? paciente.statusEntrevistaFamiliar.toLowerCase() : "nao-iniciada"}`}>
+                          {statusEntrevista}
+                        </span>
                       </span>
                     </div>
 
@@ -309,10 +334,21 @@ function MedicoProtocoloME() {
                       className="btn-secondary"
                       onClick={() => {
                         setProtocoloSelecionado(protocolo);
+                        setAbaProtocoloAberta("exames");
                         setMostraExames(true);
                       }}
                     >
                       📋 Acessar Protocolo
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => {
+                        setProtocoloSelecionado(protocolo);
+                        setAbaProtocoloAberta("entrevista");
+                        setMostraExames(true);
+                      }}
+                    >
+                      {entrevistaConcluida ? "👀 Ver Entrevista" : "👨‍👩‍👧 Realizar Entrevista"}
                     </button>
                   </div>
                 </div>
@@ -327,14 +363,43 @@ function MedicoProtocoloME() {
         <div className="modal-overlay" onClick={() => setMostraExames(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Gerenciar Exames - Protocolo ME</h2>
+              <h2>
+                {abaProtocoloAberta === "entrevista"
+                  ? "Entrevista Familiar - Protocolo ME"
+                  : "Gerenciar Exames - Protocolo ME"}
+              </h2>
               <button className="modal-close" onClick={() => setMostraExames(false)}>✕</button>
             </div>
+            <div className="action-row" style={{ justifyContent: "flex-start", marginBottom: "1rem" }}>
+              <button
+                className="secondary-button"
+                onClick={() => setAbaProtocoloAberta("exames")}
+              >
+                Exames
+              </button>
+              <button
+                className="secondary-button"
+                onClick={() => setAbaProtocoloAberta("entrevista")}
+              >
+                Entrevista
+              </button>
+            </div>
             <div className="modal-body">
-              <ExameMEManager
-                protocoloId={protocoloSelecionado.id}
-                onAtualizacao={atualizarPainelAposExame}
-              />
+              {abaProtocoloAberta === "entrevista" && (
+                <div className="info-banner entrevista-banner">
+                  <strong>Fluxo da entrevista:</strong> primeiro marque o protocolo para entrevista, depois registre se a família foi notificada e a decisão final.
+                </div>
+              )}
+              {abaProtocoloAberta === "entrevista" ? (
+                <EntrevistaFamiliarManager
+                  protocoloMEId={protocoloSelecionado.id}
+                />
+              ) : (
+                <ExameMEManager
+                  protocoloId={protocoloSelecionado.id}
+                  onAtualizacao={atualizarPainelAposExame}
+                />
+              )}
             </div>
           </div>
         </div>

@@ -77,6 +77,30 @@
   font-size: 0.9rem;
 }
 
+.status-card .status-texto {
+  display: inline-block;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #d6eaf8;
+  color: #1f618d;
+}
+
+.status-card .status-morte_cerebral_confirmada,
+.status-card .status-entrevista_familiar {
+  background: #fdeaa8;
+  color: #7d6608;
+}
+
+.status-card .status-doacao_autorizada {
+  background: #d5f4e6;
+  color: #0b5345;
+}
+
+.status-card .status-familia_recusou {
+  background: #fadbd8;
+  color: #78281f;
+}
+
 .testes-lista {
   list-style: none;
   padding: 0;
@@ -247,6 +271,20 @@
   margin: 0;
   font-size: 0.95rem;
   opacity: 0.95;
+}
+
+.info-banner {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.entrevista-banner {
+  background: linear-gradient(135deg, #e8f8f5 0%, #d1f2eb 100%);
+  border-left: 4px solid #16a085;
+  color: #0b5345;
 }
 
 /* Responsivo */
