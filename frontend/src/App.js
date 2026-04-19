@@ -8,6 +8,7 @@ import PacientesProtocoloMEPage from "./componentes/PacientesProtocoloMEPage";
 import HospitaisPage from "./componentes/HospitaisPage";
 import CentraisPage from "./componentes/CentraisPage";
 import CentralDashboardPage from "./componentes/CentralDashboardPage";
+import EstatisticasPage from "./componentes/EstatisticasPage";
 import UsuariosAdminPage from "./componentes/UsuariosAdminPage";
 import autenticarService from "./services/autenticarService";
 import MedicoProtocoloME from "./componentes/MedicoProtocoloME";
@@ -93,6 +94,14 @@ function App() {
               </GuardedRoute>
             }
           />
+          <Route
+            path="estatisticas"
+            element={
+              <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES", "ADMIN", "MEDICO"]}>
+                <EstatisticasPage />
+              </GuardedRoute>
+            }
+          />
            <Route
              path="protocolo-me-medico"
              element={
@@ -104,7 +113,7 @@ function App() {
           <Route
             path="cadastros/pacientes"
             element={
-              <GuardedRoute isLogged={isLogged} allowedRoles={["MEDICO", "ENFERMEIRO"]}>
+              <GuardedRoute isLogged={isLogged} allowedRoles={["MEDICO", "ENFERMEIRO", "CENTRAL_TRANSPLANTES"]}>
                 <PacientesPage />
               </GuardedRoute>
             }

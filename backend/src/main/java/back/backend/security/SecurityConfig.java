@@ -33,9 +33,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.PUT, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.PATCH, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                    .antMatchers(HttpMethod.POST, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
+                    .antMatchers(HttpMethod.PUT, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
+                    .antMatchers(HttpMethod.PATCH, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
                 .antMatchers(HttpMethod.DELETE, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
 
                 .antMatchers(HttpMethod.POST, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
@@ -57,6 +57,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.PATCH, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
                 .antMatchers(HttpMethod.DELETE, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
                 .antMatchers(HttpMethod.GET, "/api/exames-me/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
+
+                .antMatchers(HttpMethod.GET, "/api/centrais-transplantes/estatisticas/doadores-receptores").hasRole("CENTRAL_TRANSPLANTES")
 
                 .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/api/usuarios/**").hasRole("ADMIN")

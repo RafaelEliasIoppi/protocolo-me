@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import OrgaoDoadoManager from './OrgaoDoadoManager';
 import '../styles/ProtocoloMEManager.css';
 
 const ProtocoloMEManager = () => {
@@ -22,6 +23,7 @@ const ProtocoloMEManager = () => {
   const [sucesso, setSucesso] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
   const [protocoloSelecionado, setProtocoloSelecionado] = useState(null);
+  const [protocolosExpandidos, setProtocolosExpandidos] = useState(new Set());
 
   const statusOpcoes = [
     { valor: 'NOTIFICADO', label: 'Notificado', cor: 'azul' },
@@ -172,6 +174,16 @@ const ProtocoloMEManager = () => {
   const obterLabelStatus = (status) => {
     const opcao = statusOpcoes.find(s => s.valor === status);
     return opcao?.label || status;
+  };
+
+  const toggleExpandirProtocolo = (protocoloId) => {
+    const novoExpandidos = new Set(protocolosExpandidos);
+    if (novoExpandidos.has(protocoloId)) {
+      novoExpandidos.delete(protocoloId);
+    } else {
+      novoExpandidos.add(protocoloId);
+    }
+    setProtocolosExpandidos(novoExpandidos);
   };
 
   const protocolosFiltrados = filtroStatus
@@ -342,7 +354,21 @@ const ProtocoloMEManager = () => {
                     ))}
                   </select>
                 </div>
+                <div className="actions-row">
+                  <button
+                    onClick={() => toggleExpandirProtocolo(protocolo.id)}
+                    className="btn-acao btn-info"
+                  >
+                    {protocolosExpandidos.has(protocolo.id) ? '▼ Ocultar Órgãos' : '▶ Ver Órgãos Doados'}
+                  </button>
+                </div>
               </div>
+
+              {protocolosExpandidos.has(protocolo.id) && (
+                <div className="protocolo-orgaos-section">
+                  <OrgaoDoadoManager protocoloId={protocolo.id} />
+                </div>
+              )}
             </div>
           ))
         ) : (

@@ -106,6 +106,10 @@ public class ProtocoloME {
     @JsonIgnoreProperties({"protocoloME"})
     private List<ExameME> exames;
 
+    @OneToMany(mappedBy = "protocoloME", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties({"protocoloME"})
+    private List<OrgaoDoado> orgaosDoados;
+
     // Construtores
     public ProtocoloME() {}
 
@@ -389,6 +393,14 @@ public class ProtocoloME {
 
     public void setExames(List<ExameME> exames) {
         this.exames = exames;
+    }
+
+    public List<OrgaoDoado> getOrgaosDoados() {
+        return orgaosDoados;
+    }
+
+    public void setOrgaosDoados(List<OrgaoDoado> orgaosDoados) {
+        this.orgaosDoados = orgaosDoados;
     }
 
     @PrePersist

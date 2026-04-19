@@ -9,7 +9,7 @@ function PacientesPage() {
       <div className="brand-bar">
         <div>
           <h1>Cadastro de Pacientes</h1>
-          <p>Somente médicos e enfermeiros podem cadastrar pacientes.</p>
+           <p>Médicos, enfermeiros e central de transplantes podem gerenciar pacientes.</p>
         </div>
         <button className="secondary-button" onClick={() => setMostrarFormularioPaciente((valor) => !valor)}>
           {mostrarFormularioPaciente ? "Fechar cadastro" : "Abrir cadastro"}

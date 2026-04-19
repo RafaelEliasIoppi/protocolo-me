@@ -85,6 +85,14 @@ public class CentralTransplantesController {
         }
     }
 
+    // GET - Estatísticas de doadores/receptores e órgãos/tecidos (Painel da Central)
+    @GetMapping("/estatisticas/doadores-receptores")
+    public ResponseEntity<CentralTransplantesService.EstatisticasCentralDoacaoTransplante> obterEstatisticasDoadoresReceptores() {
+        CentralTransplantesService.EstatisticasCentralDoacaoTransplante estatisticas =
+                centralService.obterEstatisticasDoacaoTransplante();
+        return ResponseEntity.ok(estatisticas);
+    }
+
     // PUT - Atualizar central
     @PutMapping("/{id}")
     public ResponseEntity<CentralTransplantes> atualizarCentral(@PathVariable Long id, @RequestBody CentralTransplantes central) {

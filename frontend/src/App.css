@@ -141,6 +141,18 @@ a {
   color: var(--text);
 }
 
+:root[data-theme="light"] .secondary-button,
+:root[data-theme="light"] .login-panel .secondary-button {
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+:root[data-theme="light"] .secondary-button:hover,
+:root[data-theme="light"] .login-panel .secondary-button:hover {
+  background: #cbd5e1;
+}
+
 .dashboard-shell {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -411,6 +423,25 @@ a {
 .mensagem.erro {
   background: rgba(239, 68, 68, 0.16);
   color: #fecaca;
+}
+
+:root[data-theme="light"] .input-field,
+:root[data-theme="light"] .select-field,
+:root[data-theme="light"] .login-panel input,
+:root[data-theme="light"] .login-panel select {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #94a3b8;
+}
+
+:root[data-theme="light"] .input-field::placeholder,
+:root[data-theme="light"] .login-panel input::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+:root[data-theme="light"] .mensagem.erro {
+  color: #7f1d1d;
 }
 
 @media (max-width: 1100px) {

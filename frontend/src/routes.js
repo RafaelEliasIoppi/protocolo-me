@@ -10,7 +10,8 @@ export const routes = {
   HOSPITAIS: '/hospitais',
   EXAMES: '/exames',
   PROTOCOLOS: '/protocolos',
-  CENTRAL_TRANSPLANTES: '/central-transplantes'
+  CENTRAL_TRANSPLANTES: '/central-transplantes',
+  ESTATISTICAS: '/estatisticas'
 };
 
 export default routes;

@@ -2,14 +2,87 @@ import React, { useEffect, useState } from "react";
 import apiClient from "../services/apiClient";
 import "../styles/CentralDashboardPage.css";
 
+const CHAVE_CONFIG_ESTATISTICA_CENTRAL = "central_dashboard_estatisticas_campos";
+
+const obterConfiguracaoCamposPadrao = () => ({
+  doadoresEmAvaliacao: true,
+  doadoresAutorizados: true,
+  receptoresAptos: true,
+  taxaAutorizacao: true,
+  totalProtocolos: true,
+  recusasFamiliares: true,
+  protocolosContraindicados: true,
+  protocolosFinalizados: true,
+  receptoresNaoAptos: true,
+  tabelaOrgaosTecidos: true
+});
+
+const carregarConfiguracaoCampos = () => {
+  const padrao = obterConfiguracaoCamposPadrao();
+
+  try {
+    const conteudo = localStorage.getItem(CHAVE_CONFIG_ESTATISTICA_CENTRAL);
+    if (!conteudo) {
+      return padrao;
+    }
+
+    const configuracao = JSON.parse(conteudo);
+    if (!configuracao || typeof configuracao !== "object") {
+      return padrao;
+    }
+
+    const resultado = { ...padrao };
+    Object.keys(resultado).forEach((chave) => {
+      if (typeof configuracao[chave] === "boolean") {
+        resultado[chave] = configuracao[chave];
+      }
+    });
+
+    return resultado;
+  } catch (_) {
+    return padrao;
+  }
+};
+
 function CentralDashboardPage() {
+  const estatisticasIniciais = {
+    totalProtocolos: 0,
+    doadoresEmAvaliacao: 0,
+    doadoresAutorizados: 0,
+    recusasFamiliares: 0,
+    protocolosContraindicados: 0,
+    protocolosFinalizados: 0,
+    receptoresAptos: 0,
+    receptoresNaoAptos: 0,
+    orgaosTecidos: []
+  };
+
   const [pacientes, setPacientes] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
+  const [estatisticas, setEstatisticas] = useState(estatisticasIniciais);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState(null);
   const [pacienteSelecionado, setPacienteSelecionado] = useState(null);
   const [relatorioFinalPaciente, setRelatorioFinalPaciente] = useState(null);
   const [carregandoRelatorio, setCarregandoRelatorio] = useState(false);
+  const [mostrarConfigEstatistica, setMostrarConfigEstatistica] = useState(false);
+  const [camposVisiveis, setCamposVisiveis] = useState(() => carregarConfiguracaoCampos());
+
+  const opcoesPrincipaisEstatistica = [
+    { chave: "doadoresEmAvaliacao", label: "Doadores em avaliação" },
+    { chave: "doadoresAutorizados", label: "Doadores autorizados" },
+    { chave: "receptoresAptos", label: "Receptores aptos" },
+    { chave: "taxaAutorizacao", label: "Taxa de autorização" }
+  ];
+
+  const opcoesSecundariasEstatistica = [
+    { chave: "totalProtocolos", label: "Total de protocolos" },
+    { chave: "recusasFamiliares", label: "Recusas familiares" },
+    { chave: "protocolosContraindicados", label: "Contraindicados" },
+    { chave: "protocolosFinalizados", label: "Finalizados" },
+    { chave: "receptoresNaoAptos", label: "Receptores não aptos" },
+    { chave: "tabelaOrgaosTecidos", label: "Tabela de órgãos e tecidos" }
+  ];
 
   const statusAtivos = [
     "NOTIFICADO",
@@ -52,9 +125,14 @@ function CentralDashboardPage() {
   const carregarPacientesDoEstado = async () => {
     try {
       setCarregando(true);
-      const response = await apiClient.get("/api/protocolos-me");
-      const dados = mapearProtocolosParaPacientes(response.data);
+      const [responseProtocolos, responseEstatisticas] = await Promise.all([
+        apiClient.get("/api/protocolos-me"),
+        apiClient.get("/api/centrais-transplantes/estatisticas/doadores-receptores")
+      ]);
+
+      const dados = mapearProtocolosParaPacientes(responseProtocolos.data);
       setPacientes(dados);
+      setEstatisticas(responseEstatisticas.data || estatisticasIniciais);
       setUltimaAtualizacao(new Date());
       setErro("");
     } catch (e) {
@@ -64,9 +142,46 @@ function CentralDashboardPage() {
         setErro("Erro ao atualizar painel da central.");
       }
       setPacientes([]);
+      setEstatisticas(estatisticasIniciais);
     } finally {
       setCarregando(false);
     }
+  };
+
+  const calcularTaxaAutorizacao = () => {
+    const total = Number(estatisticas.doadoresAutorizados || 0) + Number(estatisticas.recusasFamiliares || 0);
+    if (total === 0) {
+      return "0%";
+    }
+    const taxa = (Number(estatisticas.doadoresAutorizados || 0) / total) * 100;
+    return `${taxa.toFixed(1)}%`;
+  };
+
+  const alternarCampoVisivel = (chave) => {
+    setCamposVisiveis((anterior) => ({
+      ...anterior,
+      [chave]: !anterior[chave]
+    }));
+  };
+
+  const marcarTodosCamposEstatistica = () => {
+    setCamposVisiveis((anterior) => {
+      const atualizado = { ...anterior };
+      Object.keys(atualizado).forEach((chave) => {
+        atualizado[chave] = true;
+      });
+      return atualizado;
+    });
+  };
+
+  const limparTodosCamposEstatistica = () => {
+    setCamposVisiveis((anterior) => {
+      const atualizado = { ...anterior };
+      Object.keys(atualizado).forEach((chave) => {
+        atualizado[chave] = false;
+      });
+      return atualizado;
+    });
   };
 
   useEffect(() => {
@@ -74,6 +189,10 @@ function CentralDashboardPage() {
     const intervalo = setInterval(carregarPacientesDoEstado, 5000);
     return () => clearInterval(intervalo);
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(CHAVE_CONFIG_ESTATISTICA_CENTRAL, JSON.stringify(camposVisiveis));
+  }, [camposVisiveis]);
 
   const obterExamesPendentes = (protocolo) => {
     if (!protocolo) {
@@ -378,6 +497,148 @@ function CentralDashboardPage() {
       </div>
 
       {erro && <div className="mensagem erro">{erro}</div>}
+
+      <div className="panel estatisticas-central-panel">
+        <header className="painel-header">
+          <div>
+            <h2>📊 Estatísticas da Central: Doadores e Receptores</h2>
+            <p className="note">Resumo consolidado de doação por órgãos e tecidos.</p>
+          </div>
+          <div className="estatistica-config-actions">
+            <button
+              className="secondary-button estatistica-config-button"
+              onClick={() => setMostrarConfigEstatistica((aberto) => !aberto)}
+            >
+              {mostrarConfigEstatistica ? "Ocultar opções" : "Escolher dados"}
+            </button>
+          </div>
+        </header>
+
+        {mostrarConfigEstatistica && (
+          <div className="estatistica-config-panel">
+            <h3>Selecionar dados da estatística</h3>
+            <p className="note">Marque somente os indicadores que devem aparecer no painel.</p>
+            <div className="estatistica-config-grid">
+              {opcoesPrincipaisEstatistica.map((opcao) => (
+                <label key={opcao.chave} className="estatistica-opcao">
+                  <input
+                    type="checkbox"
+                    checked={!!camposVisiveis[opcao.chave]}
+                    onChange={() => alternarCampoVisivel(opcao.chave)}
+                  />
+                  <span>{opcao.label}</span>
+                </label>
+              ))}
+              {opcoesSecundariasEstatistica.map((opcao) => (
+                <label key={opcao.chave} className="estatistica-opcao">
+                  <input
+                    type="checkbox"
+                    checked={!!camposVisiveis[opcao.chave]}
+                    onChange={() => alternarCampoVisivel(opcao.chave)}
+                  />
+                  <span>{opcao.label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="action-row">
+              <button className="secondary-button" onClick={marcarTodosCamposEstatistica}>Marcar todos</button>
+              <button className="secondary-button" onClick={limparTodosCamposEstatistica}>Limpar todos</button>
+            </div>
+          </div>
+        )}
+
+        {!Object.values(camposVisiveis).some(Boolean) && (
+          <p className="note">Nenhum dado selecionado. Use Escolher dados para montar sua estatística.</p>
+        )}
+
+        <div className="estatisticas-grid">
+          {camposVisiveis.doadoresEmAvaliacao && (
+            <article className="estatistica-card destaque-doador">
+              <h3>Doadores em avaliação</h3>
+              <p className="valor-estatistica">{estatisticas.doadoresEmAvaliacao || 0}</p>
+              <span className="note">Protocolos com processo ainda em andamento</span>
+            </article>
+          )}
+          {camposVisiveis.doadoresAutorizados && (
+            <article className="estatistica-card destaque-autorizado">
+              <h3>Doadores autorizados</h3>
+              <p className="valor-estatistica">{estatisticas.doadoresAutorizados || 0}</p>
+              <span className="note">Autorização familiar confirmada</span>
+            </article>
+          )}
+          {camposVisiveis.receptoresAptos && (
+            <article className="estatistica-card destaque-receptor">
+              <h3>Receptores aptos</h3>
+              <p className="valor-estatistica">{estatisticas.receptoresAptos || 0}</p>
+              <span className="note">Pacientes com status APTO_TRANSPLANTE</span>
+            </article>
+          )}
+          {camposVisiveis.taxaAutorizacao && (
+            <article className="estatistica-card destaque-recusas">
+              <h3>Taxa de autorização</h3>
+              <p className="valor-estatistica">{calcularTaxaAutorizacao()}</p>
+              <span className="note">Com base em autorizadas x recusas familiares</span>
+            </article>
+          )}
+        </div>
+
+        <div className="estatisticas-grid secundario">
+          {camposVisiveis.totalProtocolos && (
+            <article className="estatistica-card mini">
+              <h3>Total de protocolos</h3>
+              <p className="valor-estatistica">{estatisticas.totalProtocolos || 0}</p>
+            </article>
+          )}
+          {camposVisiveis.recusasFamiliares && (
+            <article className="estatistica-card mini">
+              <h3>Recusas familiares</h3>
+              <p className="valor-estatistica">{estatisticas.recusasFamiliares || 0}</p>
+            </article>
+          )}
+          {camposVisiveis.protocolosContraindicados && (
+            <article className="estatistica-card mini">
+              <h3>Contraindicados</h3>
+              <p className="valor-estatistica">{estatisticas.protocolosContraindicados || 0}</p>
+            </article>
+          )}
+          {camposVisiveis.protocolosFinalizados && (
+            <article className="estatistica-card mini">
+              <h3>Finalizados</h3>
+              <p className="valor-estatistica">{estatisticas.protocolosFinalizados || 0}</p>
+            </article>
+          )}
+          {camposVisiveis.receptoresNaoAptos && (
+            <article className="estatistica-card mini">
+              <h3>Receptores não aptos</h3>
+              <p className="valor-estatistica">{estatisticas.receptoresNaoAptos || 0}</p>
+            </article>
+          )}
+        </div>
+
+        {camposVisiveis.tabelaOrgaosTecidos && (
+          <div className="orgaos-tecidos-section">
+            <h3>Órgãos e Tecidos para Doação (todos os itens)</h3>
+            <div className="pacientes-tabela-wrapper orgaos-tecidos-wrapper">
+              <table className="tabela-pacientes tabela-orgaos-tecidos">
+                <thead>
+                  <tr>
+                    <th>Órgão / Tecido</th>
+                    <th>Total de Protocolos com Indicação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(estatisticas.orgaosTecidos || []).map((item) => (
+                    <tr key={`orgao-tecido-${item.nome}`}>
+                      <td data-label="Órgão / Tecido">{item.nome}</td>
+                      <td data-label="Total">{item.total}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Lista de Pacientes */}
       <div className="panel pacientes-painel">

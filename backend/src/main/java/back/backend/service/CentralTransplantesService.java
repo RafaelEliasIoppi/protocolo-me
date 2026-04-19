@@ -2,21 +2,80 @@ package back.backend.service;
 
 import back.backend.model.CentralTransplantes;
 import back.backend.model.Hospital;
+import back.backend.model.Paciente;
+import back.backend.model.ProtocoloME;
 import back.backend.repository.CentralTransplantesRepository;
 import back.backend.repository.HospitalRepository;
+import back.backend.repository.PacienteRepository;
+import back.backend.repository.ProtocoloMERepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class CentralTransplantesService {
+
+    private static final List<String> ITENS_ORGAOS_TECIDOS = Arrays.asList(
+            "Coração",
+            "Pulmão",
+            "Fígado",
+            "Rim",
+            "Pâncreas",
+            "Intestino",
+            "Córnea",
+            "Pele",
+            "Ossos",
+            "Tendões",
+            "Válvulas Cardíacas",
+            "Vasos Sanguíneos",
+            "Medula Óssea"
+    );
+
+    private static final Map<String, String> ALIAS_ORGAOS_TECIDOS = new LinkedHashMap<>();
+
+    static {
+        ALIAS_ORGAOS_TECIDOS.put("coracao", "Coração");
+        ALIAS_ORGAOS_TECIDOS.put("pulmao", "Pulmão");
+        ALIAS_ORGAOS_TECIDOS.put("figado", "Fígado");
+        ALIAS_ORGAOS_TECIDOS.put("rim", "Rim");
+        ALIAS_ORGAOS_TECIDOS.put("rins", "Rim");
+        ALIAS_ORGAOS_TECIDOS.put("pancreas", "Pâncreas");
+        ALIAS_ORGAOS_TECIDOS.put("intestino", "Intestino");
+        ALIAS_ORGAOS_TECIDOS.put("cornea", "Córnea");
+        ALIAS_ORGAOS_TECIDOS.put("corneas", "Córnea");
+        ALIAS_ORGAOS_TECIDOS.put("pele", "Pele");
+        ALIAS_ORGAOS_TECIDOS.put("osso", "Ossos");
+        ALIAS_ORGAOS_TECIDOS.put("ossos", "Ossos");
+        ALIAS_ORGAOS_TECIDOS.put("tendao", "Tendões");
+        ALIAS_ORGAOS_TECIDOS.put("tendoes", "Tendões");
+        ALIAS_ORGAOS_TECIDOS.put("valvula cardiaca", "Válvulas Cardíacas");
+        ALIAS_ORGAOS_TECIDOS.put("valvulas cardiacas", "Válvulas Cardíacas");
+        ALIAS_ORGAOS_TECIDOS.put("vaso sanguineo", "Vasos Sanguíneos");
+        ALIAS_ORGAOS_TECIDOS.put("vasos sanguineos", "Vasos Sanguíneos");
+        ALIAS_ORGAOS_TECIDOS.put("medula ossea", "Medula Óssea");
+    }
 
     @Autowired
     private CentralTransplantesRepository centralRepository;
 
     @Autowired
     private HospitalRepository hospitalRepository;
+
+    @Autowired
+    private ProtocoloMERepository protocoloMERepository;
+
+    @Autowired
+    private PacienteRepository pacienteRepository;
 
     // Criar Central de Transplantes
     public CentralTransplantes criarCentral(CentralTransplantes central) {
@@ -129,5 +188,217 @@ public class CentralTransplantesService {
             throw new RuntimeException("Central não encontrada com ID: " + id);
         }
         centralRepository.deleteById(id);
+    }
+
+    public EstatisticasCentralDoacaoTransplante obterEstatisticasDoacaoTransplante() {
+        List<ProtocoloME> protocolos = protocoloMERepository.findAll();
+
+        long totalProtocolos = protocolos.size();
+        long doadoresEmAvaliacao = protocolos.stream()
+                .filter(this::isDoadorEmAvaliacao)
+                .count();
+        long doadoresAutorizados = protocolos.stream()
+                .filter(this::isDoadorAutorizado)
+                .count();
+        long recusasFamiliares = protocolos.stream()
+                .filter(p -> p.getStatus() == ProtocoloME.StatusProtocoloME.FAMILIA_RECUSOU)
+                .count();
+        long protocolosContraindicados = protocolos.stream()
+                .filter(p -> p.getStatus() == ProtocoloME.StatusProtocoloME.CONTRAINDICADO)
+                .count();
+        long protocolosFinalizados = protocolos.stream()
+                .filter(p -> p.getStatus() == ProtocoloME.StatusProtocoloME.FINALIZADO)
+                .count();
+
+        long receptoresAptos = pacienteRepository.countByStatus(Paciente.StatusPaciente.APTO_TRANSPLANTE);
+        long receptoresNaoAptos = pacienteRepository.countByStatus(Paciente.StatusPaciente.NAO_APTO);
+
+        Map<String, Long> contagemPorItem = new LinkedHashMap<>();
+        for (String item : ITENS_ORGAOS_TECIDOS) {
+            contagemPorItem.put(item, 0L);
+        }
+
+        for (ProtocoloME protocolo : protocolos) {
+            Set<String> itensNoProtocolo = extrairItensOrgaosTecidos(protocolo.getOrgaosDisponiveis());
+            for (String item : itensNoProtocolo) {
+                contagemPorItem.computeIfPresent(item, (k, v) -> v + 1L);
+            }
+        }
+
+        List<ItemOrgaoTecidoEstatistica> distribuicao = contagemPorItem.entrySet().stream()
+                .map(entry -> new ItemOrgaoTecidoEstatistica(entry.getKey(), entry.getValue()))
+                .collect(Collectors.toList());
+
+        EstatisticasCentralDoacaoTransplante resultado = new EstatisticasCentralDoacaoTransplante();
+        resultado.setTotalProtocolos(totalProtocolos);
+        resultado.setDoadoresEmAvaliacao(doadoresEmAvaliacao);
+        resultado.setDoadoresAutorizados(doadoresAutorizados);
+        resultado.setRecusasFamiliares(recusasFamiliares);
+        resultado.setProtocolosContraindicados(protocolosContraindicados);
+        resultado.setProtocolosFinalizados(protocolosFinalizados);
+        resultado.setReceptoresAptos(receptoresAptos);
+        resultado.setReceptoresNaoAptos(receptoresNaoAptos);
+        resultado.setOrgaosTecidos(distribuicao);
+        return resultado;
+    }
+
+    private boolean isDoadorEmAvaliacao(ProtocoloME protocolo) {
+        if (protocolo == null || protocolo.getStatus() == null) {
+            return false;
+        }
+
+        return protocolo.getStatus() == ProtocoloME.StatusProtocoloME.NOTIFICADO
+                || protocolo.getStatus() == ProtocoloME.StatusProtocoloME.EM_PROCESSO
+                || protocolo.getStatus() == ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA
+                || protocolo.getStatus() == ProtocoloME.StatusProtocoloME.ENTREVISTA_FAMILIAR;
+    }
+
+    private boolean isDoadorAutorizado(ProtocoloME protocolo) {
+        if (protocolo == null) {
+            return false;
+        }
+        return protocolo.getStatus() == ProtocoloME.StatusProtocoloME.DOACAO_AUTORIZADA
+                || Boolean.TRUE.equals(protocolo.getAutopsiaAutorizada());
+    }
+
+    private Set<String> extrairItensOrgaosTecidos(String campoOrgaosDisponiveis) {
+        if (campoOrgaosDisponiveis == null || campoOrgaosDisponiveis.trim().isEmpty()) {
+            return java.util.Collections.emptySet();
+        }
+
+        String textoNormalizado = campoOrgaosDisponiveis
+                .replace("/", ",")
+                .replace(";", ",")
+                .replace("|", ",")
+                .replace(" e ", ",");
+
+        Set<String> itens = Arrays.stream(textoNormalizado.split(","))
+                .map(String::trim)
+                .filter(token -> !token.isEmpty())
+                .map(this::normalizarToken)
+                .map(ALIAS_ORGAOS_TECIDOS::get)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        return itens;
+    }
+
+    private String normalizarToken(String token) {
+        String semAcentos = Normalizer.normalize(token, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return semAcentos.toLowerCase(Locale.ROOT).trim();
+    }
+
+    public static class EstatisticasCentralDoacaoTransplante {
+        private long totalProtocolos;
+        private long doadoresEmAvaliacao;
+        private long doadoresAutorizados;
+        private long recusasFamiliares;
+        private long protocolosContraindicados;
+        private long protocolosFinalizados;
+        private long receptoresAptos;
+        private long receptoresNaoAptos;
+        private List<ItemOrgaoTecidoEstatistica> orgaosTecidos = new ArrayList<>();
+
+        public long getTotalProtocolos() {
+            return totalProtocolos;
+        }
+
+        public void setTotalProtocolos(long totalProtocolos) {
+            this.totalProtocolos = totalProtocolos;
+        }
+
+        public long getDoadoresEmAvaliacao() {
+            return doadoresEmAvaliacao;
+        }
+
+        public void setDoadoresEmAvaliacao(long doadoresEmAvaliacao) {
+            this.doadoresEmAvaliacao = doadoresEmAvaliacao;
+        }
+
+        public long getDoadoresAutorizados() {
+            return doadoresAutorizados;
+        }
+
+        public void setDoadoresAutorizados(long doadoresAutorizados) {
+            this.doadoresAutorizados = doadoresAutorizados;
+        }
+
+        public long getRecusasFamiliares() {
+            return recusasFamiliares;
+        }
+
+        public void setRecusasFamiliares(long recusasFamiliares) {
+            this.recusasFamiliares = recusasFamiliares;
+        }
+
+        public long getProtocolosContraindicados() {
+            return protocolosContraindicados;
+        }
+
+        public void setProtocolosContraindicados(long protocolosContraindicados) {
+            this.protocolosContraindicados = protocolosContraindicados;
+        }
+
+        public long getProtocolosFinalizados() {
+            return protocolosFinalizados;
+        }
+
+        public void setProtocolosFinalizados(long protocolosFinalizados) {
+            this.protocolosFinalizados = protocolosFinalizados;
+        }
+
+        public long getReceptoresAptos() {
+            return receptoresAptos;
+        }
+
+        public void setReceptoresAptos(long receptoresAptos) {
+            this.receptoresAptos = receptoresAptos;
+        }
+
+        public long getReceptoresNaoAptos() {
+            return receptoresNaoAptos;
+        }
+
+        public void setReceptoresNaoAptos(long receptoresNaoAptos) {
+            this.receptoresNaoAptos = receptoresNaoAptos;
+        }
+
+        public List<ItemOrgaoTecidoEstatistica> getOrgaosTecidos() {
+            return orgaosTecidos;
+        }
+
+        public void setOrgaosTecidos(List<ItemOrgaoTecidoEstatistica> orgaosTecidos) {
+            this.orgaosTecidos = orgaosTecidos;
+        }
+    }
+
+    public static class ItemOrgaoTecidoEstatistica {
+        private String nome;
+        private long total;
+
+        public ItemOrgaoTecidoEstatistica() {
+        }
+
+        public ItemOrgaoTecidoEstatistica(String nome, long total) {
+            this.nome = nome;
+            this.total = total;
+        }
+
+        public String getNome() {
+            return nome;
+        }
+
+        public void setNome(String nome) {
+            this.nome = nome;
+        }
+
+        public long getTotal() {
+            return total;
+        }
+
+        public void setTotal(long total) {
+            this.total = total;
+        }
     }
 }

@@ -15,6 +15,9 @@ function AppLayout({ usuario, theme, setTheme, onLogout }) {
 
         <div className="sidebar-nav" style={{ gridTemplateColumns: "1fr" }}>
           <Link className="secondary-button" to="/dashboard">Dashboard Geral</Link>
+          {(role === "CENTRAL_TRANSPLANTES" || role === "ADMIN" || role === "MEDICO") && (
+            <Link className="secondary-button" to="/estatisticas">📊 Estatísticas</Link>
+          )}
           {(role === "CENTRAL_TRANSPLANTES" || role === "ADMIN") && (
             <Link className="secondary-button" to="/dashboard-central">Painel da Central</Link>
           )}
