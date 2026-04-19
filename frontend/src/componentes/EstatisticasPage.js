@@ -19,7 +19,7 @@ const EstatisticasPage = () => {
 
   const carregarAnosDisponiveis = async () => {
     try {
-      const response = await apiClient.get('/estatisticas-transplantes/anos-disponiveis');
+      const response = await apiClient.get('/api/estatisticas-transplantes/anos-disponiveis');
       setAnosDisponiveis(response.data);
       if (response.data.length > 0) {
         setAnoSelecionado(response.data[0]);
@@ -34,7 +34,7 @@ const EstatisticasPage = () => {
     setErro('');
     try {
       const params = ano ? { ano } : {};
-      const response = await apiClient.get('/estatisticas-transplantes/gerais', { params });
+      const response = await apiClient.get('/api/estatisticas-transplantes/gerais', { params });
       setEstatisticasGerais(response.data);
     } catch (err) {
       setErro('Erro ao carregar estatísticas gerais');
@@ -49,7 +49,7 @@ const EstatisticasPage = () => {
     setErro('');
     try {
       const params = ano ? { ano } : {};
-      const response = await apiClient.get('/estatisticas-transplantes/por-paciente', { params });
+      const response = await apiClient.get('/api/estatisticas-transplantes/por-paciente', { params });
       setEstatisticasPorPaciente(response.data);
     } catch (err) {
       setErro('Erro ao carregar estatísticas por paciente');
