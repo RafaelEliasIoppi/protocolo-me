@@ -26,9 +26,12 @@ cd /workspaces/protocolo-me/backend
 ### Terminal 2 - Frontend
 ```bash
 cd /workspaces/protocolo-me/frontend
+nvm use
 npm install
 npm start
 ```
+
+> Observação: o frontend está configurado para Node `>=18 <24` (arquivo `.nvmrc` em `frontend/`).
 
 ---
 
