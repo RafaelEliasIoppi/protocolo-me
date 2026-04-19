@@ -173,6 +173,8 @@ function CentralDashboardPage() {
         return "authorized";
       case "FAMILIA_RECUSOU":
         return "rejected";
+      case "FINALIZADO":
+        return "finalized";
       default:
         return "default";
     }

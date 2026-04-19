@@ -3,7 +3,7 @@ import apiClient from "../services/apiClient";
 import GerenciadorAnexos from "./GerenciadorAnexos";
 import "../styles/EntrevistaFamiliarManager.css";
 
-function EntrevistaFamiliarManager({ protocoloMEId }) {
+function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
   const [protocolo, setProtocolo] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
@@ -39,9 +39,16 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
     try {
       const response = await apiClient.get(`/api/protocolos-me/${protocoloMEId}`);
       setProtocolo(response.data);
+      const resultadoFinal = response.data.status === "FINALIZADO"
+        ? (response.data.autopsiaAutorizada ? "POSITIVO" : "NEGATIVO")
+        : response.data.autopsiaAutorizada
+          ? "POSITIVO"
+          : response.data.status === "FAMILIA_RECUSOU"
+            ? "NEGATIVO"
+            : "";
       setFormEntrevista({
         familiaNotificada: response.data.familiaNotificada || false,
-        resultadoEntrevista: response.data.autopsiaAutorizada ? "POSITIVO" : response.data.status === "FAMILIA_RECUSOU" ? "NEGATIVO" : "",
+        resultadoEntrevista: resultadoFinal,
         autorizouDoacao: response.data.autopsiaAutorizada || false,
         observacoes: response.data.observacoes || ""
       });
@@ -73,7 +80,7 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
       return "Não iniciado";
     }
 
-    if (protocoloAtual.status === "DOACAO_AUTORIZADA") {
+    if (protocoloAtual.status === "FINALIZADO" || protocoloAtual.status === "DOACAO_AUTORIZADA") {
       return "Positivo";
     }
 
@@ -96,6 +103,9 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
       await apiClient.post(`/api/protocolos-me/${protocoloMEId}/marcar-entrevista`);
       setSucesso("Protocolo marcado para entrevista familiar");
       await carregarProtocolo();
+      if (typeof onAtualizacao === "function") {
+        await onAtualizacao();
+      }
     } catch (e) {
       setErro(obterMensagemErro(e, "Erro ao marcar para entrevista"));
     } finally {
@@ -134,6 +144,9 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
           : "Resultado negativo registrado na entrevista"
       );
       await carregarProtocolo();
+      if (typeof onAtualizacao === "function") {
+        await onAtualizacao();
+      }
     } catch (e) {
       setErro(obterMensagemErro(e, "Erro ao salvar resultado"));
     } finally {
@@ -153,7 +166,7 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
     protocolo.status === "MORTE_CEREBRAL_CONFIRMADA";
   const emEntrevista = protocolo.status === "ENTREVISTA_FAMILIAR";
   const entrevistaFinalizada =
-    protocolo.status === "DOACAO_AUTORIZADA" || protocolo.status === "FAMILIA_RECUSOU";
+    protocolo.status === "FINALIZADO" || protocolo.status === "DOACAO_AUTORIZADA" || protocolo.status === "FAMILIA_RECUSOU";
 
   return (
     <div className="entrevista-familiar-manager">
@@ -289,8 +302,8 @@ function EntrevistaFamiliarManager({ protocoloMEId }) {
       {/* Resultado da Entrevista */}
       {entrevistaFinalizada && (
         <div className="entrevista-resultado">
-          <div className={`resultado-box resultado-${protocolo.status === "DOACAO_AUTORIZADA" ? "autorizado" : "recusado"}`}>
-            {protocolo.status === "DOACAO_AUTORIZADA" ? (
+          <div className={`resultado-box resultado-${protocolo.autopsiaAutorizada ? "autorizado" : "recusado"}`}>
+            {protocolo.autopsiaAutorizada ? (
               <>
                 <h3>✅ Resultado Positivo</h3>
                 <p>Status técnico: {protocolo.status.replace(/_/g, " ")}</p>

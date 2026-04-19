@@ -55,6 +55,10 @@ public class ProtocoloMEService {
             return;
         }
 
+        if (statusProtocolo == ProtocoloME.StatusProtocoloME.FINALIZADO) {
+            return;
+        }
+
         Paciente.StatusPaciente novoStatusPaciente;
         switch (statusProtocolo) {
             case NOTIFICADO:
@@ -83,6 +87,10 @@ public class ProtocoloMEService {
     }
 
     private void sincronizarEntrevistaPaciente(ProtocoloME protocolo, String statusEntrevista, String observacoes) {
+        sincronizarEntrevistaPaciente(protocolo, statusEntrevista, observacoes, null);
+    }
+
+    private void sincronizarEntrevistaPaciente(ProtocoloME protocolo, String statusEntrevista, String observacoes, Paciente.StatusPaciente novoStatusPaciente) {
         if (protocolo == null || protocolo.getPaciente() == null || protocolo.getPaciente().getId() == null) {
             return;
         }
@@ -95,6 +103,10 @@ public class ProtocoloMEService {
         if (observacoes != null) {
             String textoObservacoes = observacoes.trim();
             paciente.setObservacoesEntrevistaFamiliar(textoObservacoes.isEmpty() ? null : textoObservacoes);
+        }
+
+        if (novoStatusPaciente != null) {
+            paciente.setStatus(novoStatusPaciente);
         }
 
         pacienteRepository.save(paciente);
@@ -386,6 +398,10 @@ public class ProtocoloMEService {
     public ProtocoloME atualizarStatusAutomatico(Long protocolo_me_id) {
         ProtocoloME protocolo = protocoloRepository.findById(protocolo_me_id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado com ID: " + protocolo_me_id));
+
+        if (protocolo.getStatus() == ProtocoloME.StatusProtocoloME.FINALIZADO) {
+            return protocolo;
+        }
         
         // Contar exames realizados por categoria
         List<ExameME> exames = protocolo.getExames();
@@ -431,7 +447,7 @@ public class ProtocoloMEService {
         
         protocolo.setStatus(ProtocoloME.StatusProtocoloME.ENTREVISTA_FAMILIAR);
         ProtocoloME protocoloAtualizado = protocoloRepository.save(protocolo);
-        sincronizarEntrevistaPaciente(protocoloAtualizado, "EM_ANDAMENTO", null);
+        sincronizarEntrevistaPaciente(protocoloAtualizado, "EM_ANDAMENTO", null, Paciente.StatusPaciente.EM_PROTOCOLO_ME);
         sincronizarStatusPacienteComProtocolo(protocoloAtualizado);
         return protocoloAtualizado;
     }
@@ -451,18 +467,15 @@ public class ProtocoloMEService {
         protocolo.setFamiliaNotificada(true);
         protocolo.setDataNotificacaoFamilia(LocalDateTime.now());
         protocolo.setAutopsiaAutorizada(autorizouDoacao);
-        
-        if (autorizouDoacao) {
-            protocolo.setStatus(ProtocoloME.StatusProtocoloME.DOACAO_AUTORIZADA);
-        } else {
-            protocolo.setStatus(ProtocoloME.StatusProtocoloME.FAMILIA_RECUSOU);
-        }
+
+        protocolo.setStatus(ProtocoloME.StatusProtocoloME.FINALIZADO);
 
         ProtocoloME protocoloAtualizado = protocoloRepository.save(protocolo);
         sincronizarEntrevistaPaciente(
             protocoloAtualizado,
             autorizouDoacao ? "AUTORIZADA" : "RECUSADA",
-            observacoes
+            observacoes,
+            autorizouDoacao ? Paciente.StatusPaciente.APTO_TRANSPLANTE : Paciente.StatusPaciente.NAO_APTO
         );
         sincronizarStatusPacienteComProtocolo(protocoloAtualizado);
         return protocoloAtualizado;

@@ -162,7 +162,8 @@ function MedicoProtocoloME() {
       "MORTE_CEREBRAL_CONFIRMADA": { cor: "confirmado", label: "🟠 ME CONFIRMADA" },
       "ENTREVISTA_FAMILIAR": { cor: "entrevista", label: "🟢 ENTREVISTA" },
       "DOACAO_AUTORIZADA": { cor: "autorizado", label: "✅ DOAÇÃO AUTORIZADA" },
-      "FAMILIA_RECUSOU": { cor: "recusado", label: "❌ DOAÇÃO RECUSADA" }
+      "FAMILIA_RECUSOU": { cor: "recusado", label: "❌ DOAÇÃO RECUSADA" },
+      "FINALIZADO": { cor: "finalizado", label: "🏁 FINALIZADO" }
     };
     return statusMap[status] || { cor: "default", label: status };
   };
@@ -181,11 +182,11 @@ function MedicoProtocoloME() {
   const formatarResultadoEntrevista = (paciente, protocolo) => {
     const status = paciente?.statusEntrevistaFamiliar;
 
-    if (status === "AUTORIZADA" || protocolo?.status === "DOACAO_AUTORIZADA") {
+    if (status === "AUTORIZADA" || protocolo?.autopsiaAutorizada === true) {
       return { label: "Positivo", cor: "positivo" };
     }
 
-    if (status === "RECUSADA" || protocolo?.status === "FAMILIA_RECUSOU") {
+    if (status === "RECUSADA" || (protocolo?.status === "FINALIZADO" && protocolo?.autopsiaAutorizada === false)) {
       return { label: "Negativo", cor: "negativo" };
     }
 
@@ -219,7 +220,7 @@ function MedicoProtocoloME() {
       return "Próximo passo: registrar decisão da família (autorizada ou recusada).";
     }
 
-    if (protocolo.status === "DOACAO_AUTORIZADA" || protocolo.status === "FAMILIA_RECUSOU") {
+    if (protocolo.status === "FINALIZADO" || protocolo.status === "DOACAO_AUTORIZADA" || protocolo.status === "FAMILIA_RECUSOU") {
       return "Entrevista concluída. Protocolo finalizado nesta etapa.";
     }
 
@@ -508,6 +509,7 @@ function MedicoProtocoloME() {
               {abaProtocoloAberta === "entrevista" ? (
                 <EntrevistaFamiliarManager
                   protocoloMEId={protocoloSelecionado.id}
+                  onAtualizacao={atualizarPainelAposExame}
                 />
               ) : (
                 <ExameMEManager
