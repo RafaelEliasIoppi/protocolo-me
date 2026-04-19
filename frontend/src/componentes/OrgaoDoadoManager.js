@@ -56,7 +56,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     setCarregando(true);
     setErro('');
     try {
-      const response = await apiClient.get(`/orgaos-doados/protocolo/${protocoloId}`);
+      const response = await apiClient.get(`/api/orgaos-doados/protocolo/${protocoloId}`);
       setOrgaos(response.data || []);
     } catch (err) {
       setErro('Erro ao carregar órgãos doados');
@@ -68,7 +68,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
 
   const carregarEstatisticas = async () => {
     try {
-      const response = await apiClient.get(`/orgaos-doados/protocolo/${protocoloId}/estatisticas`);
+      const response = await apiClient.get(`/api/orgaos-doados/protocolo/${protocoloId}/estatisticas`);
       setEstatisticas(response.data);
     } catch (err) {
       console.error('Erro ao carregar estatísticas:', err);
@@ -121,10 +121,10 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
       };
 
       if (orgaoEditando) {
-        await apiClient.put(`/orgaos-doados/${orgaoEditando.id}`, dadosOrgao);
+        await apiClient.put(`/api/orgaos-doados/${orgaoEditando.id}`, dadosOrgao);
         setSucesso('Órgão atualizado com sucesso');
       } else {
-        await apiClient.post('/orgaos-doados', dadosOrgao);
+        await apiClient.post('/api/orgaos-doados', dadosOrgao);
         setSucesso('Órgão doado registrado com sucesso');
       }
 
@@ -156,7 +156,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
   const handleDeletar = async (id) => {
     if (window.confirm('Tem certeza que deseja deletar este órgão doado?')) {
       try {
-        await apiClient.delete(`/orgaos-doados/${id}`);
+        await apiClient.delete(`/api/orgaos-doados/${id}`);
         setSucesso('Órgão removido com sucesso');
         carregarOrgaos();
         carregarEstatisticas();
@@ -175,7 +175,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     if (!pacienteReceptor) return;
 
     try {
-      await apiClient.post(`/orgaos-doados/${id}/implantar?hospitalReceptor=${hospitalReceptor}&pacienteReceptor=${pacienteReceptor}`);
+      await apiClient.post(`/api/orgaos-doados/${id}/implantar?hospitalReceptor=${hospitalReceptor}&pacienteReceptor=${pacienteReceptor}`);
       setSucesso('Implantação registrada com sucesso');
       carregarOrgaos();
       carregarEstatisticas();
@@ -190,7 +190,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     if (!motivo) return;
 
     try {
-      await apiClient.post(`/orgaos-doados/${id}/descartar?motivo=${encodeURIComponent(motivo)}`);
+      await apiClient.post(`/api/orgaos-doados/${id}/descartar?motivo=${encodeURIComponent(motivo)}`);
       setSucesso('Descarte registrado com sucesso');
       carregarOrgaos();
       carregarEstatisticas();
