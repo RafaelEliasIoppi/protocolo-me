@@ -14,7 +14,6 @@ const EstatisticasPage = () => {
 
   useEffect(() => {
     carregarAnosDisponiveis();
-    carregarEstatisticasGerais(null);
   }, []);
 
   const carregarAnosDisponiveis = async () => {
@@ -22,10 +21,15 @@ const EstatisticasPage = () => {
       const response = await apiClient.get('/api/estatisticas-transplantes/anos-disponiveis');
       setAnosDisponiveis(response.data);
       if (response.data.length > 0) {
-        setAnoSelecionado(response.data[0]);
+        const anoMaisRecente = response.data[0];
+        setAnoSelecionado(anoMaisRecente);
+        carregarEstatisticasGerais(anoMaisRecente);
+      } else {
+        carregarEstatisticasGerais(null);
       }
     } catch (err) {
       console.error('Erro ao carregar anos:', err);
+      carregarEstatisticasGerais(null);
     }
   };
 
@@ -77,9 +81,25 @@ const EstatisticasPage = () => {
     }
   };
 
-  const pacientesFiltrados = estatisticasPorPaciente.filter(p =>
-    p.nomePaciente.toLowerCase().includes(filtroNomePaciente.toLowerCase())
+  const pacientesFiltrados = estatisticasPorPaciente.filter((p) =>
+    (p.nomePaciente || '').toLowerCase().includes(filtroNomePaciente.toLowerCase())
   );
+
+  const totalOrgaosDisponiveis = estatisticasGerais?.totalOrgaosDisponiveis || 0;
+  const orgaosImplantados = estatisticasGerais?.orgaosImplantados || 0;
+  const orgaosDescartados = estatisticasGerais?.orgaosDescartados || 0;
+  const orgaosAguardando = Math.max(totalOrgaosDisponiveis - orgaosImplantados - orgaosDescartados, 0);
+  const percentualPizzaImplantados = totalOrgaosDisponiveis > 0
+    ? (orgaosImplantados / totalOrgaosDisponiveis) * 565
+    : 0;
+  const totalFinalizados = orgaosImplantados + orgaosDescartados;
+  const percentualImplantados = totalFinalizados > 0
+    ? (orgaosImplantados / totalFinalizados) * 100
+    : 0;
+  const percentualDescartados = totalFinalizados > 0
+    ? (orgaosDescartados / totalFinalizados) * 100
+    : 0;
+  const taxaImplantacaoFormatada = Number(estatisticasGerais?.taxaImplantacao || 0).toFixed(1);
 
   return (
     <div className="estatisticas-page">
@@ -176,7 +196,7 @@ const EstatisticasPage = () => {
                 <div className="card card-percentual">
                   <div className="card-icon">📊</div>
                   <div className="card-conteudo">
-                    <div className="card-valor">{estatisticasGerais.taxaImplantacao.toFixed(1)}%</div>
+                    <div className="card-valor">{taxaImplantacaoFormatada}%</div>
                     <div className="card-label">Taxa de Implantação</div>
                   </div>
                 </div>
@@ -190,25 +210,21 @@ const EstatisticasPage = () => {
                     <div className="legenda">
                       <div className="legenda-item">
                         <span className="cor implantado"></span>
-                        <span>Implantados: {estatisticasGerais.orgaosImplantados}</span>
+                        <span>Implantados: {orgaosImplantados}</span>
                       </div>
                       <div className="legenda-item">
                         <span className="cor descartado"></span>
-                        <span>Descartados: {estatisticasGerais.orgaosDescartados}</span>
+                        <span>Descartados: {orgaosDescartados}</span>
                       </div>
                       <div className="legenda-item">
                         <span className="cor aguardando"></span>
-                        <span>Aguardando: {
-                          estatisticasGerais.totalOrgaosDisponiveis - 
-                          estatisticasGerais.orgaosImplantados - 
-                          estatisticasGerais.orgaosDescartados
-                        }</span>
+                        <span>Aguardando: {orgaosAguardando}</span>
                       </div>
                     </div>
                     <svg className="pizza-svg" viewBox="0 0 200 200">
                       <circle cx="100" cy="100" r="90" fill="none" strokeWidth="30" 
                         stroke="url(#gradient-pizza)" strokeDasharray={`${
-                          (estatisticasGerais.orgaosImplantados / estatisticasGerais.totalOrgaosDisponiveis) * 565
+                          percentualPizzaImplantados
                         } 565`} />
                     </svg>
                   </div>
@@ -221,20 +237,18 @@ const EstatisticasPage = () => {
                       <div
                         className="barra-sucesso"
                         style={{
-                          width: `${(estatisticasGerais.orgaosImplantados / 
-                                    (estatisticasGerais.orgaosImplantados + estatisticasGerais.orgaosDescartados)) * 100}%`
+                          width: `${percentualImplantados}%`
                         }}
                       >
-                        {estatisticasGerais.orgaosImplantados} implantados
+                        {orgaosImplantados} implantados
                       </div>
                       <div
                         className="barra-descarte"
                         style={{
-                          width: `${(estatisticasGerais.orgaosDescartados / 
-                                    (estatisticasGerais.orgaosImplantados + estatisticasGerais.orgaosDescartados)) * 100}%`
+                          width: `${percentualDescartados}%`
                         }}
                       >
-                        {estatisticasGerais.orgaosDescartados} descartados
+                        {orgaosDescartados} descartados
                       </div>
                     </div>
                   </div>
