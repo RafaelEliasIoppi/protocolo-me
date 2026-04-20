@@ -7,12 +7,49 @@ import back.backend.repository.ProtocoloMERepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class OrgaoDoadoService {
+
+    private static final Set<String> ORGAOS_SNT = Set.of(
+        "Coração",
+        "Pulmão",
+        "Fígado",
+        "Rins",
+        "Pâncreas",
+        "Intestino",
+        "Córneas",
+        "Pele",
+        "Ossos",
+        "Tendões",
+        "Válvulas Cardíacas"
+    );
+
+    private static final Map<String, String> ALIAS_ORGAOS = Map.ofEntries(
+        Map.entry("coracao", "Coração"),
+        Map.entry("pulmao", "Pulmão"),
+        Map.entry("figado", "Fígado"),
+        Map.entry("rim", "Rins"),
+        Map.entry("rins", "Rins"),
+        Map.entry("pancreas", "Pâncreas"),
+        Map.entry("intestino", "Intestino"),
+        Map.entry("cornea", "Córneas"),
+        Map.entry("corneas", "Córneas"),
+        Map.entry("pele", "Pele"),
+        Map.entry("osso", "Ossos"),
+        Map.entry("ossos", "Ossos"),
+        Map.entry("tendao", "Tendões"),
+        Map.entry("tendoes", "Tendões"),
+        Map.entry("valvula cardiaca", "Válvulas Cardíacas"),
+        Map.entry("valvulas cardiacas", "Válvulas Cardíacas")
+    );
 
     @Autowired
     private OrgaoDoadoRepository orgaoDoadoRepository;
@@ -37,6 +74,8 @@ public class OrgaoDoadoService {
             throw new RuntimeException("Nome do órgão é obrigatório");
         }
 
+        orgaoDoado.setNomeOrgao(validarENormalizarNomeOrgao(orgaoDoado.getNomeOrgao()));
+
         if (orgaoDoado.getStatus() == null) {
             orgaoDoado.setStatus(OrgaoDoado.StatusOrgaoDoado.AGUARDANDO_IMPLANTACAO);
         }
@@ -52,7 +91,7 @@ public class OrgaoDoadoService {
                 .orElseThrow(() -> new RuntimeException("Órgão doado não encontrado"));
 
         if (orgaoDoadoAtualizado.getNomeOrgao() != null && !orgaoDoadoAtualizado.getNomeOrgao().isEmpty()) {
-            orgaoDoado.setNomeOrgao(orgaoDoadoAtualizado.getNomeOrgao());
+            orgaoDoado.setNomeOrgao(validarENormalizarNomeOrgao(orgaoDoadoAtualizado.getNomeOrgao()));
         }
 
         if (orgaoDoadoAtualizado.getStatus() != null) {
@@ -99,6 +138,23 @@ public class OrgaoDoadoService {
         }
 
         return orgaoDoadoRepository.save(orgaoDoado);
+    }
+
+    private String validarENormalizarNomeOrgao(String nomeOrgao) {
+        String chave = normalizarChave(nomeOrgao);
+        String nomeCanonico = ALIAS_ORGAOS.get(chave);
+
+        if (nomeCanonico == null || !ORGAOS_SNT.contains(nomeCanonico)) {
+            throw new IllegalArgumentException("Órgão/tecido inválido. Utilize apenas opções padronizadas do SNT.");
+        }
+
+        return nomeCanonico;
+    }
+
+    private String normalizarChave(String valor) {
+        String semAcento = Normalizer.normalize(valor.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return semAcento.toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
     }
 
     /**

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -21,12 +22,14 @@ public class OrgaoDoadoController {
      * POST - Criar novo órgão doado
      */
     @PostMapping
-    public ResponseEntity<OrgaoDoado> criar(@RequestBody OrgaoDoado orgaoDoado) {
+    public ResponseEntity<?> criar(@RequestBody OrgaoDoado orgaoDoado) {
         try {
             OrgaoDoado novo = orgaoDoadoService.criar(orgaoDoado);
             return ResponseEntity.status(201).body(novo);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }
     }
 
@@ -53,10 +56,12 @@ public class OrgaoDoadoController {
      * PUT - Atualizar órgão doado
      */
     @PutMapping("/{id}")
-    public ResponseEntity<OrgaoDoado> atualizar(@PathVariable Long id, @RequestBody OrgaoDoado orgaoDoadoAtualizado) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody OrgaoDoado orgaoDoadoAtualizado) {
         try {
             OrgaoDoado atualizado = orgaoDoadoService.atualizar(id, orgaoDoadoAtualizado);
             return ResponseEntity.ok(atualizado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
