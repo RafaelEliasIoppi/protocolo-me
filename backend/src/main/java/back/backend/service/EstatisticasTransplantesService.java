@@ -6,6 +6,7 @@ import back.backend.repository.OrgaoDoadoRepository;
 import back.backend.repository.ProtocoloMERepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -81,6 +82,7 @@ public class EstatisticasTransplantesService {
     /**
      * Obtém estatísticas por paciente doador
      */
+    @Transactional(readOnly = true)
     public List<PacienteDoacaoInfo> obterEstatisticasPorPaciente(Integer ano) {
         List<ProtocoloME> protocolos = protocoloMERepository.findAll();
 
