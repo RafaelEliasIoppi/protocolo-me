@@ -100,6 +100,11 @@ public class UsuarioController {
             String email = credenciais.get("email");
             String senha = credenciais.get("senha");
 
+            if (email == null || email.trim().isEmpty() || senha == null || senha.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("erro", "Email e senha são obrigatórios"));
+            }
+
             Optional<Usuario> usuarioOpt = usuarioService.findByEmail(email);
             if (usuarioOpt.isEmpty() || !usuarioOpt.get().getAtivo()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -107,7 +112,21 @@ public class UsuarioController {
             }
 
             Usuario usuario = usuarioOpt.get();
-            if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+            String senhaPersistida = usuario.getSenha();
+            if (senhaPersistida == null || senhaPersistida.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("erro", "Credenciais inválidas"));
+            }
+
+            boolean senhaValida;
+            try {
+                senhaValida = passwordEncoder.matches(senha, senhaPersistida);
+            } catch (IllegalArgumentException ex) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("erro", "Credenciais inválidas"));
+            }
+
+            if (!senhaValida) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("erro", "Senha incorreta"));
             }

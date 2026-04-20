@@ -15,12 +15,12 @@ public class ProtocoloME {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "central_transplantes_id")
-    @JsonIgnoreProperties({"protocolosME", "usuarios", "hospitaisParceados"})
+    @JsonIgnoreProperties({"protocolosME", "usuarios", "hospitaisParceados", "hibernateLazyInitializer", "handler"})
     private CentralTransplantes centralTransplantes;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "paciente_id")
-    @JsonIgnoreProperties({"protocolosME", "examesEmProtocolo"})
+    @JsonIgnoreProperties({"protocolosME", "examesEmProtocolo", "hibernateLazyInitializer", "handler"})
     private Paciente paciente;
 
     @Column(nullable = false)

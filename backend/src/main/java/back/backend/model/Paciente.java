@@ -38,6 +38,7 @@ public class Paciente {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "hospital_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Hospital hospital;
 
     @Column
