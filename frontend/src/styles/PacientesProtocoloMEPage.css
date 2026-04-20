@@ -265,6 +265,30 @@
   min-width: 120px;
 }
 
+.protocolo-acoes {
+  margin-top: 0.75rem;
+}
+
+.btn-orgaos-doados {
+  background: #1f6feb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.btn-orgaos-doados:hover {
+  background: #1a5fd1;
+}
+
+.protocolo-orgaos-manager {
+  margin-top: 0.9rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.9rem;
+}
+
 .note {
   text-align: center;
   color: #666;
@@ -367,6 +391,18 @@
 
 [data-theme="dark"] .pacientes-protocolo-me-page .protocol-list strong {
   color: #93c5fd;
+}
+
+[data-theme="dark"] .pacientes-protocolo-me-page .btn-orgaos-doados {
+  background: #2563eb;
+}
+
+[data-theme="dark"] .pacientes-protocolo-me-page .btn-orgaos-doados:hover {
+  background: #1d4ed8;
+}
+
+[data-theme="dark"] .pacientes-protocolo-me-page .protocolo-orgaos-manager {
+  border-top-color: rgba(148, 163, 184, 0.24);
 }
 
 [data-theme="dark"] .pacientes-protocolo-me-page .info-resumo {

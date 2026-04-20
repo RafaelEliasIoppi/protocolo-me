@@ -31,9 +31,17 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
   ];
 
   const orgaoPadraoOpcoes = [
-    'Coração', 'Pulmão', 'Fígado', 'Rim', 'Pâncreas', 'Intestino',
-    'Córnea', 'Pele', 'Ossos', 'Tendões', 'Válvulas Cardíacas',
-    'Vasos Sanguíneos', 'Medula Óssea'
+    'Coração',
+    'Pulmão',
+    'Fígado',
+    'Rins',
+    'Pâncreas',
+    'Intestino',
+    'Córneas',
+    'Pele',
+    'Ossos',
+    'Tendões',
+    'Válvulas Cardíacas'
   ];
 
   const motivoDescarteOpcoes = [

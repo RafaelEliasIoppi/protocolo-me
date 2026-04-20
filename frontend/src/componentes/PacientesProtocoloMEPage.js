@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import apiClient from "../services/apiClient";
+import OrgaoDoadoManager from "./OrgaoDoadoManager";
 import "../styles/PacientesProtocoloMEPage.css";
 
 function PacientesProtocoloMEPage() {
@@ -8,6 +9,7 @@ function PacientesProtocoloMEPage() {
   const [erro, setErro] = useState("");
   const [filtroHospital, setFiltroHospital] = useState("");
   const [hospitais, setHospitais] = useState([]);
+  const [protocolosComOrgaosAbertos, setProtocolosComOrgaosAbertos] = useState(new Set());
 
   // Carregar pacientes em protocolo de ME
   const carregarPacientesProtocoloME = async (hospitalId = "") => {
@@ -64,6 +66,18 @@ function PacientesProtocoloMEPage() {
     };
 
     return mapa[status] || status || "Não iniciada";
+  };
+
+  const toggleOrgaosDoados = (protocoloId) => {
+    setProtocolosComOrgaosAbertos((prev) => {
+      const novoSet = new Set(prev);
+      if (novoSet.has(protocoloId)) {
+        novoSet.delete(protocoloId);
+      } else {
+        novoSet.add(protocoloId);
+      }
+      return novoSet;
+    });
   };
 
   return (
@@ -178,6 +192,24 @@ function PacientesProtocoloMEPage() {
                             <strong>Status:</strong> {protocolo.status}
                             <br />
                             <strong>Hospital Origem:</strong> {protocolo.hospitalOrigem}
+
+                            <div className="protocolo-acoes">
+                              <button
+                                type="button"
+                                className="btn-orgaos-doados"
+                                onClick={() => toggleOrgaosDoados(protocolo.id)}
+                              >
+                                {protocolosComOrgaosAbertos.has(protocolo.id)
+                                  ? "Ocultar Órgãos Doados"
+                                  : "Informar Órgãos Doados"}
+                              </button>
+                            </div>
+
+                            {protocolosComOrgaosAbertos.has(protocolo.id) && (
+                              <div className="protocolo-orgaos-manager">
+                                <OrgaoDoadoManager protocoloId={protocolo.id} />
+                              </div>
+                            )}
                           </li>
                         ))}
                       </ul>
