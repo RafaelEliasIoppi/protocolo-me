@@ -13,9 +13,9 @@
     "react-scripts": "^5.0.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "test": "react-scripts test",
-    "build": "react-scripts build"
+    "start": "cross-env NODE_OPTIONS=--no-deprecation react-scripts start",
+    "test": "cross-env NODE_OPTIONS=--no-deprecation react-scripts test",
+    "build": "cross-env NODE_OPTIONS=--no-deprecation react-scripts build"
   },
   "proxy": "http://localhost:2500",
   "browserslist": {
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2"
+    "@testing-library/react": "^16.3.2",
+    "cross-env": "^7.0.3"
   }
 }
