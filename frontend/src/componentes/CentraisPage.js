@@ -41,7 +41,7 @@ function CentraisPage() {
   };
 
   return (
-    <section>
+    <section className="centrais-page">
       <div className="brand-bar">
         <div>
           <h1>Cadastro de Centrais</h1>

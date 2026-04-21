@@ -3,7 +3,6 @@ import autenticarService from "../services/autenticarService";
 
 function Login({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);
-  const [isAdminRegister, setIsAdminRegister] = useState(false);
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [nome, setNome] = useState("");
@@ -35,20 +34,7 @@ function Login({ onLogin }) {
 
       setCarregando(true);
 
-      if (isAdminRegister) {
-        if (!nome || nome.trim().length < 3) {
-          setErro("Nome deve ter pelo menos 3 caracteres");
-          setCarregando(false);
-          return;
-        }
-
-        await autenticarService.registrarAdmin({ nome, email, senha, role: "ADMIN" });
-        setMensagem("Administrador inicial cadastrado com sucesso! Agora entre e crie os demais usuários no painel administrativo.");
-        setTimeout(() => {
-          setIsAdminRegister(false);
-          setIsRegister(false);
-        }, 2000);
-      } else if (isRegister) {
+      if (isRegister) {
         if (!nome || nome.trim().length < 3) {
           setErro("Nome deve ter pelo menos 3 caracteres");
           setCarregando(false);
@@ -77,12 +63,8 @@ function Login({ onLogin }) {
     <div className="login-screen">
       <div className="login-card">
         <div className="login-hero">
-          <h2>{isAdminRegister ? "Criar primeiro administrador" : isRegister ? "Crie sua conta" : "Bem-vindo de volta"}</h2>
-          <p>
-            {isAdminRegister
-              ? "Use esta opção para criar o primeiro ADMIN. Depois, os demais usuários são criados no painel administrativo."
-              : "Use seu login para acessar o dashboard moderno da transportadora."}
-          </p>
+          <h2>{isRegister ? "Crie sua conta" : "Bem-vindo de volta"}</h2>
+          <p>Use seu login para acessar o dashboard moderno da transportadora.</p>
         </div>
 
         {erro && <div className="erro-message" style={{ color: 'red', padding: '10px', marginBottom: '10px', backgroundColor: '#ffe6e6', borderRadius: '4px' }}>{erro}</div>}
@@ -90,12 +72,10 @@ function Login({ onLogin }) {
 
         <div className="login-panel">
           <form onSubmit={handleSubmit}>
-            {(isRegister || isAdminRegister) && (
+            {isRegister && (
               <>
                 <div className="note" style={{ marginBottom: 8 }}>
-                  {isAdminRegister
-                    ? "Cadastro do primeiro administrador do sistema."
-                    : "Cadastro público liberado apenas para Médico e Enfermeiro. As demais funções são criadas pela administração."}
+                  Cadastro público liberado apenas para Médico e Enfermeiro. As demais funções são criadas pela administração.
                 </div>
                 <input 
                   type="text" 
@@ -114,7 +94,6 @@ function Login({ onLogin }) {
                 >
                   <option value="MEDICO">Médico</option>
                   <option value="ENFERMEIRO">Enfermeiro</option>
-                  {isAdminRegister && <option value="ADMIN">Administrador</option>}
                 </select>
               </>
             )}
@@ -141,7 +120,7 @@ function Login({ onLogin }) {
               className="primary-button"
               disabled={carregando}
             >
-              {carregando ? 'Processando...' : (isAdminRegister ? "Cadastrar primeiro administrador" : isRegister ? "Cadastrar" : "Entrar")}
+              {carregando ? 'Processando...' : (isRegister ? "Cadastrar" : "Entrar")}
             </button>
           </form>
 
@@ -151,7 +130,6 @@ function Login({ onLogin }) {
               className="secondary-button" 
               onClick={() => {
                 setIsRegister(false);
-                setIsAdminRegister(false);
                 setRole("MEDICO");
               }}
               disabled={carregando}
@@ -162,7 +140,6 @@ function Login({ onLogin }) {
               type="button" 
               className="secondary-button" 
               onClick={() => {
-                setIsAdminRegister(false);
                 setIsRegister((valor) => {
                   const proximoValor = !valor;
                   if (proximoValor) {
@@ -174,23 +151,6 @@ function Login({ onLogin }) {
               disabled={carregando}
             >
               {isRegister ? "Voltar ao login" : "Cadastrar médico/enfermeiro"}
-            </button>
-            <button 
-              type="button" 
-              className="secondary-button" 
-              onClick={() => {
-                setIsRegister(false);
-                setIsAdminRegister((valor) => {
-                  const proximoValor = !valor;
-                  if (proximoValor) {
-                    setRole("ADMIN");
-                  }
-                  return proximoValor;
-                });
-              }}
-              disabled={carregando}
-            >
-              {isAdminRegister ? "Sair do modo administrativo" : "Criar primeiro administrador"}
             </button>
           </div>
         </div>

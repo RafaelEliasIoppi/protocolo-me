@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import '../styles/PacienteForm.css';
 
-const PacienteForm = ({ paciente, onSave, onCancel }) => {
+const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => {
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
@@ -270,10 +270,10 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
 
   return (
     <div className="paciente-container">
-      {!paciente && <h1>Gestão de Pacientes</h1>}
+      {!paciente && !ocultarResumo && <h1>Gestão de Pacientes</h1>}
 
       {/* Estatísticas */}
-      {!paciente && estatisticas && (
+      {!paciente && !ocultarResumo && estatisticas && (
         <div className="estatisticas-grid">
           <div className="stat-card">
             <div className="stat-valor">{estatisticas.totalPacientes}</div>
@@ -507,11 +507,15 @@ const PacienteForm = ({ paciente, onSave, onCancel }) => {
           <button type="submit" className="btn-salvar" disabled={carregando}>
             {carregando ? 'Salvando...' : (editandoId ? 'Atualizar' : 'Criar')} Paciente
           </button>
-          {editandoId && (
+          {editandoId ? (
             <button type="button" className="btn-cancelar" onClick={limparFormulario}>
               Cancelar
             </button>
-          )}
+          ) : onCancel ? (
+            <button type="button" className="btn-cancelar" onClick={onCancel}>
+              Voltar
+            </button>
+          ) : null}
         </div>
       </form>
 
