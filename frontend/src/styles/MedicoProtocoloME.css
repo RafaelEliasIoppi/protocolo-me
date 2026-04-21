@@ -758,6 +758,31 @@
     width: 100%;
   }
 
+  .entrevista-resumo-topo,
+  .entrevista-resumo-resultado,
+  .entrevista-resumo-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .exames-status {
+    grid-template-columns: 1fr;
+  }
+
+  .exames-resumo-topo {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+  }
+}
+
 
 /* Tema do app (não depender do tema do sistema) */
 [data-theme="dark"] .medico-protocolo-me .panel,
@@ -783,24 +808,35 @@
 [data-theme="dark"] .medico-protocolo-me .pacientes-em-protocolo h2,
 [data-theme="dark"] .medico-protocolo-me .formulario-protocolo h2,
 [data-theme="dark"] .medico-protocolo-me .card-header h3,
+[data-theme="dark"] .medico-protocolo-me .card-header .cpf,
 [data-theme="dark"] .medico-protocolo-me .info-row label,
 [data-theme="dark"] .medico-protocolo-me .info-row span,
 [data-theme="dark"] .medico-protocolo-me .form-group label,
+[data-theme="dark"] .medico-protocolo-me .form-group small,
 [data-theme="dark"] .medico-protocolo-me .form-info strong,
 [data-theme="dark"] .medico-protocolo-me .form-info li,
+[data-theme="dark"] .medico-protocolo-me .form-info ul,
 [data-theme="dark"] .medico-protocolo-me .entrevista-resumo-topo label,
 [data-theme="dark"] .medico-protocolo-me .entrevista-resumo-subtitulo,
 [data-theme="dark"] .medico-protocolo-me .entrevista-resumo-texto,
 [data-theme="dark"] .medico-protocolo-me .entrevista-resumo-resultado,
+[data-theme="dark"] .medico-protocolo-me .entrevista-resumo-rotulo,
 [data-theme="dark"] .medico-protocolo-me .exames-resumo-topo label,
+[data-theme="dark"] .medico-protocolo-me .exame,
 [data-theme="dark"] .medico-protocolo-me .exames-count,
 [data-theme="dark"] .medico-protocolo-me .exames-count strong,
 [data-theme="dark"] .medico-protocolo-me .proximo-passo-box,
 [data-theme="dark"] .medico-protocolo-me .proximo-passo-box strong,
 [data-theme="dark"] .medico-protocolo-me .vazio,
+[data-theme="dark"] .medico-protocolo-me .vazio p,
 [data-theme="dark"] .medico-protocolo-me .modal-header h2,
 [data-theme="dark"] .medico-protocolo-me .modal-close {
   color: #e2e8f0;
+}
+
+[data-theme="dark"] .medico-protocolo-me .mensagem.erro a {
+  color: #fef08a;
+  font-weight: 700;
 }
 
 [data-theme="dark"] .medico-protocolo-me .form-info {
@@ -841,28 +877,4 @@
 [data-theme="light"] .medico-protocolo-me .modal-content,
 [data-theme="light"] .medico-protocolo-me .modal-header {
   color: #1f2937;
-}
-  .entrevista-resumo-topo,
-  .entrevista-resumo-resultado,
-  .entrevista-resumo-footer {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .exames-status {
-    grid-template-columns: 1fr;
-  }
-
-  .exames-resumo-topo {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .modal-header {
-    padding: 1rem;
-  }
-
-  .modal-body {
-    padding: 1rem;
-  }
 }

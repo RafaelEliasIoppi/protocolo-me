@@ -100,7 +100,11 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
 
       setTimeout(() => setSucesso(''), 3000);
     } catch (err) {
-      const mensagem = err.response?.data?.message || err.message || 'Erro ao salvar central';
+      const mensagem =
+        err.response?.data?.mensagem ||
+        err.response?.data?.message ||
+        err.message ||
+        'Erro ao salvar central';
       setErro(mensagem);
     } finally {
       setCarregando(false);

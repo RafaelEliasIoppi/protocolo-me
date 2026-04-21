@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,12 +21,13 @@ public class CentralTransplantesController {
 
     // POST - Criar nova central
     @PostMapping
-    public ResponseEntity<CentralTransplantes> criarCentral(@RequestBody CentralTransplantes central) {
+    public ResponseEntity<?> criarCentral(@RequestBody CentralTransplantes central) {
         try {
             CentralTransplantes novaCentral = centralService.criarCentral(central);
             return ResponseEntity.status(HttpStatus.CREATED).body(novaCentral);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("mensagem", e.getMessage()));
         }
     }
 

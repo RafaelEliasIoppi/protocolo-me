@@ -45,6 +45,7 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.POST, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
                 .antMatchers(HttpMethod.PUT, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
                 .antMatchers(HttpMethod.DELETE, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+                .antMatchers(HttpMethod.GET, "/api/centrais-transplantes/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
 
                 .antMatchers(HttpMethod.POST, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
                 .antMatchers(HttpMethod.PUT, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
