@@ -57,8 +57,8 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
     setErro('');
     setSucesso('');
 
-    if (!formData.nome || !formData.cnpj || !formData.endereco || !formData.cidade || !formData.coordenador) {
-      setErro('Por favor, preencha todos os campos obrigatórios');
+    if (!formData.nome || !formData.cnpj || !formData.endereco || !formData.cidade || !formData.estado || !formData.telefone || !formData.email || !formData.coordenador) {
+      setErro('Por favor, preencha todos os campos obrigatórios: Nome, CNPJ, Endereço, Cidade, Estado, Telefone, Email e Coordenador.');
       return;
     }
 

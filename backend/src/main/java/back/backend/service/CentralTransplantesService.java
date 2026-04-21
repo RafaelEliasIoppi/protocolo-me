@@ -1,3 +1,4 @@
+import back.backend.dto.CentralTransplantesDTO;
 package back.backend.service;
 
 import back.backend.model.CentralTransplantes;
@@ -24,6 +25,36 @@ import java.util.stream.Collectors;
 
 @Service
 public class CentralTransplantesService {
+
+    // Criar a partir do DTO
+    public CentralTransplantes criarCentralFromDTO(CentralTransplantesDTO dto) {
+        CentralTransplantes central = new CentralTransplantes();
+        preencherEntityComDTO(central, dto);
+        return criarCentral(central);
+    }
+
+    // Atualizar a partir do DTO
+    public CentralTransplantes atualizarCentralFromDTO(Long id, CentralTransplantesDTO dto) {
+        CentralTransplantes central = buscarPorId(id).orElseThrow(() -> new RuntimeException("Central não encontrada"));
+        preencherEntityComDTO(central, dto);
+        return centralRepository.save(central);
+    }
+
+    private void preencherEntityComDTO(CentralTransplantes central, CentralTransplantesDTO dto) {
+        central.setNome(dto.getNome());
+        central.setCnpj(dto.getCnpj());
+        central.setEndereco(dto.getEndereco());
+        central.setCidade(dto.getCidade());
+        central.setEstado(dto.getEstado());
+        central.setTelefone(dto.getTelefone());
+        central.setTelefonePlantao(dto.getTelefonePlantao());
+        central.setEmail(dto.getEmail());
+        central.setEmailPlantao(dto.getEmailPlantao());
+        central.setCoordenador(dto.getCoordenador());
+        central.setTelefoneCoordenador(dto.getTelefoneCoordenador());
+        central.setCapacidadeProcessamento(dto.getCapacidadeProcessamento());
+        central.setEspecialidadesOrgaos(dto.getEspecialidadesOrgaos());
+    }
 
     private static final List<String> ITENS_ORGAOS_TECIDOS = Arrays.asList(
             "Coração",
