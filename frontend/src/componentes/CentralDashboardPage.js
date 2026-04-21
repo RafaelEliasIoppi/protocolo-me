@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import apiClient from "../services/apiClient";
+import CentralPacienteEditForm from "./CentralPacienteEditForm";
 import "../styles/CentralDashboardPage.css";
 
 const CHAVE_CONFIG_ESTATISTICA_CENTRAL = "central_dashboard_estatisticas_campos";
@@ -67,6 +68,8 @@ function CentralDashboardPage() {
   const [carregandoRelatorio, setCarregandoRelatorio] = useState(false);
   const [mostrarConfigEstatistica, setMostrarConfigEstatistica] = useState(false);
   const [camposVisiveis, setCamposVisiveis] = useState(() => carregarConfiguracaoCampos());
+  const [mostrarEditarPaciente, setMostrarEditarPaciente] = useState(false);
+  const [pacienteParaEditar, setPacienteParaEditar] = useState(null);
 
   const opcoesPrincipaisEstatistica = [
     { chave: "doadoresEmAvaliacao", label: "Doadores em avaliação" },
@@ -322,6 +325,17 @@ function CentralDashboardPage() {
       statusEntrevistaFamiliar: paciente.statusEntrevistaFamiliar,
       protocolo
     });
+  };
+
+  const abrirEditarPaciente = (paciente) => {
+    setPacienteParaEditar(paciente.id);
+    setMostrarEditarPaciente(true);
+  };
+
+  const fecharEditarPaciente = () => {
+    setMostrarEditarPaciente(false);
+    setPacienteParaEditar(null);
+    carregarPacientesDoEstado();
   };
 
   const carregarRelatorioFinalPaciente = async (pacienteId) => {

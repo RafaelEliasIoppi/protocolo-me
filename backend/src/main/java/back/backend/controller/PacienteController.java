@@ -1,6 +1,7 @@
 package back.backend.controller;
 
 import back.backend.model.Paciente;
+import back.backend.dto.PacienteDTO;
 import back.backend.service.PacienteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/pacientes")
@@ -37,9 +39,12 @@ public class PacienteController {
      * GET /api/pacientes - Listar todos os pacientes
      */
     @GetMapping
-    public ResponseEntity<List<Paciente>> listarTodos() {
+    public ResponseEntity<List<PacienteDTO>> listarTodos() {
         List<Paciente> pacientes = pacienteService.listarTodos();
-        return ResponseEntity.ok(pacientes);
+        List<PacienteDTO> dtos = pacientes.stream()
+            .map(PacienteDTO::fromEntity)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     /**
@@ -49,7 +54,8 @@ public class PacienteController {
     public ResponseEntity<?> obterPorId(@PathVariable Long id) {
         try {
             Paciente paciente = pacienteService.obterPacientePorId(id);
-            return ResponseEntity.ok(paciente);
+            PacienteDTO dto = PacienteDTO.fromEntity(paciente);
+            return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("Paciente não encontrado: " + e.getMessage()));
@@ -63,7 +69,8 @@ public class PacienteController {
     public ResponseEntity<?> obterPorCpf(@PathVariable String cpf) {
         try {
             Paciente paciente = pacienteService.obterPacientePorCpf(cpf);
-            return ResponseEntity.ok(paciente);
+            PacienteDTO dto = PacienteDTO.fromEntity(paciente);
+            return ResponseEntity.ok(dto);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("Paciente não encontrado: " + e.getMessage()));
@@ -77,7 +84,10 @@ public class PacienteController {
     public ResponseEntity<?> listarPorHospital(@PathVariable Long hospitalId) {
         try {
             List<Paciente> pacientes = pacienteService.listarPorHospital(hospitalId);
-            return ResponseEntity.ok(pacientes);
+            List<PacienteDTO> dtos = pacientes.stream()
+                .map(PacienteDTO::fromEntity)
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("Hospital não encontrado: " + e.getMessage()));
@@ -88,11 +98,14 @@ public class PacienteController {
      * GET /api/pacientes/status/{status} - Listar pacientes por status
      */
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Paciente>> listarPorStatus(@PathVariable String status) {
+    public ResponseEntity<List<PacienteDTO>> listarPorStatus(@PathVariable String status) {
         try {
             Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
             List<Paciente> pacientes = pacienteService.listarPorStatus(statusEnum);
-            return ResponseEntity.ok(pacientes);
+            List<PacienteDTO> dtos = pacientes.stream()
+                .map(PacienteDTO::fromEntity)
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(null);
@@ -109,7 +122,10 @@ public class PacienteController {
         try {
             Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
             List<Paciente> pacientes = pacienteService.listarPorHospitalEStatus(hospitalId, statusEnum);
-            return ResponseEntity.ok(pacientes);
+            List<PacienteDTO> dtos = pacientes.stream()
+                .map(PacienteDTO::fromEntity)
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("Status inválido: " + e.getMessage()));
@@ -120,9 +136,12 @@ public class PacienteController {
      * GET /api/pacientes/em-protocolo-me - Listar apenas pacientes em Protocolo de ME
      */
     @GetMapping("/em-protocolo-me")
-    public ResponseEntity<List<Paciente>> listarPacientesEmProtocoloME() {
+    public ResponseEntity<List<PacienteDTO>> listarPacientesEmProtocoloME() {
         List<Paciente> pacientes = pacienteService.listarPacientesEmProtocoloME();
-        return ResponseEntity.ok(pacientes);
+        List<PacienteDTO> dtos = pacientes.stream()
+            .map(PacienteDTO::fromEntity)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     /**
@@ -132,7 +151,10 @@ public class PacienteController {
     public ResponseEntity<?> listarPacientesEmProtocoloMEPorHospital(@PathVariable Long hospitalId) {
         try {
             List<Paciente> pacientes = pacienteService.listarPacientesEmProtocoloMEPorHospital(hospitalId);
-            return ResponseEntity.ok(pacientes);
+            List<PacienteDTO> dtos = pacientes.stream()
+                .map(PacienteDTO::fromEntity)
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("Hospital não encontrado: " + e.getMessage()));
@@ -169,7 +191,10 @@ public class PacienteController {
     public ResponseEntity<?> buscarPorNome(@RequestParam String nome) {
         try {
             List<Paciente> pacientes = pacienteService.procurarPorNome(nome);
-            return ResponseEntity.ok(pacientes);
+            List<PacienteDTO> dtos = pacientes.stream()
+                .map(PacienteDTO::fromEntity)
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("Erro ao buscar: " + e.getMessage()));
@@ -185,7 +210,10 @@ public class PacienteController {
             @RequestParam String nome) {
         try {
             List<Paciente> pacientes = pacienteService.procurarPorNomeEHospital(hospitalId, nome);
-            return ResponseEntity.ok(pacientes);
+            List<PacienteDTO> dtos = pacientes.stream()
+                .map(PacienteDTO::fromEntity)
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("Erro ao buscar: " + e.getMessage()));

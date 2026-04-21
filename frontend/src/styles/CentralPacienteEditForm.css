@@ -1,0 +1,256 @@
+.central-paciente-edit-form {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.central-paciente-edit-form .modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.central-paciente-edit-form .modal-content {
+  position: relative;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.central-paciente-edit-form .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.central-paciente-edit-form .modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.central-paciente-edit-form .close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.central-paciente-edit-form .close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.central-paciente-edit-form .mensagem {
+  margin: 15px;
+  padding: 12px 15px;
+  border-radius: 4px;
+  font-weight: 500;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.central-paciente-edit-form .mensagem.sucesso {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.central-paciente-edit-form .mensagem.erro {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.central-paciente-edit-form .form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.central-paciente-edit-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.central-paciente-edit-form .form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.central-paciente-edit-form .form-group label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 14px;
+}
+
+.central-paciente-edit-form .form-group input,
+.central-paciente-edit-form .form-group select,
+.central-paciente-edit-form .form-group textarea {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.central-paciente-edit-form .form-group input:focus,
+.central-paciente-edit-form .form-group select:focus,
+.central-paciente-edit-form .form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.central-paciente-edit-form .form-group input:disabled,
+.central-paciente-edit-form .form-group select:disabled,
+.central-paciente-edit-form .form-group textarea:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.central-paciente-edit-form .form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 20px;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.central-paciente-edit-form .btn-save,
+.central-paciente-edit-form .btn-cancel {
+  padding: 10px 24px;
+  border-radius: 4px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.central-paciente-edit-form .btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.central-paciente-edit-form .btn-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.central-paciente-edit-form .btn-cancel {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.central-paciente-edit-form .btn-cancel:hover:not(:disabled) {
+  background: #d0d0d0;
+}
+
+.central-paciente-edit-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .central-paciente-edit-form .modal-content {
+    background: #2d2d2d;
+    color: #e0e0e0;
+  }
+
+  .central-paciente-edit-form .modal-header {
+    border-bottom-color: #444;
+  }
+
+  .central-paciente-edit-form .form-group label {
+    color: #e0e0e0;
+  }
+
+  .central-paciente-edit-form .form-group input,
+  .central-paciente-edit-form .form-group select,
+  .central-paciente-edit-form .form-group textarea {
+    background: #3d3d3d;
+    color: #e0e0e0;
+    border-color: #555;
+  }
+
+  .central-paciente-edit-form .form-group input:focus,
+  .central-paciente-edit-form .form-group select:focus,
+  .central-paciente-edit-form .form-group textarea:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  }
+
+  .central-paciente-edit-form .form-group input:disabled,
+  .central-paciente-edit-form .form-group select:disabled,
+  .central-paciente-edit-form .form-group textarea:disabled {
+    background: #252525;
+    color: #666;
+  }
+
+  .central-paciente-edit-form .form-actions {
+    border-top-color: #444;
+    background: #252525;
+  }
+
+  .central-paciente-edit-form .btn-cancel {
+    background: #444;
+    color: #e0e0e0;
+  }
+
+  .central-paciente-edit-form .btn-cancel:hover:not(:disabled) {
+    background: #555;
+  }
+}

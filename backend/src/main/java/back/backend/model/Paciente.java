@@ -76,7 +76,7 @@ public class Paciente {
     private StatusPaciente status = StatusPaciente.INTERNADO;
 
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"paciente", "centralTransplantes", "exames"})
+    @JsonIgnoreProperties({"paciente", "centralTransplantes", "exames", "orgaosDoados", "hibernateLazyInitializer", "handler"})
     private List<ProtocoloME> protocolosME;
 
     // Exames adicionados quando em protocolo ME

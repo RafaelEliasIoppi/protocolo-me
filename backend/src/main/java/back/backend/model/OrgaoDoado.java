@@ -14,7 +14,7 @@ public class OrgaoDoado {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "protocolo_me_id")
-    @JsonIgnoreProperties({"exames", "orgaosDoados", "hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({"exames", "orgaosDoados", "paciente", "centralTransplantes", "hibernateLazyInitializer", "handler"})
     private ProtocoloME protocoloME;
 
     @Column(nullable = false)
