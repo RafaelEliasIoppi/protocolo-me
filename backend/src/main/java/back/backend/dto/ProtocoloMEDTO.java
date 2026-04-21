@@ -39,6 +39,9 @@ public class ProtocoloMEDTO {
     private LocalDateTime dataNotificacao;
     private LocalDateTime dataConfirmacaoME;
     private LocalDateTime dataSaidaHospital;
+    private String relatorioFinalEditavel;
+    private String relatorioFinalAtualizadoPor;
+    private LocalDateTime relatorioFinalAtualizadoEm;
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
     private Long centralTransplantesId;
@@ -73,6 +76,9 @@ public class ProtocoloMEDTO {
         dto.setDataNotificacao(entity.getDataNotificacao());
         dto.setDataConfirmacaoME(entity.getDataConfirmacaoME());
         dto.setDataSaidaHospital(entity.getDataSaidaHospital());
+        dto.setRelatorioFinalEditavel(entity.getRelatorioFinalEditavel());
+        dto.setRelatorioFinalAtualizadoPor(entity.getRelatorioFinalAtualizadoPor());
+        dto.setRelatorioFinalAtualizadoEm(entity.getRelatorioFinalAtualizadoEm());
         dto.setDataCriacao(entity.getDataCriacao());
         dto.setDataAtualizacao(entity.getDataAtualizacao());
         

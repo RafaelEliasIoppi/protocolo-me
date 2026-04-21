@@ -96,6 +96,15 @@ public class ProtocoloME {
     @Column
     private LocalDateTime dataSaidaHospital;
 
+    @Column(length = 4000)
+    private String relatorioFinalEditavel;
+
+    @Column
+    private String relatorioFinalAtualizadoPor;
+
+    @Column
+    private LocalDateTime relatorioFinalAtualizadoEm;
+
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 
@@ -369,6 +378,30 @@ public class ProtocoloME {
 
     public void setDataSaidaHospital(LocalDateTime dataSaidaHospital) {
         this.dataSaidaHospital = dataSaidaHospital;
+    }
+
+    public String getRelatorioFinalEditavel() {
+        return relatorioFinalEditavel;
+    }
+
+    public void setRelatorioFinalEditavel(String relatorioFinalEditavel) {
+        this.relatorioFinalEditavel = relatorioFinalEditavel;
+    }
+
+    public String getRelatorioFinalAtualizadoPor() {
+        return relatorioFinalAtualizadoPor;
+    }
+
+    public void setRelatorioFinalAtualizadoPor(String relatorioFinalAtualizadoPor) {
+        this.relatorioFinalAtualizadoPor = relatorioFinalAtualizadoPor;
+    }
+
+    public LocalDateTime getRelatorioFinalAtualizadoEm() {
+        return relatorioFinalAtualizadoEm;
+    }
+
+    public void setRelatorioFinalAtualizadoEm(LocalDateTime relatorioFinalAtualizadoEm) {
+        this.relatorioFinalAtualizadoEm = relatorioFinalAtualizadoEm;
     }
 
     public LocalDateTime getDataCriacao() {

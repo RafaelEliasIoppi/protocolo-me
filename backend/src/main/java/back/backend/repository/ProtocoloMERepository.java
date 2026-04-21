@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Repository
 public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> {
     Optional<ProtocoloME> findByNumeroProtocolo(String numeroProtocolo);
+    boolean existsByNumeroProtocoloAndIdNot(String numeroProtocolo, Long id);
     List<ProtocoloME> findByCentralTransplantes(CentralTransplantes centralTransplantes);
     List<ProtocoloME> findByStatus(ProtocoloME.StatusProtocoloME status);
     List<ProtocoloME> findByCentralTransplantesAndStatus(CentralTransplantes centralTransplantes, ProtocoloME.StatusProtocoloME status);

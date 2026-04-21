@@ -80,6 +80,31 @@ function PacientesProtocoloMEPage() {
     });
   };
 
+  const editarNumeroProtocolo = async (protocolo) => {
+    const numeroAtual = protocolo?.numeroProtocolo || "";
+    const numeroNovo = window.prompt("Informe o novo numero do protocolo:", numeroAtual);
+    if (numeroNovo === null) return;
+    if (!numeroNovo.trim()) {
+      setErro("Numero do protocolo nao pode ficar vazio");
+      return;
+    }
+
+    try {
+      await apiClient.put(`/api/protocolos-me/${protocolo.id}`, {
+        numeroProtocolo: numeroNovo.trim(),
+        diagnosticoBasico: protocolo.diagnosticoBasico,
+        causaMorte: protocolo.causaMorte,
+        observacoes: protocolo.observacoes,
+        medicoResponsavel: protocolo.medicoResponsavel,
+        enfermeiro: protocolo.enfermeiro,
+        orgaosDisponiveis: protocolo.orgaosDisponiveis
+      });
+      await carregarPacientesProtocoloME(filtroHospital);
+    } catch (err) {
+      setErro(err?.response?.data?.mensagem || "Erro ao atualizar numero do protocolo");
+    }
+  };
+
   return (
     <section className="pacientes-protocolo-me-page">
       <div className="brand-bar">
@@ -194,6 +219,13 @@ function PacientesProtocoloMEPage() {
                             <strong>Hospital Origem:</strong> {protocolo.hospitalOrigem}
 
                             <div className="protocolo-acoes">
+                              <button
+                                type="button"
+                                className="btn-orgaos-doados"
+                                onClick={() => editarNumeroProtocolo(protocolo)}
+                              >
+                                Editar numero do protocolo
+                              </button>
                               <button
                                 type="button"
                                 className="btn-orgaos-doados"

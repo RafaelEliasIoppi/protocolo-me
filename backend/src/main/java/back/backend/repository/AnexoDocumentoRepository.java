@@ -16,6 +16,7 @@ public interface AnexoDocumentoRepository extends JpaRepository<AnexoDocumento, 
      * Buscar anexos por ID do exame
      */
     List<AnexoDocumento> findByExameMEId(Long exameMEId);
+    List<AnexoDocumento> findByExameMEIdIn(List<Long> exameMEIds);
 
     /**
      * Buscar anexos por ID do protocolo (para entrevista familiar)

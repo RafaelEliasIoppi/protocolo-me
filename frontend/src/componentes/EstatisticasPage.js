@@ -2,6 +2,102 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import '../styles/EstatisticasPage.css';
 
+const CAMPOS_ESTATISTICA_PROTOCOLO = [
+  { key: 'ofNac', label: 'Of Nac' },
+  { key: 'rgctDoador', label: 'RGCT-Doador' },
+  { key: 'nomeDoador', label: 'Nome - DOADOR' },
+  { key: 'hospitalNotif', label: 'HospitalNotif' },
+  { key: 'dataOf', label: 'DATA - OF' },
+  { key: 'regPdot', label: 'REG-PDOT' },
+  { key: 'regOf', label: 'REG-OF' },
+  { key: 'mes', label: 'Mes' },
+  { key: 'municipio', label: 'Municipio' },
+  { key: 'idDoad', label: 'Id-Doad' },
+  { key: 'faixaEtariaDoad', label: 'F-Etaria-Doad' },
+  { key: 'sexoDoad', label: 'Sexo-Doad' },
+  { key: 'aboDoad', label: 'ABO-Doad' },
+  { key: 'resCausaMorte', label: 'Res-C-Morte' },
+  { key: 'dm', label: 'DM' },
+  { key: 'has', label: 'HAS' },
+  { key: 'etilismo', label: 'ETILISMO' },
+  { key: 'tabagismo', label: 'TABAGISMO' },
+  { key: 'crInicial', label: 'Cr Inicial' },
+  { key: 'crFinal', label: 'Cr Final' },
+  { key: 'rimD', label: 'Rim-D' },
+  { key: 'rimE', label: 'Rim-E' },
+  { key: 'coracao', label: 'Coracao' },
+  { key: 'pulmD', label: 'Pulm-D' },
+  { key: 'pulmE', label: 'Pulm-E' },
+  { key: 'figado', label: 'Figado' },
+  { key: 'corneas', label: 'Corneas' },
+  { key: 'pele', label: 'Pele' },
+  { key: 'ossoMusculo', label: 'Osso-Musculo' },
+  { key: 'destRimD', label: 'Dest-RimD' },
+  { key: 'destRimE', label: 'Dest-RimE' },
+  { key: 'destCoracao', label: 'Dest-Coracao' },
+  { key: 'destPulmD', label: 'Dest-PulmD' },
+  { key: 'destPulmE', label: 'Dest-PulmE' },
+  { key: 'destFigado', label: 'Dest-Figado' },
+  { key: 'txRinsBloco', label: 'Tx- RinsBloco' },
+  { key: 'txPulmBilat', label: 'Tx-Pulm Bilat' },
+  { key: 'txRimFig', label: 'Tx-Rim Fig' },
+  { key: 'txPulmDRim', label: 'Tx-PulmD_ Rim' },
+  { key: 'txPulmERim', label: 'Tx-PulmE_Rim' },
+  { key: 'txCorRim', label: 'Tx-Cor Rim' },
+  { key: 'txCorPulm', label: 'Tx-Cor Pulm' },
+  { key: 'descarteRimD', label: 'Descarte-RimD' },
+  { key: 'descarteRimE', label: 'Descarte-RimE' },
+  { key: 'descarteCoracao', label: 'Descarte-Coracao' },
+  { key: 'descartePulmaoD', label: 'Descarte-PulmaoD' },
+  { key: 'descartePulmaoE', label: 'Descarte-PulmaoE' },
+  { key: 'descarteFigado', label: 'Descarte-Figado' },
+  { key: 'motivoDescarteEsclarecer', label: 'MOTIVO DESCARTE Esclarecer' },
+  { key: 'hospEquipeRecRd', label: 'Hosp-Equipe-RecRD' },
+  { key: 'rgctRd', label: 'RGCT-RD' },
+  { key: 'receptorRd', label: 'ReceptorRD' },
+  { key: 'idadeRecRd', label: 'Idade-RecRD' },
+  { key: 'sexoRecRd', label: 'Sexo-RecRD' },
+  { key: 'mesTxRd', label: 'Mes-TxRD' },
+  { key: 'hospEquipeRecRe', label: 'Hosp-EquipeRecRE' },
+  { key: 'rgctRe', label: 'RGCT-RE' },
+  { key: 'receptorRe', label: 'ReceptorRE' },
+  { key: 'idadeRecRe', label: 'Idade-RecRE' },
+  { key: 'sexoRecRe', label: 'Sexo-RecRE' },
+  { key: 'mesTxRe', label: 'Mes-TxRE' },
+  { key: 'hospEquipeRecFig', label: 'Hosp-EquipeRecFig' },
+  { key: 'rgctFig', label: 'RGCT-Fig' },
+  { key: 'receptorFig', label: 'ReceptorFig' },
+  { key: 'idadeRecFig', label: 'Idade-RecFig' },
+  { key: 'sexoRecFig', label: 'Sexo-RecFig' },
+  { key: 'mesTxFig', label: 'Mes-TxFig' },
+  { key: 'hospEquipeRecPulmD', label: 'Hosp-EquipeRecPulmD' },
+  { key: 'rgctPulmD', label: 'RGCT-PulmD' },
+  { key: 'receptorPulmD', label: 'ReceptorPulmD' },
+  { key: 'idadeRecPulmD', label: 'Idade-RecPulmD' },
+  { key: 'sexoRecPulmD', label: 'Sexo-RecPulmD' },
+  { key: 'mesTxPulmD', label: 'Mes-TxPulmD' },
+  { key: 'hospEquipeRecPulmE', label: 'Hosp-EquipeRecPulmE' },
+  { key: 'rgctPulmE', label: 'RGCT-PulmE' },
+  { key: 'receptorPulmE', label: 'ReceptorPulmE' },
+  { key: 'idadeRecPulmE', label: 'Idade-RecPulmE' },
+  { key: 'sexoRecPulmE', label: 'Sexo-RecPulmE' },
+  { key: 'mesTxPulmE', label: 'Mes-TxPulmE' },
+  { key: 'hospEquipeRecCor', label: 'Hosp-EquipeRecCor' },
+  { key: 'rgctCor', label: 'RGCT-Cor' },
+  { key: 'receptorCor', label: 'ReceptorCor' },
+  { key: 'idadeRecCor', label: 'Idade-RecCor' },
+  { key: 'sexoRecCor', label: 'Sexo-RecCor' },
+  { key: 'mesTxCor', label: 'Mes-TxCor' },
+  { key: 'doadorOfertaNacional', label: 'DoadorOfertaNacional' },
+  { key: 'classif', label: 'Classif' },
+  { key: 'algumOrgaoImplantadoNoRs', label: 'Algum Orgao implantado no RS' },
+  { key: 'recusaRim', label: 'RECUSA RIM' },
+  { key: 'recusaFigado', label: 'RECUSA FIGADO' },
+  { key: 'recusaCoracao', label: 'RECUSA CORACAO' },
+  { key: 'recusaPulmao', label: 'RECUSA PULMAO' },
+  { key: 'observacoes', label: 'observacoes' }
+];
+
 const EstatisticasPage = () => {
   const [estatisticasGerais, setEstatisticasGerais] = useState(null);
   const [estatisticasPorPaciente, setEstatisticasPorPaciente] = useState([]);
@@ -9,8 +105,14 @@ const EstatisticasPage = () => {
   const [anoSelecionado, setAnoSelecionado] = useState(null);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
-  const [abas, setAbas] = useState('geral'); // 'geral' ou 'pacientes'
+  const [abas, setAbas] = useState('geral');
   const [filtroNomePaciente, setFiltroNomePaciente] = useState('');
+  const [periodicidade, setPeriodicidade] = useState('ANUAL');
+  const [mesSelecionado, setMesSelecionado] = useState('');
+  const [estatisticasProtocolo, setEstatisticasProtocolo] = useState([]);
+  const [protocoloSelecionado, setProtocoloSelecionado] = useState(null);
+  const [camposForm, setCamposForm] = useState({});
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     carregarAnosDisponiveis();
@@ -63,12 +165,36 @@ const EstatisticasPage = () => {
     }
   };
 
+  const carregarEstatisticasProtocolo = async (
+    ano = anoSelecionado,
+    periodicidadeAtual = periodicidade,
+    mesAtual = mesSelecionado,
+  ) => {
+    setCarregando(true);
+    setErro('');
+    try {
+      const params = {};
+      if (ano) params.ano = ano;
+      if (periodicidadeAtual) params.periodicidade = periodicidadeAtual;
+      if (periodicidadeAtual === 'MENSAL' && mesAtual) params.mes = parseInt(mesAtual, 10);
+      const response = await apiClient.get('/api/estatisticas-transplantes/protocolo-me', { params });
+      setEstatisticasProtocolo(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      setErro('Erro ao carregar estatisticas por protocolo');
+      console.error(err);
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   const handleMudarAno = (ano) => {
     setAnoSelecionado(ano);
     if (abas === 'geral') {
       carregarEstatisticasGerais(ano);
-    } else {
+    } else if (abas === 'pacientes') {
       carregarEstatisticasPorPaciente(ano);
+    } else {
+      carregarEstatisticasProtocolo(ano);
     }
   };
 
@@ -76,8 +202,45 @@ const EstatisticasPage = () => {
     setAbas(aba);
     if (aba === 'geral') {
       carregarEstatisticasGerais(anoSelecionado);
-    } else {
+    } else if (aba === 'pacientes') {
       carregarEstatisticasPorPaciente(anoSelecionado);
+    } else {
+      carregarEstatisticasProtocolo(anoSelecionado);
+    }
+  };
+
+  const handleSelecionarProtocolo = async (item) => {
+    try {
+      const response = await apiClient.get(`/api/estatisticas-transplantes/protocolo-me/${item.protocoloMEId}`);
+      const data = response.data || {};
+      setProtocoloSelecionado(data);
+      setCamposForm(data.campos || {});
+    } catch (err) {
+      setErro('Erro ao abrir estatistica do protocolo');
+      console.error(err);
+    }
+  };
+
+  const handleSalvarEstatistica = async () => {
+    if (!protocoloSelecionado?.protocoloMEId) return;
+    setSalvando(true);
+    setErro('');
+    try {
+      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+      await apiClient.put(`/api/estatisticas-transplantes/protocolo-me/${protocoloSelecionado.protocoloMEId}`, {
+        protocoloMEId: protocoloSelecionado.protocoloMEId,
+        anoCompetencia: protocoloSelecionado.anoCompetencia || anoSelecionado,
+        mesCompetencia: periodicidade === 'MENSAL' ? (mesSelecionado ? parseInt(mesSelecionado, 10) : null) : null,
+        periodicidade,
+        campos: camposForm,
+        atualizadoPor: usuario?.nome || usuario?.email || 'central'
+      });
+      await carregarEstatisticasProtocolo();
+    } catch (err) {
+      setErro('Erro ao salvar estatistica do protocolo');
+      console.error(err);
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -127,6 +290,47 @@ const EstatisticasPage = () => {
           </select>
         </div>
 
+        <div className="filtro-ano">
+          <label htmlFor="filtro-periodicidade">Periodicidade:</label>
+          <select
+            id="filtro-periodicidade"
+            value={periodicidade}
+            onChange={(e) => {
+              const valor = e.target.value;
+              setPeriodicidade(valor);
+              if (abas === 'protocolo') {
+                carregarEstatisticasProtocolo(anoSelecionado, valor, mesSelecionado);
+              }
+            }}
+            className="select-ano"
+          >
+            <option value="ANUAL">Anual</option>
+            <option value="MENSAL">Mensal</option>
+          </select>
+        </div>
+
+        {periodicidade === 'MENSAL' && (
+          <div className="filtro-ano">
+            <label htmlFor="filtro-mes">Mes:</label>
+            <select
+              id="filtro-mes"
+              value={mesSelecionado}
+              onChange={(e) => {
+                setMesSelecionado(e.target.value);
+                if (abas === 'protocolo') {
+                  carregarEstatisticasProtocolo(anoSelecionado, periodicidade, e.target.value);
+                }
+              }}
+              className="select-ano"
+            >
+              <option value="">Todos</option>
+              {Array.from({ length: 12 }).map((_, idx) => (
+                <option key={`mes-${idx + 1}`} value={idx + 1}>{idx + 1}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="abas">
           <button
             className={`aba ${abas === 'geral' ? 'ativa' : ''}`}
@@ -139,6 +343,12 @@ const EstatisticasPage = () => {
             onClick={() => handleMudarAba('pacientes')}
           >
             👥 Por Paciente
+          </button>
+          <button
+            className={`aba ${abas === 'protocolo' ? 'ativa' : ''}`}
+            onClick={() => handleMudarAba('protocolo')}
+          >
+            🧾 Por Protocolo
           </button>
         </div>
       </div>
@@ -353,6 +563,66 @@ const EstatisticasPage = () => {
                       </div>
                     </details>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {abas === 'protocolo' && (
+            <div className="aba-conteudo">
+              <div className="detalhes-secao">
+                <h4>Estatistica por Protocolo ME ({periodicidade.toLowerCase()})</h4>
+                <table className="tabela-detalhes">
+                  <thead>
+                    <tr>
+                      <th>Protocolo</th>
+                      <th>Doador</th>
+                      <th>Ano</th>
+                      <th>Mes</th>
+                      <th>Atualizado por</th>
+                      <th>Acoes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {estatisticasProtocolo.map((item) => (
+                      <tr key={`estat-protocolo-${item.protocoloMEId}`}>
+                        <td>{item.numeroProtocolo || `Protocolo ${item.protocoloMEId}`}</td>
+                        <td>{item.nomeDoador || '-'}</td>
+                        <td>{item.anoCompetencia || '-'}</td>
+                        <td>{item.mesCompetencia || '-'}</td>
+                        <td>{item.atualizadoPor || '-'}</td>
+                        <td>
+                          <button className="modal-report-button" onClick={() => handleSelecionarProtocolo(item)}>
+                            Preencher/Editar
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {protocoloSelecionado && (
+                <div className="detalhes-secao">
+                  <h4>Formulario da Central - {protocoloSelecionado.numeroProtocolo || protocoloSelecionado.protocoloMEId}</h4>
+                  <div className="resumo-cards">
+                    {CAMPOS_ESTATISTICA_PROTOCOLO.map((campo) => (
+                      <div className="card" key={`campo-${campo.key}`}>
+                        <div className="card-conteudo">
+                          <div className="card-label">{campo.label}</div>
+                          <input
+                            type="text"
+                            value={camposForm[campo.key] || ''}
+                            onChange={(e) => setCamposForm((prev) => ({ ...prev, [campo.key]: e.target.value }))}
+                            className="input-filtro"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="modal-report-button" onClick={handleSalvarEstatistica} disabled={salvando}>
+                    {salvando ? 'Salvando...' : 'Salvar estatistica do protocolo'}
+                  </button>
                 </div>
               )}
             </div>

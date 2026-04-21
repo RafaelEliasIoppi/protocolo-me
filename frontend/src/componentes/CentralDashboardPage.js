@@ -70,6 +70,7 @@ function CentralDashboardPage() {
   const [camposVisiveis, setCamposVisiveis] = useState(() => carregarConfiguracaoCampos());
   const [mostrarEditarPaciente, setMostrarEditarPaciente] = useState(false);
   const [pacienteParaEditar, setPacienteParaEditar] = useState(null);
+  const [relatorioTextoPorProtocolo, setRelatorioTextoPorProtocolo] = useState({});
 
   const opcoesPrincipaisEstatistica = [
     { chave: "doadoresEmAvaliacao", label: "Doadores em avaliação" },
@@ -344,6 +345,11 @@ function CentralDashboardPage() {
       setCarregandoRelatorio(true);
       const response = await apiClient.get(`/api/pacientes/${pacienteId}/relatorio-final`);
       setRelatorioFinalPaciente(response.data);
+      const textos = {};
+      (response.data?.protocolos || []).forEach((p) => {
+        textos[p.protocoloId] = p.relatorioFinalEditavel || "";
+      });
+      setRelatorioTextoPorProtocolo(textos);
     } catch (e) {
       setErro("Não foi possível carregar o relatório final do paciente.");
     } finally {
@@ -395,7 +401,9 @@ function CentralDashboardPage() {
       "Complementares",
       "Laboratoriais",
       "Familia Notificada",
-      "Autopsia Autorizada"
+      "Autopsia Autorizada",
+      "Conclusao Editavel",
+      "Total Anexos"
     ]);
 
     (relatorioFinalPaciente.protocolos || []).forEach((p) => {
@@ -412,7 +420,9 @@ function CentralDashboardPage() {
         p.examesComplementaresRealizados,
         p.examesLaboratoriaisRealizados,
         p.familiaNotificada ? "SIM" : "NAO",
-        p.autopsiaAutorizada ? "SIM" : "NAO"
+        p.autopsiaAutorizada ? "SIM" : "NAO",
+        p.relatorioFinalEditavel || "",
+        Array.isArray(p.anexos) ? p.anexos.length : 0
       ]);
     });
 
@@ -440,6 +450,8 @@ function CentralDashboardPage() {
         <td>${p.examesClinicosRealizados ?? 0}</td>
         <td>${p.examesComplementaresRealizados ?? 0}</td>
         <td>${p.examesLaboratoriaisRealizados ?? 0}</td>
+        <td>${(p.relatorioFinalEditavel || "").replace(/</g, "&lt;")}</td>
+        <td>${Array.isArray(p.anexos) ? p.anexos.length : 0}</td>
       </tr>
     `).join("");
 
@@ -482,6 +494,8 @@ function CentralDashboardPage() {
                 <th>Clinicos</th>
                 <th>Complementares</th>
                 <th>Laboratoriais</th>
+                <th>Conclusao</th>
+                <th>Anexos</th>
               </tr>
             </thead>
             <tbody>
@@ -494,6 +508,22 @@ function CentralDashboardPage() {
     janela.document.close();
     janela.focus();
     janela.print();
+  };
+
+  const salvarConclusaoProtocolo = async (protocoloId) => {
+    const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+    try {
+      await apiClient.patch(`/api/protocolos-me/${protocoloId}/relatorio-final`, {
+        textoRelatorio: relatorioTextoPorProtocolo[protocoloId] || "",
+        atualizadoPor: usuario?.nome || usuario?.email || "central"
+      });
+
+      if (pacienteSelecionado?.id) {
+        await carregarRelatorioFinalPaciente(pacienteSelecionado.id);
+      }
+    } catch (e) {
+      setErro("Não foi possível salvar a conclusão editável do protocolo.");
+    }
   };
 
   return (
@@ -821,6 +851,33 @@ function CentralDashboardPage() {
                           {` | Clínicos: ${protocoloResumo.examesClinicosRealizados}`}
                           {` | Complementares: ${protocoloResumo.examesComplementaresRealizados}`}
                           {` | Laboratoriais: ${protocoloResumo.examesLaboratoriaisRealizados}`}
+                          <div style={{ marginTop: "0.5rem" }}>
+                            <textarea
+                              value={relatorioTextoPorProtocolo[protocoloResumo.protocoloId] || ""}
+                              onChange={(e) => setRelatorioTextoPorProtocolo((prev) => ({
+                                ...prev,
+                                [protocoloResumo.protocoloId]: e.target.value
+                              }))}
+                              placeholder="Conclusão final editável para este protocolo"
+                              rows={3}
+                              style={{ width: "100%" }}
+                            />
+                            <button
+                              className="modal-report-button"
+                              onClick={() => salvarConclusaoProtocolo(protocoloResumo.protocoloId)}
+                            >
+                              Salvar conclusão
+                            </button>
+                          </div>
+                          {Array.isArray(protocoloResumo.anexos) && protocoloResumo.anexos.length > 0 && (
+                            <ul className="lista-faltantes" style={{ marginTop: "0.5rem" }}>
+                              {protocoloResumo.anexos.map((anexo) => (
+                                <li key={`anexo-relatorio-${anexo.id}`}>
+                                  {anexo.nomeArquivo} ({anexo.tipoAnexo || "ANEXO"})
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </li>
                       ))}
                     </ul>

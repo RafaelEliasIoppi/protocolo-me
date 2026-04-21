@@ -168,6 +168,10 @@ public class ProtocoloMEService {
     }
 
     public ProtocoloME criarProtocoloPorPacienteId(Long pacienteId, String diagnosticoBasico) {
+        return criarProtocoloPorPacienteId(pacienteId, diagnosticoBasico, null);
+    }
+
+    public ProtocoloME criarProtocoloPorPacienteId(Long pacienteId, String diagnosticoBasico, String numeroProtocolo) {
         Paciente paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new RuntimeException("Paciente não encontrado com ID: " + pacienteId));
 
@@ -178,7 +182,11 @@ public class ProtocoloMEService {
         ProtocoloME protocolo = new ProtocoloME();
         protocolo.setPaciente(paciente);
         protocolo.setCentralTransplantes(central);
-        protocolo.setNumeroProtocolo(gerarNumeroProtocolo());
+        if (numeroProtocolo != null && !numeroProtocolo.trim().isEmpty()) {
+            protocolo.setNumeroProtocolo(numeroProtocolo.trim());
+        } else {
+            protocolo.setNumeroProtocolo(gerarNumeroProtocolo());
+        }
         protocolo.setHospitalOrigem(
                 (paciente.getHospitalOrigem() != null && !paciente.getHospitalOrigem().trim().isEmpty())
                         ? paciente.getHospitalOrigem()
@@ -318,12 +326,31 @@ public class ProtocoloMEService {
         ProtocoloME protocolo = protocoloRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Protocolo não encontrado com ID: " + id));
 
+        if (protocoloAtualizado.getNumeroProtocolo() != null && !protocoloAtualizado.getNumeroProtocolo().trim().isEmpty()) {
+            String numeroNovo = protocoloAtualizado.getNumeroProtocolo().trim();
+            if (protocoloRepository.existsByNumeroProtocoloAndIdNot(numeroNovo, id)) {
+                throw new RuntimeException("Já existe outro protocolo com número " + numeroNovo);
+            }
+            protocolo.setNumeroProtocolo(numeroNovo);
+        }
+
         protocolo.setDiagnosticoBasico(protocoloAtualizado.getDiagnosticoBasico());
         protocolo.setCausaMorte(protocoloAtualizado.getCausaMorte());
         protocolo.setObservacoes(protocoloAtualizado.getObservacoes());
         protocolo.setMedicoResponsavel(protocoloAtualizado.getMedicoResponsavel());
         protocolo.setEnfermeiro(protocoloAtualizado.getEnfermeiro());
         protocolo.setOrgaosDisponiveis(protocoloAtualizado.getOrgaosDisponiveis());
+
+        return protocoloRepository.save(protocolo);
+    }
+
+    public ProtocoloME atualizarRelatorioFinal(Long id, String textoRelatorio, String atualizadoPor) {
+        ProtocoloME protocolo = protocoloRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado com ID: " + id));
+
+        protocolo.setRelatorioFinalEditavel(textoRelatorio != null ? textoRelatorio.trim() : null);
+        protocolo.setRelatorioFinalAtualizadoPor(atualizadoPor != null ? atualizadoPor.trim() : null);
+        protocolo.setRelatorioFinalAtualizadoEm(LocalDateTime.now());
 
         return protocoloRepository.save(protocolo);
     }

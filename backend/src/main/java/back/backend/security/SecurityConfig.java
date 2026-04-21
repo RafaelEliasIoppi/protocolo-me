@@ -47,8 +47,8 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.DELETE, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
 
                 .antMatchers(HttpMethod.POST, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.PUT, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.PATCH, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                .antMatchers(HttpMethod.PUT, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
+                .antMatchers(HttpMethod.PATCH, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
                 .antMatchers(HttpMethod.DELETE, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
                 .antMatchers(HttpMethod.GET, "/api/protocolos-me/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
 
@@ -59,6 +59,11 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.GET, "/api/exames-me/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
 
                 .antMatchers(HttpMethod.GET, "/api/centrais-transplantes/estatisticas/doadores-receptores").hasRole("CENTRAL_TRANSPLANTES")
+
+                .antMatchers(HttpMethod.PUT, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+                .antMatchers(HttpMethod.POST, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+                .antMatchers(HttpMethod.PATCH, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+                .antMatchers(HttpMethod.GET, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN", "MEDICO")
 
                 .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/api/usuarios/**").hasRole("ADMIN")

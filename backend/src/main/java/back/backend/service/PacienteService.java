@@ -4,8 +4,10 @@ import back.backend.model.Paciente;
 import back.backend.model.Hospital;
 import back.backend.model.ExameME;
 import back.backend.model.ProtocoloME;
+import back.backend.model.AnexoDocumento;
 import back.backend.repository.PacienteRepository;
 import back.backend.repository.HospitalRepository;
+import back.backend.repository.AnexoDocumentoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,8 +16,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 @Service
 @Transactional
@@ -26,6 +30,9 @@ public class PacienteService {
 
     @Autowired
     private HospitalRepository hospitalRepository;
+
+    @Autowired
+    private AnexoDocumentoRepository anexoDocumentoRepository;
 
     /**
      * Criar novo paciente
@@ -236,6 +243,36 @@ public class PacienteService {
             resumo.setFamiliaNotificada(Boolean.TRUE.equals(protocolo.getFamiliaNotificada()));
             resumo.setAutopsiaAutorizada(Boolean.TRUE.equals(protocolo.getAutopsiaAutorizada()));
             resumo.setDataNotificacaoFamilia(protocolo.getDataNotificacaoFamilia());
+            resumo.setRelatorioFinalEditavel(protocolo.getRelatorioFinalEditavel());
+
+            List<AnexoResumoRelatorio> anexosResumo = new ArrayList<>();
+            List<AnexoDocumento> anexosEntrevista = anexoDocumentoRepository.findByProtocoloMEId(protocolo.getId());
+            List<Long> idsExames = exames.stream()
+                .map(ExameME::getId)
+                .collect(java.util.stream.Collectors.toList());
+
+            List<AnexoDocumento> anexosExame = idsExames.isEmpty()
+                ? new ArrayList<>()
+                : anexoDocumentoRepository.findByExameMEIdIn(idsExames);
+
+            Map<Long, AnexoDocumento> anexosUnicos = new LinkedHashMap<>();
+            for (AnexoDocumento anexo : anexosEntrevista) {
+                anexosUnicos.put(anexo.getId(), anexo);
+            }
+            for (AnexoDocumento anexo : anexosExame) {
+                anexosUnicos.put(anexo.getId(), anexo);
+            }
+
+            anexosUnicos.values().forEach(anexo -> {
+                AnexoResumoRelatorio item = new AnexoResumoRelatorio();
+                item.setId(anexo.getId());
+                item.setNomeArquivo(anexo.getNomeArquivo());
+                item.setTipoAnexo(anexo.getTipoAnexo());
+                item.setDescricao(anexo.getDescricao());
+                item.setDataUpload(anexo.getDataUpload());
+                anexosResumo.add(item);
+            });
+            resumo.setAnexos(anexosResumo);
 
             resumos.add(resumo);
         }
@@ -246,7 +283,11 @@ public class PacienteService {
         if (!resumos.isEmpty()) {
             ResumoProtocoloRelatorio ultimoProtocolo = resumos.get(resumos.size() - 1);
             relatorio.setStatusFinalProtocolo(ultimoProtocolo.getStatusProtocolo());
-            relatorio.setConclusaoFinal(obterConclusaoFinal(ultimoProtocolo.getStatusProtocolo()));
+            if (ultimoProtocolo.getRelatorioFinalEditavel() != null && !ultimoProtocolo.getRelatorioFinalEditavel().trim().isEmpty()) {
+                relatorio.setConclusaoFinal(ultimoProtocolo.getRelatorioFinalEditavel().trim());
+            } else {
+                relatorio.setConclusaoFinal(obterConclusaoFinal(ultimoProtocolo.getStatusProtocolo()));
+            }
         } else {
             relatorio.setStatusFinalProtocolo("SEM_PROTOCOLO");
             relatorio.setConclusaoFinal("Paciente sem protocolo de ME registrado.");
@@ -446,6 +487,8 @@ public class PacienteService {
         private boolean familiaNotificada;
         private boolean autopsiaAutorizada;
         private LocalDateTime dataNotificacaoFamilia;
+        private String relatorioFinalEditavel;
+        private List<AnexoResumoRelatorio> anexos;
 
         public Long getProtocoloId() { return protocoloId; }
         public void setProtocoloId(Long protocoloId) { this.protocoloId = protocoloId; }
@@ -494,6 +537,35 @@ public class PacienteService {
 
         public LocalDateTime getDataNotificacaoFamilia() { return dataNotificacaoFamilia; }
         public void setDataNotificacaoFamilia(LocalDateTime dataNotificacaoFamilia) { this.dataNotificacaoFamilia = dataNotificacaoFamilia; }
+
+        public String getRelatorioFinalEditavel() { return relatorioFinalEditavel; }
+        public void setRelatorioFinalEditavel(String relatorioFinalEditavel) { this.relatorioFinalEditavel = relatorioFinalEditavel; }
+
+        public List<AnexoResumoRelatorio> getAnexos() { return anexos; }
+        public void setAnexos(List<AnexoResumoRelatorio> anexos) { this.anexos = anexos; }
+    }
+
+    public static class AnexoResumoRelatorio {
+        private Long id;
+        private String nomeArquivo;
+        private String tipoAnexo;
+        private String descricao;
+        private LocalDateTime dataUpload;
+
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
+
+        public String getNomeArquivo() { return nomeArquivo; }
+        public void setNomeArquivo(String nomeArquivo) { this.nomeArquivo = nomeArquivo; }
+
+        public String getTipoAnexo() { return tipoAnexo; }
+        public void setTipoAnexo(String tipoAnexo) { this.tipoAnexo = tipoAnexo; }
+
+        public String getDescricao() { return descricao; }
+        public void setDescricao(String descricao) { this.descricao = descricao; }
+
+        public LocalDateTime getDataUpload() { return dataUpload; }
+        public void setDataUpload(LocalDateTime dataUpload) { this.dataUpload = dataUpload; }
     }
 
 }

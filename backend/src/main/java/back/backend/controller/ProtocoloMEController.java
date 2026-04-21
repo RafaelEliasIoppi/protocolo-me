@@ -40,7 +40,11 @@ public class ProtocoloMEController {
                     ? String.valueOf(payload.get("diagnosticoBasico"))
                     : null;
 
-            ProtocoloME novoProtocolo = protocoloService.criarProtocoloPorPacienteId(pacienteId, diagnosticoBasico);
+                String numeroProtocolo = payload.get("numeroProtocolo") != null
+                    ? String.valueOf(payload.get("numeroProtocolo"))
+                    : null;
+
+                ProtocoloME novoProtocolo = protocoloService.criarProtocoloPorPacienteId(pacienteId, diagnosticoBasico, numeroProtocolo);
             return ResponseEntity.status(HttpStatus.CREATED).body(novoProtocolo);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -132,6 +136,22 @@ public class ProtocoloMEController {
             return ResponseEntity.ok(protocoloAtualizado);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    // PATCH - Atualizar conclusao editavel do relatorio final do protocolo
+    @PatchMapping("/{id}/relatorio-final")
+    public ResponseEntity<?> atualizarRelatorioFinal(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> payload) {
+        try {
+            String texto = payload.get("textoRelatorio");
+            String atualizadoPor = payload.get("atualizadoPor");
+            ProtocoloME protocolo = protocoloService.atualizarRelatorioFinal(id, texto, atualizadoPor);
+            return ResponseEntity.ok(protocolo);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("mensagem", e.getMessage()));
         }
     }
 
