@@ -11,15 +11,21 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class UsuarioController {
+
+    private static final Logger log = LoggerFactory.getLogger(UsuarioController.class);
 
     @Autowired
     private UsuarioService usuarioService;
@@ -37,19 +43,20 @@ public class UsuarioController {
                 usuario.setRole(Role.MEDICO);
             }
 
+            if (usuario.getEmail() != null) {
+                usuario.setEmail(usuario.getEmail().trim().toLowerCase(Locale.ROOT));
+            }
+
             if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("erro", "Cadastro público permite apenas perfis MÉDICO ou ENFERMEIRO"));
             }
 
             Usuario usuarioRegistrado = usuarioService.registrar(usuario);
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", usuarioRegistrado.getId());
-            response.put("email", usuarioRegistrado.getEmail());
-            response.put("nome", usuarioRegistrado.getNome());
-            response.put("role", usuarioRegistrado.getRole());
+            Map<String, Object> response = toUsuarioResponse(usuarioRegistrado);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
+            log.warn("Erro ao registrar usuário: {}", e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("erro", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
@@ -62,6 +69,10 @@ public class UsuarioController {
             if (usuario.getRole() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("erro", "Informe a função do usuário"));
+            }
+
+            if (usuario.getEmail() != null) {
+                usuario.setEmail(usuario.getEmail().trim().toLowerCase(Locale.ROOT));
             }
 
             long totalAdmins = usuarioService.countAdmins();
@@ -81,16 +92,78 @@ public class UsuarioController {
             }
 
             Usuario usuarioRegistrado = usuarioService.registrar(usuario);
-            Map<String, Object> response = new HashMap<>();
-            response.put("id", usuarioRegistrado.getId());
-            response.put("email", usuarioRegistrado.getEmail());
-            response.put("nome", usuarioRegistrado.getNome());
-            response.put("role", usuarioRegistrado.getRole());
+            Map<String, Object> response = toUsuarioResponse(usuarioRegistrado);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
+            log.warn("Erro ao registrar usuário administrativo: {}", e.getMessage());
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("erro", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Map<String, Object>>> listarUsuarios() {
+        List<Map<String, Object>> usuarios = usuarioService.listarTodos().stream()
+                .map(this::toUsuarioResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(usuarios);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizarUsuarioAdmin(@PathVariable Long id, @RequestBody Usuario usuarioAtualizado) {
+        try {
+            Usuario usuarioSalvo = usuarioService.atualizarUsuario(id, usuarioAtualizado);
+            Map<String, Object> response = toUsuarioResponse(usuarioSalvo);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            log.warn("Erro ao atualizar usuário {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{id}/senha")
+    public ResponseEntity<?> redefinirSenha(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+        try {
+            String senhaNova = payload.get("senhaNova");
+            Usuario usuarioSalvo = usuarioService.redefinirSenha(id, senhaNova);
+            return ResponseEntity.ok(Map.of(
+                    "id", usuarioSalvo.getId(),
+                    "mensagem", "Senha redefinida com sucesso"
+            ));
+        } catch (RuntimeException e) {
+            log.warn("Erro ao redefinir senha do usuário {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/minha-senha")
+    public ResponseEntity<?> alterarMinhaSenha(@RequestBody Map<String, String> payload) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("erro", "Usuário não autenticado"));
+            }
+
+            Usuario usuarioSalvo = usuarioService.alterarMinhaSenha(
+                    authentication.getName(),
+                    payload.get("senhaAtual"),
+                    payload.get("senhaNova"),
+                    payload.get("confirmarSenha")
+            );
+
+            return ResponseEntity.ok(Map.of(
+                    "id", usuarioSalvo.getId(),
+                    "mensagem", "Senha alterada com sucesso"
+            ));
+        } catch (RuntimeException e) {
+            log.warn("Erro ao alterar senha do usuário autenticado: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("erro", e.getMessage()));
         }
     }
 
@@ -99,6 +172,10 @@ public class UsuarioController {
         try {
             String email = credenciais.get("email");
             String senha = credenciais.get("senha");
+
+            if (email != null) {
+                email = email.trim().toLowerCase(Locale.ROOT);
+            }
 
             if (email == null || email.trim().isEmpty() || senha == null || senha.trim().isEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -132,8 +209,10 @@ public class UsuarioController {
             }
 
             String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getRole().name());
+            long tokenExpiraEm = jwtUtil.extractExpiration(token).getTime();
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
+            response.put("tokenExpiraEm", tokenExpiraEm);
             response.put("usuario", Map.of(
                 "id", usuario.getId(),
                 "email", usuario.getEmail(),
@@ -142,6 +221,7 @@ public class UsuarioController {
             ));
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            log.error("Erro interno no login", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("erro", "Erro ao fazer login: " + e.getMessage()));
         }
@@ -154,36 +234,7 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("erro", "Usuário não encontrado"));
         }
-        return ResponseEntity.ok(usuario.get());
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> atualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuarioAtualizado) {
-        Optional<Usuario> usuarioOpt = usuarioService.findById(id);
-        if (usuarioOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("erro", "Usuário não encontrado"));
-        }
-
-        Usuario usuario = usuarioOpt.get();
-        if (usuarioAtualizado.getNome() != null) {
-            usuario.setNome(usuarioAtualizado.getNome());
-        }
-        if (usuarioAtualizado.getCrm() != null) {
-            usuario.setCrm(usuarioAtualizado.getCrm());
-        }
-        if (usuarioAtualizado.getCoren() != null) {
-            usuario.setCoren(usuarioAtualizado.getCoren());
-        }
-        if (usuarioAtualizado.getRole() != null) {
-            usuario.setRole(usuarioAtualizado.getRole());
-        }
-        if (usuarioAtualizado.getAtivo() != null) {
-            usuario.setAtivo(usuarioAtualizado.getAtivo());
-        }
-
-        Usuario usuarioSalvo = usuarioService.atualizar(usuario);
-        return ResponseEntity.ok(usuarioSalvo);
+        return ResponseEntity.ok(toUsuarioResponse(usuario.get()));
     }
 
     @DeleteMapping("/{id}")
@@ -195,5 +246,17 @@ public class UsuarioController {
         }
         usuarioService.deletar(id);
         return ResponseEntity.ok(Map.of("mensagem", "Usuário deletado com sucesso"));
+    }
+
+    private Map<String, Object> toUsuarioResponse(Usuario usuario) {
+        Map<String, Object> item = new HashMap<>();
+        item.put("id", usuario.getId());
+        item.put("email", usuario.getEmail());
+        item.put("nome", usuario.getNome());
+        item.put("role", usuario.getRole());
+        item.put("ativo", usuario.getAtivo());
+        item.put("crm", usuario.getCrm());
+        item.put("coren", usuario.getCoren());
+        return item;
     }
 }

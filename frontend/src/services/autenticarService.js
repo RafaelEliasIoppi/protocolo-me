@@ -20,6 +20,30 @@ export const autenticarService = {
     return response.data;
   },
 
+  listarUsuarios: async () => {
+    const response = await api.get('/api/usuarios');
+    return response.data;
+  },
+
+  atualizarUsuario: async (id, usuario) => {
+    const response = await api.put(`/api/usuarios/${id}`, usuario);
+    return response.data;
+  },
+
+  redefinirSenha: async (id, senhaNova) => {
+    const response = await api.patch(`/api/usuarios/${id}/senha`, { senhaNova });
+    return response.data;
+  },
+
+  alterarMinhaSenha: async (senhaAtual, senhaNova, confirmarSenha) => {
+    const response = await api.patch('/api/usuarios/minha-senha', {
+      senhaAtual,
+      senhaNova,
+      confirmarSenha,
+    });
+    return response.data;
+  },
+
   obterUsuarioAtual: () => {
     const usuario = localStorage.getItem('usuario');
     if (!usuario) return null;

@@ -1,5 +1,6 @@
 package back.backend.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -12,16 +13,21 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final String corsAllowedOrigins;
 
-    public SecurityConfig(JwtFilter jwtFilter) {
+    public SecurityConfig(JwtFilter jwtFilter,
+                          @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000}") String corsAllowedOrigins) {
         this.jwtFilter = jwtFilter;
+        this.corsAllowedOrigins = corsAllowedOrigins;
     }
 
     @Bean
@@ -33,6 +39,7 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
+                .antMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
                     .antMatchers(HttpMethod.POST, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
                     .antMatchers(HttpMethod.PUT, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
                     .antMatchers(HttpMethod.PATCH, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
@@ -67,7 +74,7 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.GET, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN", "MEDICO")
 
                 .antMatchers("/h2-console/**").permitAll()
-                .antMatchers("/api/usuarios/**").hasRole("ADMIN")
+                .antMatchers("/api/usuarios/**").hasAnyRole("ADMIN", "COORDENADOR_TRANSPLANTES")
                 .antMatchers("/api/pacientes/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
                 .antMatchers("/api/hospitais/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
                 .antMatchers("/api/centrais-transplantes/**").hasAnyRole("ADMIN", "CENTRAL_TRANSPLANTES", "COORDENADOR_TRANSPLANTES")
@@ -85,14 +92,16 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Para desenvolvimento - permite qualquer origem
-        // Em produção, isso deve ser restringido a domínios específicos
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        List<String> allowedOrigins = Arrays.stream(corsAllowedOrigins.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .collect(Collectors.toList());
+
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
-        // Com allowedOriginPatterns = ["*"], allowCredentials deve ser false
-        configuration.setAllowCredentials(false);
+        configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

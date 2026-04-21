@@ -30,7 +30,7 @@ function AppLayout({ usuario, theme, setTheme, onLogout }) {
           {role === "CENTRAL_TRANSPLANTES" && (
             <Link className="secondary-button" to="/cadastros/hospitais">Cadastro de Hospitais</Link>
           )}
-          {role === "ADMIN" && (
+          {(role === "ADMIN" || role === "COORDENADOR_TRANSPLANTES") && (
             <Link className="secondary-button" to="/admin/usuarios">Cadastro de Usuários</Link>
           )}
           <Link className="secondary-button" to="/cadastros/centrais">Cadastro de Centrais</Link>

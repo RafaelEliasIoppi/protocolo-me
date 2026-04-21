@@ -13,7 +13,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/centrais-transplantes")
-@CrossOrigin(origins = "*")
 public class CentralTransplantesController {
 
     @Autowired
@@ -98,12 +97,13 @@ public class CentralTransplantesController {
 
     // PUT - Atualizar central
     @PutMapping("/{id}")
-    public ResponseEntity<CentralTransplantes> atualizarCentral(@PathVariable Long id, @RequestBody CentralTransplantes central) {
+    public ResponseEntity<?> atualizarCentral(@PathVariable Long id, @RequestBody CentralTransplantes central) {
         try {
             CentralTransplantes centralAtualizada = centralService.atualizarCentral(id, central);
             return ResponseEntity.ok(centralAtualizada);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("mensagem", e.getMessage()));
         }
     }
 

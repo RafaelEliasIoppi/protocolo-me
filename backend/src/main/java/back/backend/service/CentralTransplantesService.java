@@ -8,8 +8,8 @@ import back.backend.repository.CentralTransplantesRepository;
 import back.backend.repository.HospitalRepository;
 import back.backend.repository.PacienteRepository;
 import back.backend.repository.ProtocoloMERepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -65,24 +65,29 @@ public class CentralTransplantesService {
         ALIAS_ORGAOS_TECIDOS.put("medula ossea", "Medula Óssea");
     }
 
-    @Autowired
-    private CentralTransplantesRepository centralRepository;
+    private final CentralTransplantesRepository centralRepository;
+    private final HospitalRepository hospitalRepository;
+    private final ProtocoloMERepository protocoloMERepository;
+    private final PacienteRepository pacienteRepository;
 
-    @Autowired
-    private HospitalRepository hospitalRepository;
-
-    @Autowired
-    private ProtocoloMERepository protocoloMERepository;
-
-    @Autowired
-    private PacienteRepository pacienteRepository;
+    public CentralTransplantesService(CentralTransplantesRepository centralRepository,
+                                      HospitalRepository hospitalRepository,
+                                      ProtocoloMERepository protocoloMERepository,
+                                      PacienteRepository pacienteRepository) {
+        this.centralRepository = centralRepository;
+        this.hospitalRepository = hospitalRepository;
+        this.protocoloMERepository = protocoloMERepository;
+        this.pacienteRepository = pacienteRepository;
+    }
 
     // Criar Central de Transplantes
     public CentralTransplantes criarCentral(CentralTransplantes central) {
-        if (centralRepository.findByCnpj(central.getCnpj()).isPresent()) {
-            throw new RuntimeException("Central de Transplantes com CNPJ " + central.getCnpj() + " já existe");
+        validarCentralDuplicada(central, null);
+        try {
+            return centralRepository.save(central);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException(mensagemViolacaoUnicidade(central), e);
         }
-        return centralRepository.save(central);
     }
 
     // Listar todas as centrais
@@ -125,6 +130,8 @@ public class CentralTransplantesService {
         CentralTransplantes central = centralRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Central não encontrada com ID: " + id));
 
+        validarCentralDuplicada(centralAtualizada, id);
+
         central.setNome(centralAtualizada.getNome());
         central.setEndereco(centralAtualizada.getEndereco());
         central.setCidade(centralAtualizada.getCidade());
@@ -138,7 +145,11 @@ public class CentralTransplantesService {
         central.setCapacidadeProcessamento(centralAtualizada.getCapacidadeProcessamento());
         central.setEspecialidadesOrgaos(centralAtualizada.getEspecialidadesOrgaos());
 
-        return centralRepository.save(central);
+        try {
+            return centralRepository.save(central);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException(mensagemViolacaoUnicidade(centralAtualizada), e);
+        }
     }
 
     // Alterar Status da Central
@@ -188,6 +199,57 @@ public class CentralTransplantesService {
             throw new RuntimeException("Central não encontrada com ID: " + id);
         }
         centralRepository.deleteById(id);
+    }
+
+    private void validarCentralDuplicada(CentralTransplantes central, Long idIgnorado) {
+        String nomeNormalizado = normalizarTexto(central.getNome());
+        String cnpjNormalizado = normalizarTexto(central.getCnpj());
+
+        if (nomeNormalizado == null || nomeNormalizado.isEmpty()) {
+            throw new RuntimeException("Nome da central é obrigatório");
+        }
+
+        if (cnpjNormalizado == null || cnpjNormalizado.isEmpty()) {
+            throw new RuntimeException("CNPJ da central é obrigatório");
+        }
+
+        boolean nomeDuplicado = centralRepository.findAll().stream().anyMatch(existing ->
+                existing.getId() != null
+                        && !existing.getId().equals(idIgnorado)
+                        && normalizarTexto(existing.getNome()) != null
+                        && normalizarTexto(existing.getNome()).equalsIgnoreCase(nomeNormalizado)
+        );
+
+        if (nomeDuplicado) {
+            throw new RuntimeException("Já existe uma central de transplantes cadastrada com esse nome");
+        }
+
+        boolean cnpjDuplicado = centralRepository.findAll().stream().anyMatch(existing ->
+                existing.getId() != null
+                        && !existing.getId().equals(idIgnorado)
+                        && normalizarTexto(existing.getCnpj()) != null
+                        && normalizarTexto(existing.getCnpj()).equalsIgnoreCase(cnpjNormalizado)
+        );
+
+        if (cnpjDuplicado) {
+            throw new RuntimeException("Já existe uma central de transplantes cadastrada com esse CNPJ");
+        }
+    }
+
+    private String normalizarTexto(String valor) {
+        return valor == null ? null : valor.trim();
+    }
+
+    private String mensagemViolacaoUnicidade(CentralTransplantes central) {
+        String nome = normalizarTexto(central.getNome());
+        String cnpj = normalizarTexto(central.getCnpj());
+        if (nome != null && centralRepository.findByNome(nome).isPresent()) {
+            return "Já existe uma central de transplantes cadastrada com esse nome";
+        }
+        if (cnpj != null && centralRepository.findByCnpj(cnpj).isPresent()) {
+            return "Já existe uma central de transplantes cadastrada com esse CNPJ";
+        }
+        return "Não foi possível salvar a central por violação de unicidade";
     }
 
     public EstatisticasCentralDoacaoTransplante obterEstatisticasDoacaoTransplante() {

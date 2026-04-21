@@ -15,7 +15,14 @@ function CentraisPage() {
       setCentrais(dados);
       setErro("");
     } catch (e) {
-      setErro("Erro ao carregar centrais.");
+      const status = e?.response?.status;
+      if (status === 403) {
+        setErro("Sem permissão para listar centrais. Verifique se o usuário está logado com o perfil correto.");
+      } else if (status === 401) {
+        setErro("Sessão expirada. Faça login novamente para listar as centrais.");
+      } else {
+        setErro("Erro ao carregar centrais.");
+      }
       setCentrais([]);
     }
   };
