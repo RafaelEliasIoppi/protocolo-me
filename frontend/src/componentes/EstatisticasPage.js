@@ -218,7 +218,6 @@ const EstatisticasPage = () => {
     } else {
       carregarEstatisticasProtocolo(anoSelecionado);
       carregarAuditoriaProtocolos(anoSelecionado);
-      carregarAuditoriaProtocolos(anoSelecionado);
     }
   };
 

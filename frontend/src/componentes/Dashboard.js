@@ -186,12 +186,12 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
             <Link to="/protocolo-me-medico" className="acao-card">
               <h3>Meu Protocolo ME</h3>
               <p>Gerenciar pacientes em protocolo ME e adicionar exames</p>
-              <span className="link-arrow">-></span>
+              <span className="link-arrow">&rarr;</span>
             </Link>
             <Link to="/cadastros/pacientes" className="acao-card">
               <h3>Cadastro de Pacientes</h3>
               <p>Cadastrar novos pacientes internados</p>
-              <span className="link-arrow">-></span>
+              <span className="link-arrow">&rarr;</span>
             </Link>
           </div>
         </div>
@@ -204,12 +204,12 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
             <Link to="/dashboard-central" className="acao-card">
               <h3>Painel Central</h3>
               <p>Monitorar todos os pacientes em protocolo ME do estado</p>
-              <span className="link-arrow">-></span>
+              <span className="link-arrow">&rarr;</span>
             </Link>
             <Link to="/cadastros/hospitais" className="acao-card">
               <h3>Cadastro de Hospitais</h3>
               <p>Gerenciar hospitais e suas informacoes</p>
-              <span className="link-arrow">-></span>
+              <span className="link-arrow">&rarr;</span>
             </Link>
           </div>
         </div>
@@ -222,12 +222,12 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
             <Link to="/admin/usuarios" className="acao-card">
               <h3>Cadastro de Usuarios</h3>
               <p>Gerenciar usuarios e suas permissoes</p>
-              <span className="link-arrow">-></span>
+              <span className="link-arrow">&rarr;</span>
             </Link>
             <Link to="/dashboard-central" className="acao-card">
               <h3>Painel Central</h3>
               <p>Visualizar dados de todos os estados</p>
-              <span className="link-arrow">-></span>
+              <span className="link-arrow">&rarr;</span>
             </Link>
           </div>
         </div>
