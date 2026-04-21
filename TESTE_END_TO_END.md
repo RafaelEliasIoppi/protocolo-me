@@ -18,7 +18,7 @@ cd /workspaces/protocolo-me/backend
 ./mvnw clean spring-boot:run
 ```
 
-Aguarde até ver: `Transportadora Application started on port 2500`
+Aguarde até ver: `ProtcoloME Application started on port 2500`
 
 ### 2. Iniciar Frontend (novo terminal)
 
