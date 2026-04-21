@@ -16,6 +16,8 @@ function MedicoProtocoloME() {
   const [diagnostico, setDiagnostico] = useState("");
   const [mostraExames, setMostraExames] = useState(false);
   const [abaProtocoloAberta, setAbaProtocoloAberta] = useState("exames");
+  const [semCentraisCadastradas, setSemCentraisCadastradas] = useState(false);
+  const [alertaCentral, setAlertaCentral] = useState("");
 
   const statusAtivos = [
     "NOTIFICADO",
@@ -75,9 +77,28 @@ function MedicoProtocoloME() {
 
   // Carregar pacientes em protocolo e disponíveis
   useEffect(() => {
+    carregarStatusCentrais();
     carregarPacientesProtocolo();
     carregarPacientesDisponiveis();
   }, []);
+
+  const carregarStatusCentrais = async () => {
+    try {
+      const response = await apiClient.get("/api/centrais-transplantes");
+      const lista = Array.isArray(response.data) ? response.data : [];
+      const naoPossuiCentrais = lista.length === 0;
+
+      setSemCentraisCadastradas(naoPossuiCentrais);
+      setAlertaCentral(
+        naoPossuiCentrais
+          ? "Nenhuma central de transplantes está cadastrada. Cadastre uma central antes de iniciar protocolo de ME."
+          : "",
+      );
+    } catch (e) {
+      setSemCentraisCadastradas(false);
+      setAlertaCentral("");
+    }
+  };
 
   const carregarPacientesProtocolo = async () => {
     try {
@@ -130,10 +151,15 @@ function MedicoProtocoloME() {
       return;
     }
 
+    if (semCentraisCadastradas) {
+      setErro("Não é possível iniciar protocolo: nenhuma central de transplantes cadastrada.");
+      return;
+    }
+
     try {
       setCarregando(true);
-      const response = await apiClient.post("/api/protocolos-me", {
-        pacienteId: parseInt(pacienteSelecionado),
+      await apiClient.post("/api/protocolos-me", {
+        pacienteId: parseInt(pacienteSelecionado, 10),
         diagnosticoBasico: diagnostico,
         status: "NOTIFICADO"
       });
@@ -237,12 +263,19 @@ function MedicoProtocoloME() {
         <button 
           className="btn-primary"
           onClick={() => setMostraFormularioProtocolo(!mostraFormularioProtocolo)}
+          disabled={semCentraisCadastradas}
+          title={semCentraisCadastradas ? "Cadastre uma central para iniciar protocolo" : ""}
         >
           {mostraFormularioProtocolo ? "❌ Fechar" : "➕ Iniciar Protocolo ME"}
         </button>
       </div>
 
       {erro && <div className="mensagem erro">📛 {erro}</div>}
+      {alertaCentral && (
+        <div className="mensagem erro">
+          ⚠️ {alertaCentral} Acesse <a href="/cadastros/centrais">Cadastro de Centrais</a>.
+        </div>
+      )}
       {sucesso && <div className="mensagem sucesso">{sucesso}</div>}
 
       {/* Formulário para iniciar novo protocolo */}
@@ -285,7 +318,7 @@ function MedicoProtocoloME() {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn-save" disabled={carregando}>
+              <button type="submit" className="btn-save" disabled={carregando || semCentraisCadastradas}>
                 {carregando ? "⏳ Iniciando..." : "✅ Iniciar Protocolo"}
               </button>
               <button 

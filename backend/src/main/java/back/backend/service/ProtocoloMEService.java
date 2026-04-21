@@ -30,6 +30,14 @@ public class ProtocoloMEService {
     @Autowired
     private PacienteRepository pacienteRepository;
 
+    private CentralTransplantes obterCentralPadrao() {
+        return centralRepository.findAll().stream()
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException(
+                "Nenhuma central de transplantes cadastrada. Cadastre uma central em 'Cadastro de Centrais' para iniciar um protocolo de ME."
+            ));
+    }
+
     private boolean exameRealizado(ExameME exame) {
         if (exame == null) {
             return false;
@@ -122,10 +130,7 @@ public class ProtocoloMEService {
                 .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
 
         if (protocolo.getCentralTransplantes() == null) {
-            CentralTransplantes central = centralRepository.findAll().stream()
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Nenhuma central de transplantes cadastrada"));
-            protocolo.setCentralTransplantes(central);
+            protocolo.setCentralTransplantes(obterCentralPadrao());
         }
 
         protocolo.setPaciente(paciente);
@@ -175,9 +180,7 @@ public class ProtocoloMEService {
         Paciente paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new RuntimeException("Paciente não encontrado com ID: " + pacienteId));
 
-        CentralTransplantes central = centralRepository.findAll().stream()
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Nenhuma central de transplantes cadastrada"));
+        CentralTransplantes central = obterCentralPadrao();
 
         ProtocoloME protocolo = new ProtocoloME();
         protocolo.setPaciente(paciente);

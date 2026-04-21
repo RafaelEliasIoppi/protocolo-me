@@ -385,6 +385,14 @@
   color: #e1f5ff;
 }
 
+[data-theme="dark"] .dashboard .resumo-card h3,
+[data-theme="dark"] .dashboard .acao-card h3,
+[data-theme="dark"] .dashboard .notificacao-item p,
+[data-theme="dark"] .dashboard .note,
+[data-theme="dark"] .dashboard .link-arrow {
+  color: #f8fafc;
+}
+
 [data-theme="dark"] .dashboard .dashboard-header p,
 [data-theme="dark"] .dashboard .resumo-card p,
 [data-theme="dark"] .dashboard .acao-card p {
