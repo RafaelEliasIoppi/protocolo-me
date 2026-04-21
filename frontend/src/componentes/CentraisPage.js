@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CentralTransplantesForm from "./CentralTransplantesForm";
 import centralTransplantesService from "../services/centralTransplantesService";
+import "../styles/CentraisPage.css";
 
 function CentraisPage() {
   const [centrais, setCentrais] = useState([]);
@@ -58,7 +59,7 @@ function CentraisPage() {
         }}
       />
 
-      <div className="panel" style={{ marginTop: 24 }}>
+      <div className="panel centrais-lista-container">
         <header>
           <div>
             <h2>Centrais Cadastradas</h2>
@@ -69,15 +70,15 @@ function CentraisPage() {
         {centrais.length === 0 ? (
           <p className="note">Nenhuma central encontrada.</p>
         ) : (
-          <div className="list-panel">
+          <div className="centrais-lista">
             {centrais.map((central) => (
-              <div className="patient-card" key={central.id}>
-                <div className="patient-info">
+              <div className="central-card" key={central.id}>
+                <div className="central-info">
                   <h4>{central.nome}</h4>
                   <span>Cidade: {central.cidade} / {central.estado}</span>
                   <span>Coordenador: {central.coordenador || "Não informado"}</span>
                 </div>
-                <div className="action-buttons">
+                <div className="central-actions">
                   <button className="edit-button" onClick={() => setCentralEmEdicao(central)} title="Editar central">✏️</button>
                   <button className="delete-button" onClick={() => excluirCentral(central.id)} title="Excluir central">🗑️</button>
                 </div>

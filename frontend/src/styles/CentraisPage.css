@@ -1,0 +1,60 @@
+.centrais-lista-container {
+  margin-top: 24px;
+}
+
+.centrais-lista {
+  display: grid;
+  gap: 12px;
+}
+
+.central-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.central-info {
+  display: grid;
+  gap: 6px;
+}
+
+.central-info h4 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.central-info span {
+  color: var(--muted);
+}
+
+.central-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+[data-theme="dark"] .central-card {
+  background: rgba(15, 23, 42, 0.96);
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
+[data-theme="dark"] .central-info h4,
+[data-theme="dark"] .central-info span {
+  color: #e2e8f0;
+}
+
+@media (max-width: 768px) {
+  .central-card {
+    flex-direction: column;
+  }
+
+  .central-actions {
+    justify-content: flex-start;
+  }
+}

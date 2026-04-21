@@ -90,6 +90,50 @@ form {
   cursor: not-allowed;
 }
 
+[data-theme="dark"] .hospital-form-container {
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+[data-theme="dark"] .hospital-form-container h2,
+[data-theme="dark"] .hospital-form-container .form-group label {
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .hospital-form-container .form-group input {
+  background: #0b2947;
+  color: #e5e7eb;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+[data-theme="dark"] .hospital-form-container .form-group input::placeholder {
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .hospital-form-container .form-group input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+  background-color: #0b2947;
+}
+
+[data-theme="dark"] .hospital-form-container .form-group input:disabled {
+  background-color: #1e293b;
+  color: #94a3b8;
+}
+
+[data-theme="dark"] .hospital-form-container .alerta-erro {
+  background-color: rgba(127, 29, 29, 0.35);
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
+[data-theme="dark"] .hospital-form-container .alerta-sucesso {
+  background-color: rgba(20, 83, 45, 0.35);
+  color: #bbf7d0;
+  border-color: rgba(74, 222, 128, 0.35);
+}
+
 .btn-submit {
   padding: 12px 20px;
   background-color: #27ae60;
