@@ -279,12 +279,12 @@ public class ProtocoloMEService {
 
     // Listar todos os protocolos
     public List<ProtocoloME> listarTodos() {
-        return protocoloRepository.findAll();
+        return protocoloRepository.findAllWithDetalhes();
     }
 
     // Buscar por ID
     public Optional<ProtocoloME> buscarPorId(Long id) {
-        return protocoloRepository.findById(id);
+        return protocoloRepository.findByIdWithDetalhes(id);
     }
 
     // Buscar por número do protocolo
