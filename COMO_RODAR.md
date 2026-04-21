@@ -71,7 +71,7 @@ pkill -f "react-scripts"
 - **Backend**: Porta 2500 (em `backend/src/main/resources/application.properties`)
 - **Frontend**: Porta 3000 (React padrão)
 - **Banco de Dados**: H2 em `backend/data/banco.mv.db`
-- **CORS**: Habilitado para todas as origins (`*`)
+- **CORS**: Controlado por `app.cors.allowed-origins` no backend
 
 ---
 
@@ -83,5 +83,7 @@ pkill -f "react-scripts"
 | "Porta 3000 em uso" | `lsof -i :3000` e mate o processo |
 | Frontend não conecta API | Limpe cache (Ctrl+Shift+R) e reinicie |
 | Erro ao cadastrar usuário | Verifique se o role é válido |
+| Erro de CORS no browser | Confira `app.cors.allowed-origins` e inclua a URL do frontend |
+| Troca de senha falha | Verifique se a senha atual está correta e se a nova tem 6+ caracteres |
 | Banco corrompido | Delete `backend/data/banco*` |
 

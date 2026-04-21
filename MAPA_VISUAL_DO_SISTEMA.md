@@ -199,4 +199,4 @@ graph TD
 ## 10) Fluxo do medico em detalhe
 
 Se voce quiser estudar so o caminho do medico, use este roteiro mais sequencial:
-- [FLUXO_MEDICO_PASSO_A_PASSO.md](FLUXO_MEDICO_PASSO_A_PASSO.md)
+- [FLUXO_GUIADO_MEDICO.md](FLUXO_GUIADO_MEDICO.md)

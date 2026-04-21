@@ -11,10 +11,7 @@ Para leitura classe a classe e metodo a metodo, consulte: [GUIA_CLASSE_METODO_V2
 Para ver o fluxo como diagrama, consulte: [MAPA_VISUAL_DO_SISTEMA.md](MAPA_VISUAL_DO_SISTEMA.md)
 
 ## Fluxo do medico
-Para estudar so o caminho do medico em sequencia, consulte: [FLUXO_MEDICO_PASSO_A_PASSO.md](FLUXO_MEDICO_PASSO_A_PASSO.md)
-
-## Tutorial guiado
-Para acompanhar o medico em formato de passo a passo, consulte: [FLUXO_GUIADO_MEDICO.md](FLUXO_GUIADO_MEDICO.md)
+Para acompanhar o medico em formato guiado e sequencial, consulte: [FLUXO_GUIADO_MEDICO.md](FLUXO_GUIADO_MEDICO.md)
 
 ## Checklist interativa
 Para praticar marcando etapa por etapa, consulte: [CHECKLIST_INTERATIVO_MEDICO.md](CHECKLIST_INTERATIVO_MEDICO.md)
