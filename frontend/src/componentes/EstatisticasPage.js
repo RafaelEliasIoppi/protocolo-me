@@ -110,6 +110,7 @@ const EstatisticasPage = () => {
   const [periodicidade, setPeriodicidade] = useState('ANUAL');
   const [mesSelecionado, setMesSelecionado] = useState('');
   const [estatisticasProtocolo, setEstatisticasProtocolo] = useState([]);
+  const [protocolosSemEstatistica, setProtocolosSemEstatistica] = useState([]);
   const [protocoloSelecionado, setProtocoloSelecionado] = useState(null);
   const [camposForm, setCamposForm] = useState({});
   const [salvando, setSalvando] = useState(false);
@@ -187,6 +188,16 @@ const EstatisticasPage = () => {
     }
   };
 
+  const carregarAuditoriaProtocolos = async (ano = anoSelecionado) => {
+    try {
+      const params = ano ? { ano } : {};
+      const response = await apiClient.get('/api/estatisticas-transplantes/protocolo-me/auditoria', { params });
+      setProtocolosSemEstatistica(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error('Erro ao carregar auditoria de protocolos', err);
+    }
+  };
+
   const handleMudarAno = (ano) => {
     setAnoSelecionado(ano);
     if (abas === 'geral') {
@@ -206,6 +217,8 @@ const EstatisticasPage = () => {
       carregarEstatisticasPorPaciente(anoSelecionado);
     } else {
       carregarEstatisticasProtocolo(anoSelecionado);
+      carregarAuditoriaProtocolos(anoSelecionado);
+      carregarAuditoriaProtocolos(anoSelecionado);
     }
   };
 
@@ -236,6 +249,7 @@ const EstatisticasPage = () => {
         atualizadoPor: usuario?.nome || usuario?.email || 'central'
       });
       await carregarEstatisticasProtocolo();
+      await carregarAuditoriaProtocolos();
     } catch (err) {
       setErro('Erro ao salvar estatistica do protocolo');
       console.error(err);
@@ -570,6 +584,25 @@ const EstatisticasPage = () => {
 
           {abas === 'protocolo' && (
             <div className="aba-conteudo">
+              <div className="detalhes-secao">
+                <h4>Auditoria - Protocolos sem estatística preenchida</h4>
+                <p className="note">Lista de protocolos que ainda não receberam preenchimento completo pela Central.</p>
+                {protocolosSemEstatistica.length === 0 ? (
+                  <p className="pendencia-ok">Nenhum protocolo pendente de estatística.</p>
+                ) : (
+                  <ul className="lista-faltantes">
+                    {protocolosSemEstatistica.map((item) => (
+                      <li key={`pendente-estat-${item.protocoloMEId}`}>
+                        <strong>{item.numeroProtocolo || `Protocolo ${item.protocoloMEId}`}</strong>
+                        {item.nomeDoador ? ` - ${item.nomeDoador}` : ''}
+                        {item.hospitalOrigem ? ` - ${item.hospitalOrigem}` : ''}
+                        {item.status ? ` - ${item.status}` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
               <div className="detalhes-secao">
                 <h4>Estatistica por Protocolo ME ({periodicidade.toLowerCase()})</h4>
                 <table className="tabela-detalhes">

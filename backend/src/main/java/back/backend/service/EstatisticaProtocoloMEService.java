@@ -210,6 +210,19 @@ public class EstatisticaProtocoloMEService {
                 .collect(Collectors.toList());
     }
 
+    public List<ProtocoloSemEstatisticaDTO> listarProtocolosSemEstatistica(Integer ano) {
+        List<ProtocoloME> protocolos = protocoloRepository.findAll();
+
+        return protocolos.stream()
+                .filter(protocolo -> {
+                    LocalDateTime dataBase = protocolo.getDataNotificacao() != null ? protocolo.getDataNotificacao() : protocolo.getDataCriacao();
+                    return ano == null || (dataBase != null && dataBase.getYear() == ano);
+                })
+                .filter(protocolo -> !possuiEstatisticaPreenchida(protocolo))
+                .map(this::toProtocoloSemEstatisticaDTO)
+                .collect(Collectors.toList());
+    }
+
     private boolean filtrarPeriodo(ProtocoloME protocolo, String periodicidade, Integer ano, Integer mes) {
         LocalDateTime dataBase = protocolo.getDataNotificacao() != null ? protocolo.getDataNotificacao() : protocolo.getDataCriacao();
         if (dataBase == null) {
@@ -233,6 +246,35 @@ public class EstatisticaProtocoloMEService {
             return toDTO(estatisticaOpt.get(), protocolo);
         }
         return toDTO(new EstatisticaProtocoloME(), protocolo);
+    }
+
+    private boolean possuiEstatisticaPreenchida(ProtocoloME protocolo) {
+        Optional<EstatisticaProtocoloME> estatisticaOpt = estatisticaRepository.findByProtocoloMEId(protocolo.getId());
+        if (estatisticaOpt.isEmpty()) {
+            return false;
+        }
+
+        EstatisticaProtocoloME estatistica = estatisticaOpt.get();
+        for (String nomeCampo : CAMPOS_PROTOCOLO) {
+            String valor = getFieldValue(estatistica, nomeCampo);
+            if (valor != null && !valor.trim().isEmpty()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private ProtocoloSemEstatisticaDTO toProtocoloSemEstatisticaDTO(ProtocoloME protocolo) {
+        ProtocoloSemEstatisticaDTO dto = new ProtocoloSemEstatisticaDTO();
+        dto.setProtocoloMEId(protocolo.getId());
+        dto.setNumeroProtocolo(protocolo.getNumeroProtocolo());
+        dto.setNomeDoador(protocolo.getPaciente() != null ? protocolo.getPaciente().getNome() : null);
+        dto.setHospitalOrigem(protocolo.getHospitalOrigem());
+        dto.setDataNotificacao(protocolo.getDataNotificacao());
+        dto.setStatus(protocolo.getStatus() != null ? protocolo.getStatus().name() : null);
+        dto.setMensagem("Protocolo sem estatística preenchida");
+        return dto;
     }
 
     private EstatisticaProtocoloMEDTO toDTO(EstatisticaProtocoloME entity, ProtocoloME protocolo) {
@@ -325,6 +367,37 @@ public class EstatisticaProtocoloMEService {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException("Erro ao aplicar campo de estatística: " + nomeCampo, e);
         }
+    }
+
+    public static class ProtocoloSemEstatisticaDTO {
+        private Long protocoloMEId;
+        private String numeroProtocolo;
+        private String nomeDoador;
+        private String hospitalOrigem;
+        private LocalDateTime dataNotificacao;
+        private String status;
+        private String mensagem;
+
+        public Long getProtocoloMEId() { return protocoloMEId; }
+        public void setProtocoloMEId(Long protocoloMEId) { this.protocoloMEId = protocoloMEId; }
+
+        public String getNumeroProtocolo() { return numeroProtocolo; }
+        public void setNumeroProtocolo(String numeroProtocolo) { this.numeroProtocolo = numeroProtocolo; }
+
+        public String getNomeDoador() { return nomeDoador; }
+        public void setNomeDoador(String nomeDoador) { this.nomeDoador = nomeDoador; }
+
+        public String getHospitalOrigem() { return hospitalOrigem; }
+        public void setHospitalOrigem(String hospitalOrigem) { this.hospitalOrigem = hospitalOrigem; }
+
+        public LocalDateTime getDataNotificacao() { return dataNotificacao; }
+        public void setDataNotificacao(LocalDateTime dataNotificacao) { this.dataNotificacao = dataNotificacao; }
+
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+
+        public String getMensagem() { return mensagem; }
+        public void setMensagem(String mensagem) { this.mensagem = mensagem; }
     }
 
     private String normalizarPeriodicidade(String periodicidade) {

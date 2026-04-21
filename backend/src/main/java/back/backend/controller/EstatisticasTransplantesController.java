@@ -81,4 +81,13 @@ public class EstatisticasTransplantesController {
             @RequestBody EstatisticaProtocoloMEDTO payload) {
         return ResponseEntity.ok(estatisticaProtocoloMEService.salvarOuAtualizar(protocoloId, payload));
     }
+
+    /**
+     * GET - Auditoria de protocolos sem estatística preenchida
+     */
+    @GetMapping("/protocolo-me/auditoria")
+    public ResponseEntity<List<EstatisticaProtocoloMEService.ProtocoloSemEstatisticaDTO>> listarProtocolosSemEstatistica(
+            @RequestParam(required = false) Integer ano) {
+        return ResponseEntity.ok(estatisticaProtocoloMEService.listarProtocolosSemEstatistica(ano));
+    }
 }
