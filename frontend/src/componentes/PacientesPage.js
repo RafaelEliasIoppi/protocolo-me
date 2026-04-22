@@ -3,28 +3,29 @@ import apiClient from "../services/apiClient";
 import PacienteForm from "./PacienteForm";
 
 function PacientesPage() {
-  const [mostrarFormularioPaciente, setMostrarFormularioPaciente] = useState(false);
+  const [mostrarResumo, setMostrarResumo] = useState(false);
   const [estatisticas, setEstatisticas] = useState(null);
   const [carregandoEstatisticas, setCarregandoEstatisticas] = useState(false);
 
   const normalizarNumero = (valor) => (typeof valor === "number" ? valor : 0);
 
   useEffect(() => {
-    const carregarEstatisticas = async () => {
-      try {
-        setCarregandoEstatisticas(true);
-        const response = await apiClient.get("/api/pacientes/estatisticas/resumo");
-        setEstatisticas(response.data || {});
-      } catch (error) {
-        console.error("Erro ao carregar estatísticas de pacientes:", error);
-        setEstatisticas({});
-      } finally {
-        setCarregandoEstatisticas(false);
-      }
-    };
-
-    carregarEstatisticas();
-  }, []);
+    if (mostrarResumo) {
+      const carregarEstatisticas = async () => {
+        try {
+          setCarregandoEstatisticas(true);
+          const response = await apiClient.get("/api/pacientes/estatisticas/resumo");
+          setEstatisticas(response.data || {});
+        } catch (error) {
+          console.error("Erro ao carregar estatísticas de pacientes:", error);
+          setEstatisticas({});
+        } finally {
+          setCarregandoEstatisticas(false);
+        }
+      };
+      carregarEstatisticas();
+    }
+  }, [mostrarResumo]);
 
   return (
     <section>
@@ -35,19 +36,15 @@ function PacientesPage() {
         </div>
         <button
           className="secondary-button"
-          onClick={() => setMostrarFormularioPaciente((valor) => !valor)}
+          onClick={() => setMostrarResumo((valor) => !valor)}
         >
-          {mostrarFormularioPaciente ? "Voltar ao resumo" : "Próximo"}
+          {mostrarResumo ? "Voltar ao cadastro" : "Resumo"}
         </button>
       </div>
 
-      {!mostrarFormularioPaciente ? (
+      {mostrarResumo ? (
         <div className="panel">
-          <h2>Gestão de Pacientes</h2>
-          <p className="note">
-            Confira o resumo antes de abrir o cadastro.
-          </p>
-
+          <h2>Resumo de Pacientes</h2>
           {carregandoEstatisticas ? (
             <p>Carregando estatísticas...</p>
           ) : (
@@ -76,10 +73,7 @@ function PacientesPage() {
           )}
         </div>
       ) : (
-        <PacienteForm
-          ocultarResumo
-          onCancel={() => setMostrarFormularioPaciente(false)}
-        />
+        <PacienteForm ocultarResumo />
       )}
     </section>
   );

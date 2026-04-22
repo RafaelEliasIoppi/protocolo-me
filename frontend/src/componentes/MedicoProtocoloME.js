@@ -48,9 +48,18 @@ function MedicoProtocoloME() {
         const dataAtual = atual?.protocolosME?.[0]?.dataNotificacao || atual?.protocolosME?.[0]?.dataCriacao;
         const dataNova = protocolo?.dataNotificacao || protocolo?.dataCriacao;
 
+        // Ajuste para garantir que hospitalNome/hospitalId estejam presentes
+        const pacienteComHospital = {
+          ...paciente,
+          hospital: {
+            id: paciente.hospitalId,
+            nome: paciente.hospitalNome || paciente.hospital?.nome || paciente.hospital?.nomeHospital || "-"
+          }
+        };
+
         if (!atual || (dataNova && (!dataAtual || new Date(dataNova) > new Date(dataAtual)))) {
           porPaciente.set(pacienteId, {
-            ...paciente,
+            ...pacienteComHospital,
             protocolosME: [protocolo]
           });
         }
@@ -294,7 +303,7 @@ function MedicoProtocoloME() {
                   <option value="">-- Selecione um paciente --</option>
                   {pacientesDisponiveis.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.nome} ({p.cpf}) - {p.hospital?.nomeHospital}
+                      {p.nome} ({p.cpf}) - {p.hospital?.nome || p.hospitalNome || p.hospital?.nomeHospital || "-"}
                     </option>
                   ))}
                 </select>

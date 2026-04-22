@@ -54,9 +54,12 @@ public class ProtocoloMEController {
 
     // GET - Listar todos os protocolos
     @GetMapping
-    public ResponseEntity<List<ProtocoloME>> listarTodos() {
+    public ResponseEntity<List<back.backend.dto.ProtocoloMEDTO>> listarTodos() {
         List<ProtocoloME> protocolos = protocoloService.listarTodos();
-        return ResponseEntity.ok(protocolos);
+        List<back.backend.dto.ProtocoloMEDTO> dtos = protocolos.stream()
+            .map(back.backend.dto.ProtocoloMEDTO::fromEntity)
+            .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     // GET - Buscar protocolo por ID

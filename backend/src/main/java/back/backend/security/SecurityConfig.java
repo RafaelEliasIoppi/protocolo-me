@@ -40,10 +40,11 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
                 .antMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
+                    .antMatchers(HttpMethod.GET, "/api/pacientes/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
                     .antMatchers(HttpMethod.POST, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
                     .antMatchers(HttpMethod.PUT, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
                     .antMatchers(HttpMethod.PATCH, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
-                .antMatchers(HttpMethod.DELETE, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+                    .antMatchers(HttpMethod.DELETE, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
 
                 .antMatchers(HttpMethod.POST, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
                 .antMatchers(HttpMethod.PUT, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
