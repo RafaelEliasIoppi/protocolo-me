@@ -91,6 +91,19 @@ function MedicoProtocoloME() {
     carregarPacientesDisponiveis();
   }, []);
 
+  // Abrir automaticamente o modal de exames se houver só um paciente em protocolo
+  useEffect(() => {
+    if (pacientesProtocolo.length === 1 && !mostraExames) {
+      const paciente = pacientesProtocolo[0];
+      const protocolo = paciente.protocolosME?.[0];
+      if (protocolo) {
+        setProtocoloSelecionado(protocolo);
+        setAbaProtocoloAberta("exames");
+        setMostraExames(true);
+      }
+    }
+  }, [pacientesProtocolo]);
+
   const carregarStatusCentrais = async () => {
     try {
       const response = await apiClient.get("/api/centrais-transplantes");
