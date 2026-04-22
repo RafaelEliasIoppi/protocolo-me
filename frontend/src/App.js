@@ -9,6 +9,7 @@ import HospitaisPage from "./componentes/HospitaisPage";
 import CentraisPage from "./componentes/CentraisPage";
 import CentralDashboardPage from "./componentes/CentralDashboardPage";
 import EstatisticasPage from "./componentes/EstatisticasPage";
+import AlterarSenhaPage from "./componentes/AlterarSenhaPage";
 import UsuariosAdminPage from "./componentes/UsuariosAdminPage";
 import autenticarService from "./services/autenticarService";
 import MedicoProtocoloME from "./componentes/MedicoProtocoloME";
@@ -85,6 +86,10 @@ function App() {
           <Route
             path="dashboard"
             element={<Dashboard onLogout={handleLogout} theme={theme} setTheme={setTheme} role={usuario?.role} />}
+          />
+          <Route
+            path="alterar-senha"
+            element={<AlterarSenhaPage />}
           />
           <Route
             path="dashboard-central"

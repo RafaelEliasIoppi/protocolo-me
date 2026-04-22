@@ -40,7 +40,7 @@ public class CentralTransplantesController {
     @GetMapping
     public ResponseEntity<?> listarTodas() {
         List<CentralTransplantes> centrais = centralService.listarTodas();
-        List<CentralTransplantesDTO> dtos = centrais.stream().map(this::dtoFromEntity).toList();
+        List<CentralTransplantesDTO> dtos = centrais.stream().map(this::dtoFromEntity).collect(java.util.stream.Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
 
@@ -48,31 +48,31 @@ public class CentralTransplantesController {
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
         Optional<CentralTransplantes> central = centralService.buscarPorId(id);
-        return central.map(c -> ResponseEntity.ok(dtoFromEntity(c)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Central não encontrada")));
+        return central.<ResponseEntity<?>>map(c -> ResponseEntity.ok(dtoFromEntity(c)))
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Central não encontrada")));
     }
 
     // GET - Buscar por CNPJ
     @GetMapping("/cnpj/{cnpj}")
     public ResponseEntity<?> buscarPorCnpj(@PathVariable String cnpj) {
         Optional<CentralTransplantes> central = centralService.buscarPorCnpj(cnpj);
-        return central.map(c -> ResponseEntity.ok(dtoFromEntity(c)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Central não encontrada")));
+        return central.<ResponseEntity<?>>map(c -> ResponseEntity.ok(dtoFromEntity(c)))
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Central não encontrada")));
     }
 
     // GET - Buscar por Nome
     @GetMapping("/nome/{nome}")
     public ResponseEntity<?> buscarPorNome(@PathVariable String nome) {
         Optional<CentralTransplantes> central = centralService.buscarPorNome(nome);
-        return central.map(c -> ResponseEntity.ok(dtoFromEntity(c)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Central não encontrada")));
+        return central.<ResponseEntity<?>>map(c -> ResponseEntity.ok(dtoFromEntity(c)))
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Central não encontrada")));
     }
 
     // GET - Listar por cidade
     @GetMapping("/cidade/{cidade}")
     public ResponseEntity<?> listarPorCidade(@PathVariable String cidade) {
         List<CentralTransplantes> centrais = centralService.listarPorCidade(cidade);
-        List<CentralTransplantesDTO> dtos = centrais.stream().map(this::dtoFromEntity).toList();
+        List<CentralTransplantesDTO> dtos = centrais.stream().map(this::dtoFromEntity).collect(java.util.stream.Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
 
@@ -80,7 +80,7 @@ public class CentralTransplantesController {
     @GetMapping("/estado/{estado}")
     public ResponseEntity<?> listarPorEstado(@PathVariable String estado) {
         List<CentralTransplantes> centrais = centralService.listarPorEstado(estado);
-        List<CentralTransplantesDTO> dtos = centrais.stream().map(this::dtoFromEntity).toList();
+        List<CentralTransplantesDTO> dtos = centrais.stream().map(this::dtoFromEntity).collect(java.util.stream.Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
 
@@ -90,7 +90,7 @@ public class CentralTransplantesController {
         try {
             CentralTransplantes.StatusCentral statusEnum = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
             List<CentralTransplantes> centrais = centralService.listarPorStatus(statusEnum);
-            List<CentralTransplantesDTO> dtos = centrais.stream().map(this::dtoFromEntity).toList();
+            List<CentralTransplantesDTO> dtos = centrais.stream().map(this::dtoFromEntity).collect(java.util.stream.Collectors.toList());
             return ResponseEntity.ok(dtos);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", "Status inválido"));

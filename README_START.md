@@ -52,3 +52,16 @@ Se usar o script ou make, pressione `Ctrl+C` ou execute:
 ```bash
 make stop
 ```
+
+## Página de Alteração de Senha
+
+Agora existe uma página dedicada para alteração de senha do usuário:
+- Acesse pelo menu lateral ("Alterar Senha") ou diretamente em `/alterar-senha`.
+- O formulário foi removido do Dashboard para melhor organização e segurança.
+
+**Como acessar:**
+- Clique em "Alterar Senha" no menu lateral após login.
+- Preencha a senha atual, nova senha e confirmação.
+- Mensagens de sucesso e erro são exibidas na tela.
+
+Essa mudança melhora a experiência do usuário e separa claramente as funções administrativas das funções de perfil pessoal.

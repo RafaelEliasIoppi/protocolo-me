@@ -414,3 +414,10 @@ Quando surgir bug no produto, siga esta sequencia fixa:
 5. Revalidacao de ponta a ponta
 
 Esse ciclo reduz 80% do retrabalho.
+
+### Alteração de senha do usuário
+
+- O formulário de alteração de senha foi movido do Dashboard para uma página própria.
+- O componente responsável é `AlterarSenhaPage` (frontend/src/componentes/AlterarSenhaPage.js).
+- O acesso é feito pelo menu lateral (link "Alterar Senha") ou diretamente pela rota `/alterar-senha`.
+- O menu lateral foi atualizado para todos os perfis.
