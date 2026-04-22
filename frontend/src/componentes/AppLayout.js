@@ -7,12 +7,11 @@ function AppLayout({ usuario, theme, setTheme, onLogout }) {
   return (
     <div className="dashboard-shell">
       <aside className="sidebar">
+
         <div>
           <h2>Protocolo ME</h2>
           <p>Painel administrativo com cadastros separados por funcionalidade.</p>
           <p className="note">Perfil: {role || "Não identificado"}</p>
-
-          <Link className="secondary-button" to="/alterar-senha">Alterar Senha</Link>
         </div>
 
         <div className="sidebar-nav" style={{ gridTemplateColumns: "1fr" }}>
@@ -36,6 +35,7 @@ function AppLayout({ usuario, theme, setTheme, onLogout }) {
             <Link className="secondary-button" to="/admin/usuarios">Cadastro de Usuários</Link>
           )}
           <Link className="secondary-button" to="/cadastros/centrais">Cadastro de Centrais</Link>
+          <Link className="secondary-button" to="/alterar-senha">Alterar Senha</Link>
         </div>
 
         <div className="action-row" style={{ justifyContent: "flex-start" }}>
