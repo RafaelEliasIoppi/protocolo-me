@@ -41,7 +41,7 @@ function GuardedRoute({ isLogged, allowedRoles, children }) {
 
 function App() {
   const navigate = useNavigate();
-  const [isLogged, setIsLogged] = useState(false);
+  const [isLogged, setIsLogged] = useState(() => autenticarService.isAutenticado());
   const [theme, setTheme] = useState("dark");
 
   const usuario = useMemo(() => autenticarService.obterUsuarioAtual(), [isLogged]);
