@@ -26,9 +26,13 @@ public class JwtUtil {
 
     public JwtUtil(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration}") long jwtExpirationMs,
+            @Value("${jwt.expiration:36000000}") long jwtExpirationMs, // default 10h
             @Value("${jwt.issuer:backend-api}") String issuer
     ) {
+        if (secret.length() < 32) {
+            throw new IllegalArgumentException("JWT secret deve ter no mínimo 32 caracteres");
+        }
+
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.jwtExpirationMs = jwtExpirationMs;
         this.issuer = issuer;
@@ -47,8 +51,13 @@ public class JwtUtil {
     }
 
     public String generateToken(UserDetails userDetails) {
-        return gerarToken(userDetails.getUsername(),
-                userDetails.getAuthorities().iterator().next().getAuthority());
+        String role = userDetails.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(auth -> auth.getAuthority())
+                .orElse("ROLE_USER");
+
+        return gerarToken(userDetails.getUsername(), role);
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
@@ -77,19 +86,10 @@ public class JwtUtil {
             return username.equals(userDetails.getUsername())
                     && !isTokenExpired(token);
 
-        } catch (ExpiredJwtException e) {
-            log.debug("Token expirado");
-        } catch (UnsupportedJwtException e) {
-            log.debug("Token não suportado");
-        } catch (MalformedJwtException e) {
-            log.debug("Token malformado");
-        } catch (SignatureException e) {
-            log.debug("Assinatura inválida");
-        } catch (IllegalArgumentException e) {
-            log.debug("Token vazio");
+        } catch (JwtException | IllegalArgumentException e) {
+            log.debug("Token inválido: {}", e.getMessage());
+            return false;
         }
-
-        return false;
     }
 
     public boolean isTokenValid(String token) {
