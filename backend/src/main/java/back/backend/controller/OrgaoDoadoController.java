@@ -1,5 +1,6 @@
 package back.backend.controller;
 
+import back.backend.dto.OrgaoDoadoDTO;
 import back.backend.model.OrgaoDoado;
 import back.backend.service.OrgaoDoadoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orgaos-doados")
@@ -25,7 +27,7 @@ public class OrgaoDoadoController {
     public ResponseEntity<?> criar(@RequestBody OrgaoDoado orgaoDoado) {
         try {
             OrgaoDoado novo = orgaoDoadoService.criar(orgaoDoado);
-            return ResponseEntity.status(201).body(novo);
+            return ResponseEntity.status(201).body(dtoFromEntity(novo));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         } catch (RuntimeException e) {
@@ -37,9 +39,9 @@ public class OrgaoDoadoController {
      * GET - Buscar órgão doado por ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<OrgaoDoado> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
         Optional<OrgaoDoado> orgaoDoado = orgaoDoadoService.buscarPorId(id);
-        return orgaoDoado.map(ResponseEntity::ok)
+        return orgaoDoado.map(value -> ResponseEntity.ok(dtoFromEntity(value)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -47,9 +49,9 @@ public class OrgaoDoadoController {
      * GET - Listar órgãos doados por protocolo
      */
     @GetMapping("/protocolo/{protocoloId}")
-    public ResponseEntity<List<OrgaoDoado>> listarPorProtocolo(@PathVariable Long protocoloId) {
+    public ResponseEntity<List<OrgaoDoadoDTO>> listarPorProtocolo(@PathVariable Long protocoloId) {
         List<OrgaoDoado> orgaos = orgaoDoadoService.listarPorProtocolo(protocoloId);
-        return ResponseEntity.ok(orgaos);
+        return ResponseEntity.ok(orgaos.stream().map(this::dtoFromEntity).collect(Collectors.toList()));
     }
 
     /**
@@ -59,7 +61,7 @@ public class OrgaoDoadoController {
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody OrgaoDoado orgaoDoadoAtualizado) {
         try {
             OrgaoDoado atualizado = orgaoDoadoService.atualizar(id, orgaoDoadoAtualizado);
-            return ResponseEntity.ok(atualizado);
+            return ResponseEntity.ok(dtoFromEntity(atualizado));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         } catch (RuntimeException e) {
@@ -71,13 +73,13 @@ public class OrgaoDoadoController {
      * POST - Registrar implantação
      */
     @PostMapping("/{id}/implantar")
-    public ResponseEntity<OrgaoDoado> registrarImplantacao(
+    public ResponseEntity<?> registrarImplantacao(
             @PathVariable Long id,
             @RequestParam String hospitalReceptor,
             @RequestParam String pacienteReceptor) {
         try {
             OrgaoDoado implantado = orgaoDoadoService.registrarImplantacao(id, hospitalReceptor, pacienteReceptor);
-            return ResponseEntity.ok(implantado);
+            return ResponseEntity.ok(dtoFromEntity(implantado));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -87,12 +89,12 @@ public class OrgaoDoadoController {
      * POST - Registrar descarte
      */
     @PostMapping("/{id}/descartar")
-    public ResponseEntity<OrgaoDoado> registrarDescarte(
+    public ResponseEntity<?> registrarDescarte(
             @PathVariable Long id,
             @RequestParam String motivo) {
         try {
             OrgaoDoado descartado = orgaoDoadoService.registrarDescarte(id, motivo);
-            return ResponseEntity.ok(descartado);
+            return ResponseEntity.ok(dtoFromEntity(descartado));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -118,5 +120,9 @@ public class OrgaoDoadoController {
     public ResponseEntity<OrgaoDoadoService.OrgaoStatisticas> obterEstatisticas(@PathVariable Long protocoloId) {
         OrgaoDoadoService.OrgaoStatisticas stats = orgaoDoadoService.obterEstatisticas(protocoloId);
         return ResponseEntity.ok(stats);
+    }
+
+    private OrgaoDoadoDTO dtoFromEntity(OrgaoDoado entity) {
+        return OrgaoDoadoDTO.fromEntity(entity);
     }
 }

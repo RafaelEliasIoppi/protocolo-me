@@ -4,6 +4,7 @@ import back.backend.model.ProtocoloME;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -87,7 +88,7 @@ public class ProtocoloMEDTO {
             dto.setCentralTransplantesNome(entity.getCentralTransplantes().getNome());
         }
         
-        if (entity.getOrgaosDoados() != null) {
+        if (entity.getOrgaosDoados() != null && Hibernate.isInitialized(entity.getOrgaosDoados())) {
             dto.setOrgaosDoados(
                 entity.getOrgaosDoados().stream()
                     .map(OrgaoDoadoDTO::fromEntity)

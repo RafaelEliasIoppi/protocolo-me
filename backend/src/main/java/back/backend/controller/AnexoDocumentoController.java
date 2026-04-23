@@ -1,5 +1,6 @@
 package back.backend.controller;
 
+import back.backend.dto.AnexoDocumentoDTO;
 import back.backend.model.AnexoDocumento;
 import back.backend.service.AnexoDocumentoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/anexos")
@@ -34,7 +36,7 @@ public class AnexoDocumentoController {
             @RequestParam(value = "uploadPor", required = false) String uploadPor) {
         try {
             AnexoDocumento anexo = anexoService.uploadAnexoExame(exameMEId, arquivo, descricao, uploadPor);
-            return ResponseEntity.status(HttpStatus.CREATED).body(anexo);
+            return ResponseEntity.status(HttpStatus.CREATED).body(AnexoDocumentoDTO.fromEntity(anexo));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse("Erro ao fazer upload: " + e.getMessage()));
@@ -53,7 +55,7 @@ public class AnexoDocumentoController {
             @RequestParam(value = "uploadPor", required = false) String uploadPor) {
         try {
             AnexoDocumento anexo = anexoService.uploadAnexoEntrevista(protocoloMEId, arquivo, descricao, uploadPor);
-            return ResponseEntity.status(HttpStatus.CREATED).body(anexo);
+            return ResponseEntity.status(HttpStatus.CREATED).body(AnexoDocumentoDTO.fromEntity(anexo));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse("Erro ao fazer upload: " + e.getMessage()));
@@ -65,10 +67,10 @@ public class AnexoDocumentoController {
      * /api/anexos/exame/{exameMEId}
      */
     @GetMapping("/exame/{exameMEId}")
-    public ResponseEntity<List<AnexoDocumento>> listarAnexosExame(@PathVariable Long exameMEId) {
+    public ResponseEntity<List<AnexoDocumentoDTO>> listarAnexosExame(@PathVariable Long exameMEId) {
         try {
             List<AnexoDocumento> anexos = anexoService.listarAnexosExame(exameMEId);
-            return ResponseEntity.ok(anexos);
+            return ResponseEntity.ok(anexos.stream().map(AnexoDocumentoDTO::fromEntity).collect(Collectors.toList()));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -79,10 +81,10 @@ public class AnexoDocumentoController {
      * /api/anexos/entrevista/{protocoloMEId}
      */
     @GetMapping("/entrevista/{protocoloMEId}")
-    public ResponseEntity<List<AnexoDocumento>> listarAnexosEntrevista(@PathVariable Long protocoloMEId) {
+    public ResponseEntity<List<AnexoDocumentoDTO>> listarAnexosEntrevista(@PathVariable Long protocoloMEId) {
         try {
             List<AnexoDocumento> anexos = anexoService.listarAnexosEntrevista(protocoloMEId);
-            return ResponseEntity.ok(anexos);
+            return ResponseEntity.ok(anexos.stream().map(AnexoDocumentoDTO::fromEntity).collect(Collectors.toList()));
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
@@ -93,9 +95,9 @@ public class AnexoDocumentoController {
      * /api/anexos/{id}
      */
     @GetMapping("/{id}")
-    public ResponseEntity<AnexoDocumento> obterAnexo(@PathVariable Long id) {
+    public ResponseEntity<?> obterAnexo(@PathVariable Long id) {
         Optional<AnexoDocumento> anexo = anexoService.obterAnexoPorId(id);
-        return anexo.map(ResponseEntity::ok)
+        return anexo.map(value -> ResponseEntity.ok(AnexoDocumentoDTO.fromEntity(value)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 

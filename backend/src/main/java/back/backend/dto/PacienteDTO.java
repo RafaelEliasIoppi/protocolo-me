@@ -4,6 +4,7 @@ import back.backend.model.Paciente;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,7 +65,7 @@ public class PacienteDTO {
             dto.setHospitalNome(entity.getHospital().getNome());
         }
         
-        if (entity.getProtocolosME() != null) {
+        if (entity.getProtocolosME() != null && Hibernate.isInitialized(entity.getProtocolosME())) {
             dto.setProtocolosME(
                 entity.getProtocolosME().stream()
                     .map(ProtocoloMEDTO::fromEntity)

@@ -30,7 +30,7 @@ public class PacienteController {
     public ResponseEntity<?> criar(@RequestBody Paciente paciente) {
         try {
             Paciente pacienteCriado = pacienteService.criarPaciente(paciente);
-            return ResponseEntity.status(HttpStatus.CREATED).body(pacienteCriado);
+            return ResponseEntity.status(HttpStatus.CREATED).body(PacienteDTO.fromEntity(pacienteCriado));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("Erro ao criar paciente: " + e.getMessage()));
@@ -56,8 +56,7 @@ public class PacienteController {
     public ResponseEntity<?> obterPorId(@PathVariable Long id) {
         try {
             Paciente paciente = pacienteService.obterPacientePorId(id);
-            PacienteDTO dto = PacienteDTO.fromEntity(paciente);
-            return ResponseEntity.ok(dto);
+            return ResponseEntity.ok(PacienteDTO.fromEntity(paciente));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("Paciente não encontrado: " + e.getMessage()));
@@ -71,8 +70,7 @@ public class PacienteController {
     public ResponseEntity<?> obterPorCpf(@PathVariable String cpf) {
         try {
             Paciente paciente = pacienteService.obterPacientePorCpf(cpf);
-            PacienteDTO dto = PacienteDTO.fromEntity(paciente);
-            return ResponseEntity.ok(dto);
+            return ResponseEntity.ok(PacienteDTO.fromEntity(paciente));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("Paciente não encontrado: " + e.getMessage()));
@@ -229,7 +227,7 @@ public class PacienteController {
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Paciente paciente) {
         try {
             Paciente pacienteAtualizado = pacienteService.atualizarPaciente(id, paciente);
-            return ResponseEntity.ok(pacienteAtualizado);
+            return ResponseEntity.ok(PacienteDTO.fromEntity(pacienteAtualizado));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("Erro ao atualizar: " + e.getMessage()));
@@ -247,7 +245,7 @@ public class PacienteController {
             String statusStr = body.get("status");
             Paciente.StatusPaciente status = Paciente.StatusPaciente.valueOf(statusStr.toUpperCase());
             Paciente pacienteAtualizado = pacienteService.atualizarStatus(id, status);
-            return ResponseEntity.ok(pacienteAtualizado);
+            return ResponseEntity.ok(PacienteDTO.fromEntity(pacienteAtualizado));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("Status inválido: " + e.getMessage()));
