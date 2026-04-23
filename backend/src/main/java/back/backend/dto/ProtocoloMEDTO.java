@@ -15,6 +15,19 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ProtocoloMEDTO {
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PacienteResumoDTO {
+        private Long id;
+        private String nome;
+        private String cpf;
+        private Long hospitalId;
+        private String hospitalNome;
+        private String leito;
+        private String statusEntrevistaFamiliar;
+    }
+
     private Long id;
     private String numeroProtocolo;
     private String hospitalOrigem;
@@ -47,6 +60,7 @@ public class ProtocoloMEDTO {
     private LocalDateTime dataAtualizacao;
     private Long centralTransplantesId;
     private String centralTransplantesNome;
+    private PacienteResumoDTO paciente;
     private List<OrgaoDoadoDTO> orgaosDoados;
 
     public static ProtocoloMEDTO fromEntity(ProtocoloME entity) {
@@ -86,6 +100,25 @@ public class ProtocoloMEDTO {
         if (entity.getCentralTransplantes() != null) {
             dto.setCentralTransplantesId(entity.getCentralTransplantes().getId());
             dto.setCentralTransplantesNome(entity.getCentralTransplantes().getNome());
+        }
+
+        if (entity.getPaciente() != null) {
+            Long hospitalId = null;
+            String hospitalNome = null;
+            if (entity.getPaciente().getHospital() != null) {
+                hospitalId = entity.getPaciente().getHospital().getId();
+                hospitalNome = entity.getPaciente().getHospital().getNome();
+            }
+
+            dto.setPaciente(new PacienteResumoDTO(
+                entity.getPaciente().getId(),
+                entity.getPaciente().getNome(),
+                entity.getPaciente().getCpf(),
+                hospitalId,
+                hospitalNome,
+                entity.getPaciente().getLeito(),
+                entity.getPaciente().getStatusEntrevistaFamiliar()
+            ));
         }
         
         if (entity.getOrgaosDoados() != null && Hibernate.isInitialized(entity.getOrgaosDoados())) {

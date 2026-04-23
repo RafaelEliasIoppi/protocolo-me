@@ -99,6 +99,57 @@ const CAMPOS_ESTATISTICA_PROTOCOLO = [
   { key: 'observacoes', label: 'observacoes' }
 ];
 
+const CAMPOS_SIM_NAO = new Set([
+  'dm',
+  'has',
+  'etilismo',
+  'tabagismo',
+  'rimD',
+  'rimE',
+  'coracao',
+  'pulmD',
+  'pulmE',
+  'figado',
+  'corneas',
+  'pele',
+  'ossoMusculo',
+  'txRinsBloco',
+  'txPulmBilat',
+  'txRimFig',
+  'txPulmDRim',
+  'txPulmERim',
+  'txCorRim',
+  'txCorPulm',
+  'descarteRimD',
+  'descarteRimE',
+  'descarteCoracao',
+  'descartePulmaoD',
+  'descartePulmaoE',
+  'descarteFigado',
+  'doadorOfertaNacional',
+  'algumOrgaoImplantadoNoRs',
+  'recusaRim',
+  'recusaFigado',
+  'recusaCoracao',
+  'recusaPulmao'
+]);
+
+const normalizarSimNao = (valor) => {
+  const texto = String(valor ?? '').trim().toUpperCase();
+  if (['SIM', 'S', 'YES', 'Y', 'TRUE', '1'].includes(texto)) {
+    return 'SIM';
+  }
+  return 'NAO';
+};
+
+const aplicarPadraoCamposSimNao = (campos) => {
+  const atualizados = { ...(campos || {}) };
+  CAMPOS_SIM_NAO.forEach((chave) => {
+    atualizados[chave] = normalizarSimNao(atualizados[chave]);
+  });
+  return atualizados;
+};
+
 const EstatisticasPage = () => {
   const [estatisticasGerais, setEstatisticasGerais] = useState(null);
   const [estatisticasPorPaciente, setEstatisticasPorPaciente] = useState([]);
@@ -227,7 +278,7 @@ const EstatisticasPage = () => {
       const response = await apiClient.get(`/api/estatisticas-transplantes/protocolo-me/${item.protocoloMEId}`);
       const data = response.data || {};
       setProtocoloSelecionado(data);
-      setCamposForm(data.campos || {});
+      setCamposForm(aplicarPadraoCamposSimNao(data.campos));
     } catch (err) {
       setErro('Erro ao abrir estatistica do protocolo');
       console.error(err);
@@ -240,14 +291,16 @@ const EstatisticasPage = () => {
     setErro('');
     try {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+      const camposNormalizados = aplicarPadraoCamposSimNao(camposForm);
       await apiClient.put(`/api/estatisticas-transplantes/protocolo-me/${protocoloSelecionado.protocoloMEId}`, {
         protocoloMEId: protocoloSelecionado.protocoloMEId,
         anoCompetencia: protocoloSelecionado.anoCompetencia || anoSelecionado,
         mesCompetencia: periodicidade === 'MENSAL' ? (mesSelecionado ? parseInt(mesSelecionado, 10) : null) : null,
         periodicidade,
-        campos: camposForm,
+        campos: camposNormalizados,
         atualizadoPor: usuario?.nome || usuario?.email || 'central'
       });
+      setCamposForm(camposNormalizados);
       await carregarEstatisticasProtocolo();
       await carregarAuditoriaProtocolos();
     } catch (err) {
@@ -643,12 +696,23 @@ const EstatisticasPage = () => {
                       <div className="card" key={`campo-${campo.key}`}>
                         <div className="card-conteudo">
                           <div className="card-label">{campo.label}</div>
-                          <input
-                            type="text"
-                            value={camposForm[campo.key] || ''}
-                            onChange={(e) => setCamposForm((prev) => ({ ...prev, [campo.key]: e.target.value }))}
-                            className="input-filtro"
-                          />
+                          {CAMPOS_SIM_NAO.has(campo.key) ? (
+                            <select
+                              value={normalizarSimNao(camposForm[campo.key])}
+                              onChange={(e) => setCamposForm((prev) => ({ ...prev, [campo.key]: e.target.value }))}
+                              className="input-filtro"
+                            >
+                              <option value="NAO">Não</option>
+                              <option value="SIM">Sim</option>
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              value={camposForm[campo.key] || ''}
+                              onChange={(e) => setCamposForm((prev) => ({ ...prev, [campo.key]: e.target.value }))}
+                              className="input-filtro"
+                            />
+                          )}
                         </div>
                       </div>
                     ))}

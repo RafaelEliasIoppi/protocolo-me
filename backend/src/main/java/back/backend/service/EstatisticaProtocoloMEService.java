@@ -123,6 +123,41 @@ public class EstatisticaProtocoloMEService {
             "observacoes"
     );
 
+            private static final List<String> CAMPOS_SIM_NAO = Arrays.asList(
+                "dm",
+                "has",
+                "etilismo",
+                "tabagismo",
+                "rimD",
+                "rimE",
+                "coracao",
+                "pulmD",
+                "pulmE",
+                "figado",
+                "corneas",
+                "pele",
+                "ossoMusculo",
+                "txRinsBloco",
+                "txPulmBilat",
+                "txRimFig",
+                "txPulmDRim",
+                "txPulmERim",
+                "txCorRim",
+                "txCorPulm",
+                "descarteRimD",
+                "descarteRimE",
+                "descarteCoracao",
+                "descartePulmaoD",
+                "descartePulmaoE",
+                "descarteFigado",
+                "doadorOfertaNacional",
+                "algumOrgaoImplantadoNoRs",
+                "recusaRim",
+                "recusaFigado",
+                "recusaCoracao",
+                "recusaPulmao"
+            );
+
     @Autowired
     private EstatisticaProtocoloMERepository estatisticaRepository;
 
@@ -310,7 +345,7 @@ public class EstatisticaProtocoloMEService {
         }
 
         for (String nomeCampo : CAMPOS_PROTOCOLO) {
-            setFieldValue(entidade, nomeCampo, camposAtualizados.get(nomeCampo));
+            setFieldValue(entidade, nomeCampo, normalizarCampo(nomeCampo, camposAtualizados.get(nomeCampo)));
         }
 
         try {
@@ -367,6 +402,26 @@ public class EstatisticaProtocoloMEService {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException("Erro ao aplicar campo de estatística: " + nomeCampo, e);
         }
+    }
+
+    private String normalizarCampo(String nomeCampo, String valor) {
+        if (CAMPOS_SIM_NAO.contains(nomeCampo)) {
+            return normalizarSimNao(valor);
+        }
+        return valor;
+    }
+
+    private String normalizarSimNao(String valor) {
+        if (valor == null || valor.trim().isEmpty()) {
+            return "NAO";
+        }
+
+        String texto = valor.trim().toUpperCase();
+        if (Arrays.asList("SIM", "S", "YES", "Y", "TRUE", "1").contains(texto)) {
+            return "SIM";
+        }
+
+        return "NAO";
     }
 
     public static class ProtocoloSemEstatisticaDTO {
