@@ -29,11 +29,11 @@ public class UsuarioService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         Usuario usuario = usuarioRepository.findByEmail(email)
             .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
-        
+
         return User.builder()
             .username(usuario.getEmail())
             .password(usuario.getSenha())
-            .roles(usuario.getRole().name())
+            .roles(usuario.getRole().name()) // Spring adiciona prefixo ROLE_
             .build();
     }
 
@@ -41,7 +41,7 @@ public class UsuarioService implements UserDetailsService {
         if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
             throw new RuntimeException("Email já cadastrado");
         }
-        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha())); // Centraliza codificação aqui
         usuario.setDataCriacao(LocalDateTime.now());
         usuario.setDataAtualizacao(LocalDateTime.now());
         usuario.setAtivo(true);
@@ -73,7 +73,7 @@ public class UsuarioService implements UserDetailsService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
         if (usuarioAtualizado.getEmail() != null && !usuarioAtualizado.getEmail().trim().isEmpty()) {
-            String emailNovo = usuarioAtualizado.getEmail().trim();
+            String emailNovo = usuarioAtualizado.getEmail().trim().toLowerCase();
             usuarioRepository.findByEmail(emailNovo).ifPresent(existente -> {
                 if (!existente.getId().equals(id)) {
                     throw new RuntimeException("Email já cadastrado");

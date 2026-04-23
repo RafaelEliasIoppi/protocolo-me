@@ -25,7 +25,7 @@ public class SecurityConfig {
     private final String corsAllowedOrigins;
 
     public SecurityConfig(JwtFilter jwtFilter,
-                          @Value("${app.cors.allowed-origins:http://localhost:3000,http://127.0.0.1:3000}") String corsAllowedOrigins) {
+                          @Value("${app.cors.allowed-origins}") String corsAllowedOrigins) {
         this.jwtFilter = jwtFilter;
         this.corsAllowedOrigins = corsAllowedOrigins;
     }
@@ -33,59 +33,64 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors().and() // habilita CORS
+            .cors().and()
             .csrf().disable()
-            .authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
-                .antMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
-                    .antMatchers(HttpMethod.GET, "/api/pacientes/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
-                    .antMatchers(HttpMethod.POST, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
-                    .antMatchers(HttpMethod.PUT, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
-                    .antMatchers(HttpMethod.PATCH, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
-                    .antMatchers(HttpMethod.DELETE, "/api/pacientes/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
+            .authorizeHttpRequests(authz -> authz
+                // Endpoints públicos
+                .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
+                .requestMatchers("/h2-console/**").permitAll()
 
-                .antMatchers(HttpMethod.POST, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
-                .antMatchers(HttpMethod.PUT, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
-                .antMatchers(HttpMethod.DELETE, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
+                // Endpoints protegidos
+                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
+                .requestMatchers("/api/usuarios/**").hasAnyRole("ADMIN", "COORDENADOR_TRANSPLANTES")
 
-                .antMatchers(HttpMethod.POST, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
-                .antMatchers(HttpMethod.PUT, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
-                .antMatchers(HttpMethod.DELETE, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
-                .antMatchers(HttpMethod.GET, "/api/centrais-transplantes/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
+                // Pacientes
+                .requestMatchers(HttpMethod.GET, "/api/pacientes/**").hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
+                .requestMatchers(HttpMethod.POST, "/api/pacientes/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
+                .requestMatchers(HttpMethod.PUT, "/api/pacientes/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
+                .requestMatchers(HttpMethod.PATCH, "/api/pacientes/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
+                .requestMatchers(HttpMethod.DELETE, "/api/pacientes/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
 
-                .antMatchers(HttpMethod.POST, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.PUT, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
-                .antMatchers(HttpMethod.PATCH, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN", "CENTRAL_TRANSPLANTES")
-                .antMatchers(HttpMethod.DELETE, "/api/protocolos-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.GET, "/api/protocolos-me/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
+                // Hospitais
+                .requestMatchers(HttpMethod.POST, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/hospitais/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
 
-                .antMatchers(HttpMethod.POST, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.PUT, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.PATCH, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.DELETE, "/api/exames-me/**").hasAnyRole("MEDICO", "ENFERMEIRO", "ADMIN")
-                .antMatchers(HttpMethod.GET, "/api/exames-me/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
+                // Centrais de transplantes
+                .requestMatchers(HttpMethod.POST, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/centrais-transplantes/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/centrais-transplantes/**").hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
 
-                .antMatchers(HttpMethod.GET, "/api/centrais-transplantes/estatisticas/doadores-receptores").hasRole("CENTRAL_TRANSPLANTES")
+                // Protocolos ME
+                .requestMatchers(HttpMethod.POST, "/api/protocolos-me/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/protocolos-me/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
+                .requestMatchers(HttpMethod.PATCH, "/api/protocolos-me/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
+                .requestMatchers(HttpMethod.DELETE, "/api/protocolos-me/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/protocolos-me/**").hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
 
-                .antMatchers(HttpMethod.PUT, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
-                .antMatchers(HttpMethod.POST, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
-                .antMatchers(HttpMethod.PATCH, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
-                .antMatchers(HttpMethod.GET, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN", "MEDICO")
+                // Exames ME
+                .requestMatchers(HttpMethod.POST, "/api/exames-me/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/exames-me/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/exames-me/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/exames-me/**").hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/exames-me/**").hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
 
-                .antMatchers("/h2-console/**").permitAll()
-                .antMatchers("/api/usuarios/**").hasAnyRole("ADMIN", "COORDENADOR_TRANSPLANTES")
-                .antMatchers("/api/pacientes/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
-                .antMatchers("/api/hospitais/**").hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
-                .antMatchers("/api/centrais-transplantes/**").hasAnyRole("ADMIN", "CENTRAL_TRANSPLANTES", "COORDENADOR_TRANSPLANTES")
+                // Estatísticas
+                .requestMatchers(HttpMethod.GET, "/api/centrais-transplantes/estatisticas/doadores-receptores").hasRole("CENTRAL_TRANSPLANTES")
+                .requestMatchers(HttpMethod.PUT, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/estatisticas-transplantes/protocolo-me/**").hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN","MEDICO")
+
+                // Qualquer outra requisição precisa estar autenticada
                 .anyRequest().authenticated()
-            .and()
-                .headers().frameOptions().sameOrigin()
-            .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+            )
+            .headers(headers -> headers.frameOptions().sameOrigin())
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

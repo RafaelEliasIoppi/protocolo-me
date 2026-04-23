@@ -7,7 +7,6 @@ import back.backend.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -33,9 +32,6 @@ public class UsuarioController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     @PostMapping
     public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
         try {
@@ -53,13 +49,10 @@ public class UsuarioController {
             }
 
             Usuario usuarioRegistrado = usuarioService.registrar(usuario);
-            Map<String, Object> response = toUsuarioResponse(usuarioRegistrado);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.CREATED).body(toUsuarioResponse(usuarioRegistrado));
         } catch (RuntimeException e) {
             log.warn("Erro ao registrar usuário: {}", e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("erro", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
         }
     }
 
@@ -79,26 +72,21 @@ public class UsuarioController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             boolean autenticadoComoAdmin = authentication != null
                 && authentication.isAuthenticated()
-                && authentication.getAuthorities().stream().anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+                && authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-            if (totalAdmins == 0) {
-                if (usuario.getRole() != Role.ADMIN) {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("erro", "O primeiro usuário administrativo deve ser ADMIN"));
-                }
-            } else if (!autenticadoComoAdmin) {
+            if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("erro", "O primeiro usuário administrativo deve ser ADMIN"));
+            } else if (totalAdmins > 0 && !autenticadoComoAdmin) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(Map.of("erro", "Apenas administradores podem criar outros usuários"));
             }
 
             Usuario usuarioRegistrado = usuarioService.registrar(usuario);
-            Map<String, Object> response = toUsuarioResponse(usuarioRegistrado);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.CREATED).body(toUsuarioResponse(usuarioRegistrado));
         } catch (RuntimeException e) {
             log.warn("Erro ao registrar usuário administrativo: {}", e.getMessage());
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("erro", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
         }
     }
 
@@ -107,7 +95,6 @@ public class UsuarioController {
         List<Map<String, Object>> usuarios = usuarioService.listarTodos().stream()
                 .map(this::toUsuarioResponse)
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(usuarios);
     }
 
@@ -115,12 +102,10 @@ public class UsuarioController {
     public ResponseEntity<?> atualizarUsuarioAdmin(@PathVariable Long id, @RequestBody Usuario usuarioAtualizado) {
         try {
             Usuario usuarioSalvo = usuarioService.atualizarUsuario(id, usuarioAtualizado);
-            Map<String, Object> response = toUsuarioResponse(usuarioSalvo);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(toUsuarioResponse(usuarioSalvo));
         } catch (RuntimeException e) {
             log.warn("Erro ao atualizar usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("erro", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
         }
     }
 
@@ -129,14 +114,10 @@ public class UsuarioController {
         try {
             String senhaNova = payload.get("senhaNova");
             Usuario usuarioSalvo = usuarioService.redefinirSenha(id, senhaNova);
-            return ResponseEntity.ok(Map.of(
-                    "id", usuarioSalvo.getId(),
-                    "mensagem", "Senha redefinida com sucesso"
-            ));
+            return ResponseEntity.ok(Map.of("id", usuarioSalvo.getId(), "mensagem", "Senha redefinida com sucesso"));
         } catch (RuntimeException e) {
             log.warn("Erro ao redefinir senha do usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("erro", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
         }
     }
 
@@ -145,8 +126,7 @@ public class UsuarioController {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("erro", "Usuário não autenticado"));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não autenticado"));
             }
 
             Usuario usuarioSalvo = usuarioService.alterarMinhaSenha(
@@ -156,14 +136,10 @@ public class UsuarioController {
                     payload.get("confirmarSenha")
             );
 
-            return ResponseEntity.ok(Map.of(
-                    "id", usuarioSalvo.getId(),
-                    "mensagem", "Senha alterada com sucesso"
-            ));
+            return ResponseEntity.ok(Map.of("id", usuarioSalvo.getId(), "mensagem", "Senha alterada com sucesso"));
         } catch (RuntimeException e) {
             log.warn("Erro ao alterar senha do usuário autenticado: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("erro", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
         }
     }
 
@@ -177,53 +153,32 @@ public class UsuarioController {
                 email = email.trim().toLowerCase(Locale.ROOT);
             }
 
-            if (email == null || email.trim().isEmpty() || senha == null || senha.trim().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("erro", "Email e senha são obrigatórios"));
+            if (email == null || email.isBlank() || senha == null || senha.isBlank()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", "Email e senha são obrigatórios"));
             }
 
             Optional<Usuario> usuarioOpt = usuarioService.findByEmail(email);
             if (usuarioOpt.isEmpty() || !usuarioOpt.get().getAtivo()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("erro", "Usuário não encontrado ou inativo"));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não encontrado ou inativo"));
             }
 
             Usuario usuario = usuarioOpt.get();
-            String senhaPersistida = usuario.getSenha();
-            if (senhaPersistida == null || senhaPersistida.trim().isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("erro", "Credenciais inválidas"));
-            }
-
-            boolean senhaValida;
-            try {
-                senhaValida = passwordEncoder.matches(senha, senhaPersistida);
-            } catch (IllegalArgumentException ex) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("erro", "Credenciais inválidas"));
-            }
-
-            if (!senhaValida) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("erro", "Senha incorreta"));
+            if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Senha incorreta"));
             }
 
             String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getRole().name());
             long tokenExpiraEm = jwtUtil.extractExpiration(token).getTime();
+
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
             response.put("tokenExpiraEm", tokenExpiraEm);
-            response.put("usuario", Map.of(
-                "id", usuario.getId(),
-                "email", usuario.getEmail(),
-                "nome", usuario.getNome(),
-                "role", usuario.getRole()
-            ));
+            response.put("usuario", toUsuarioResponse(usuario));
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Erro interno no login", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("erro", "Erro ao fazer login: " + e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao fazer login"));
         }
     }
 
@@ -231,8 +186,7 @@ public class UsuarioController {
     public ResponseEntity<?> obterUsuario(@PathVariable Long id) {
         Optional<Usuario> usuario = usuarioService.findById(id);
         if (usuario.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("erro", "Usuário não encontrado"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Usuário não encontrado"));
         }
         return ResponseEntity.ok(toUsuarioResponse(usuario.get()));
     }
@@ -241,8 +195,7 @@ public class UsuarioController {
     public ResponseEntity<?> deletarUsuario(@PathVariable Long id) {
         Optional<Usuario> usuario = usuarioService.findById(id);
         if (usuario.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("erro", "Usuário não encontrado"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Usuário não encontrado"));
         }
         usuarioService.deletar(id);
         return ResponseEntity.ok(Map.of("mensagem", "Usuário deletado com sucesso"));
@@ -253,7 +206,7 @@ public class UsuarioController {
         item.put("id", usuario.getId());
         item.put("email", usuario.getEmail());
         item.put("nome", usuario.getNome());
-        item.put("role", usuario.getRole());
+        item.put("role", usuario.getRole().name());
         item.put("ativo", usuario.getAtivo());
         item.put("crm", usuario.getCrm());
         item.put("coren", usuario.getCoren());

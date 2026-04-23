@@ -14,6 +14,21 @@ function AlterarSenhaPage() {
     e.preventDefault();
     setErroSenha("");
     setMensagemSenha("");
+
+    // Validações básicas no front
+    if (!senhaAtual || senhaAtual.trim().length < 6) {
+      setErroSenha("Informe sua senha atual corretamente.");
+      return;
+    }
+    if (!novaSenha || novaSenha.trim().length < 6) {
+      setErroSenha("A nova senha deve ter pelo menos 6 caracteres.");
+      return;
+    }
+    if (novaSenha !== confirmarSenha) {
+      setErroSenha("A nova senha e a confirmação não conferem.");
+      return;
+    }
+
     try {
       setAlterandoSenha(true);
       await apiClient.patch("/api/usuarios/minha-senha", {
@@ -47,6 +62,7 @@ function AlterarSenhaPage() {
               value={senhaAtual}
               onChange={(e) => setSenhaAtual(e.target.value)}
               placeholder="Senha atual"
+              disabled={alterandoSenha}
             />
             <input
               className="input-field"
@@ -54,6 +70,7 @@ function AlterarSenhaPage() {
               value={novaSenha}
               onChange={(e) => setNovaSenha(e.target.value)}
               placeholder="Nova senha"
+              disabled={alterandoSenha}
             />
           </div>
           <div className="form-row">
@@ -63,6 +80,7 @@ function AlterarSenhaPage() {
               value={confirmarSenha}
               onChange={(e) => setConfirmarSenha(e.target.value)}
               placeholder="Confirmar nova senha"
+              disabled={alterandoSenha}
             />
           </div>
           <button className="primary-button" type="submit" disabled={alterandoSenha}>
