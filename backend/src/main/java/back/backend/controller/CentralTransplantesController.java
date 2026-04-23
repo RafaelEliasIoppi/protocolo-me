@@ -1,5 +1,6 @@
 package back.backend.controller;
 
+import back.backend.dto.AcaoResponseDTO;
 import back.backend.model.CentralTransplantes;
 import back.backend.service.CentralTransplantesService;
 import back.backend.dto.CentralTransplantesDTO;
@@ -12,9 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.Map;
-
-
 @RestController
 @RequestMapping("/api/centrais-transplantes")
 public class CentralTransplantesController {
@@ -121,18 +119,18 @@ public class CentralTransplantesController {
 
     // POST - Vincular hospital à central
     @PostMapping("/{centralId}/hospitais/{hospitalId}")
-    public ResponseEntity<Map<String, String>> vincularHospital(@PathVariable Long centralId,
-                                                                @PathVariable Long hospitalId) {
+    public ResponseEntity<AcaoResponseDTO> vincularHospital(@PathVariable Long centralId,
+                                                            @PathVariable Long hospitalId) {
         centralService.vincularHospital(centralId, hospitalId);
-        return ResponseEntity.ok(Map.of("mensagem", "Hospital vinculado com sucesso"));
+        return ResponseEntity.ok(new AcaoResponseDTO(centralId, "Hospital vinculado com sucesso"));
     }
 
     // DELETE - Remover hospital da central
     @DeleteMapping("/{centralId}/hospitais/{hospitalId}")
-    public ResponseEntity<Map<String, String>> removerHospital(@PathVariable Long centralId,
-                                                               @PathVariable Long hospitalId) {
+    public ResponseEntity<AcaoResponseDTO> removerHospital(@PathVariable Long centralId,
+                                                          @PathVariable Long hospitalId) {
         centralService.removerHospital(centralId, hospitalId);
-        return ResponseEntity.ok(Map.of("mensagem", "Hospital removido com sucesso"));
+        return ResponseEntity.ok(new AcaoResponseDTO(centralId, "Hospital removido com sucesso"));
     }
 
     // DELETE - Deletar central

@@ -1,5 +1,6 @@
 package back.backend.controller;
 
+import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.AnexoDocumentoDTO;
 import back.backend.model.AnexoDocumento;
 import back.backend.service.AnexoDocumentoService;
@@ -39,7 +40,7 @@ public class AnexoDocumentoController {
             return ResponseEntity.status(HttpStatus.CREATED).body(AnexoDocumentoDTO.fromEntity(anexo));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse("Erro ao fazer upload: " + e.getMessage()));
+                    .body(new ErrorResponseDTO("Erro ao fazer upload: " + e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 
@@ -58,7 +59,7 @@ public class AnexoDocumentoController {
             return ResponseEntity.status(HttpStatus.CREATED).body(AnexoDocumentoDTO.fromEntity(anexo));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse("Erro ao fazer upload: " + e.getMessage()));
+                    .body(new ErrorResponseDTO("Erro ao fazer upload: " + e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 
@@ -123,7 +124,7 @@ public class AnexoDocumentoController {
                     .body(conteudo);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Erro ao fazer download: " + e.getMessage()));
+                    .body(new ErrorResponseDTO("Erro ao fazer download: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -138,7 +139,7 @@ public class AnexoDocumentoController {
             return ResponseEntity.noContent().build();
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Erro ao deletar anexo: " + e.getMessage()));
+                    .body(new ErrorResponseDTO("Erro ao deletar anexo: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -155,26 +156,7 @@ public class AnexoDocumentoController {
             return ResponseEntity.noContent().build();
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse("Erro ao limpar anexos: " + e.getMessage()));
-        }
-    }
-
-    /**
-     * Classe auxiliar para erros
-     */
-    public static class ErrorResponse {
-        private String mensagem;
-
-        public ErrorResponse(String mensagem) {
-            this.mensagem = mensagem;
-        }
-
-        public String getMensagem() {
-            return mensagem;
-        }
-
-        public void setMensagem(String mensagem) {
-            this.mensagem = mensagem;
+                    .body(new ErrorResponseDTO("Erro ao limpar anexos: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 }

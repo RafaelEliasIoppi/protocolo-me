@@ -1,6 +1,8 @@
 package back.backend.controller;
 
+import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.ExameMEDTO;
+import back.backend.dto.ExameResumoDTO;
 import back.backend.model.ExameME;
 import back.backend.service.ExameMEService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,10 +112,10 @@ public class ExameMEController {
 
     // GET - Obter resumo dos exames
     @GetMapping("/protocolo/{protocoloId}/resumo")
-    public ResponseEntity<ExameMEService.ExameResumo> obterResumo(@PathVariable Long protocoloId) {
+    public ResponseEntity<ExameResumoDTO> obterResumo(@PathVariable Long protocoloId) {
         try {
             ExameMEService.ExameResumo resumo = exameService.obterResumoExames(protocoloId);
-            return ResponseEntity.ok(resumo);
+            return ResponseEntity.ok(ExameResumoDTO.fromService(resumo));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -137,7 +139,8 @@ public class ExameMEController {
             ExameME novoExame = exameService.criarExame(exame);
             return ResponseEntity.status(HttpStatus.CREATED).body(ExameMEDTO.fromEntity(novoExame));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao criar exame: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponseDTO("Erro ao criar exame: " + e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 }

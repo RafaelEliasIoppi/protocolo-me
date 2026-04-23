@@ -1,5 +1,6 @@
 package back.backend.controller;
 
+import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.OrgaoDoadoDTO;
 import back.backend.dto.ProtocoloMEDTO;
 import back.backend.model.ProtocoloME;
@@ -35,7 +36,7 @@ public class ProtocoloMEController {
 
             if (pacienteIdObj == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(Map.of("mensagem", "pacienteId é obrigatório"));
+                        .body(new ErrorResponseDTO("pacienteId é obrigatório", HttpStatus.BAD_REQUEST.value()));
             }
 
             Long pacienteId = Long.valueOf(String.valueOf(pacienteIdObj));
@@ -51,7 +52,7 @@ public class ProtocoloMEController {
                 return ResponseEntity.status(HttpStatus.CREATED).body(dtoFromEntity(novoProtocolo));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("mensagem", e.getMessage()));
+                    .body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 
@@ -157,7 +158,7 @@ public class ProtocoloMEController {
             return ResponseEntity.ok(dtoFromEntity(protocolo));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("mensagem", e.getMessage()));
+                    .body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 

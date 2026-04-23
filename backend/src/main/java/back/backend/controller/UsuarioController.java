@@ -1,6 +1,7 @@
 package back.backend.controller;
 
 import back.backend.dto.AcaoResponseDTO;
+import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.AuthResponseDTO;
 import back.backend.dto.UsuarioDTO;
 import back.backend.model.Usuario;
@@ -52,7 +53,7 @@ public class UsuarioController {
 
             if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(new ErroResponse("Cadastro público permite apenas MÉDICO ou ENFERMEIRO", HttpStatus.FORBIDDEN.value()));
+                    .body(new ErrorResponseDTO("Cadastro público permite apenas MÉDICO ou ENFERMEIRO", HttpStatus.FORBIDDEN.value()));
             }
 
             Usuario salvo = usuarioService.registrar(usuario);
@@ -60,7 +61,7 @@ public class UsuarioController {
 
         } catch (RuntimeException e) {
             log.warn("Erro ao registrar usuário: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new ErroResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 
@@ -71,7 +72,7 @@ public class UsuarioController {
     public ResponseEntity<?> registrarAdministrador(@RequestBody Usuario usuario) {
         try {
             if (usuario.getRole() == null) {
-                return ResponseEntity.badRequest().body(new ErroResponse("Informe a função", HttpStatus.BAD_REQUEST.value()));
+                return ResponseEntity.badRequest().body(new ErrorResponseDTO("Informe a função", HttpStatus.BAD_REQUEST.value()));
             }
 
             normalizarEmail(usuario);
@@ -86,12 +87,12 @@ public class UsuarioController {
 
             if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(new ErroResponse("Primeiro usuário deve ser ADMIN", HttpStatus.FORBIDDEN.value()));
+                    .body(new ErrorResponseDTO("Primeiro usuário deve ser ADMIN", HttpStatus.FORBIDDEN.value()));
             }
 
             if (totalAdmins > 0 && !isAdmin) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(new ErroResponse("Apenas ADMIN pode cadastrar usuários", HttpStatus.FORBIDDEN.value()));
+                    .body(new ErrorResponseDTO("Apenas ADMIN pode cadastrar usuários", HttpStatus.FORBIDDEN.value()));
             }
 
             Usuario salvo = usuarioService.registrar(usuario);
@@ -99,7 +100,7 @@ public class UsuarioController {
 
         } catch (RuntimeException e) {
             log.warn("Erro ao registrar admin: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new ErroResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 
@@ -117,7 +118,7 @@ public class UsuarioController {
 
             if (email.isBlank() || senha.isBlank()) {
                 return ResponseEntity.badRequest()
-                        .body(new ErroResponse("Email e senha são obrigatórios", HttpStatus.BAD_REQUEST.value()));
+                    .body(new ErrorResponseDTO("Email e senha são obrigatórios", HttpStatus.BAD_REQUEST.value()));
             }
 
             Optional<Usuario> usuarioOpt = usuarioService.findByEmail(email);
@@ -125,7 +126,7 @@ public class UsuarioController {
             // ✅ TESTE: usuário inexistente
             if (usuarioOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ErroResponse("Usuário não encontrado ou inativo", HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseDTO("Usuário não encontrado ou inativo", HttpStatus.UNAUTHORIZED.value()));
             }
 
             Usuario usuario = usuarioOpt.get();
@@ -133,13 +134,13 @@ public class UsuarioController {
             // ✅ TESTE: usuário inativo
             if (!Boolean.TRUE.equals(usuario.getAtivo())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ErroResponse("Usuário não encontrado ou inativo", HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseDTO("Usuário não encontrado ou inativo", HttpStatus.UNAUTHORIZED.value()));
             }
 
             // ✅ TESTE: senha incorreta
             if (!passwordEncoder.matches(senha, usuario.getSenha())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ErroResponse("Senha incorreta", HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseDTO("Senha incorreta", HttpStatus.UNAUTHORIZED.value()));
             }
 
             String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getRole().name());
@@ -150,7 +151,7 @@ public class UsuarioController {
         } catch (Exception e) {
             log.error("Erro interno no login", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErroResponse("Erro interno no servidor", HttpStatus.INTERNAL_SERVER_ERROR.value()));
+                    .body(new ErrorResponseDTO("Erro interno no servidor", HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
     }
 
@@ -164,7 +165,7 @@ public class UsuarioController {
 
             if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(new ErroResponse("Usuário não autenticado", HttpStatus.UNAUTHORIZED.value()));
+                    .body(new ErrorResponseDTO("Usuário não autenticado", HttpStatus.UNAUTHORIZED.value()));
             }
 
             Usuario usuario = usuarioService.alterarMinhaSenha(
@@ -178,7 +179,7 @@ public class UsuarioController {
 
         } catch (RuntimeException e) {
             log.warn("Erro ao alterar senha: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new ErroResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 
@@ -208,7 +209,7 @@ public class UsuarioController {
             return ResponseEntity.ok(UsuarioDTO.fromEntity(atualizado));
         } catch (RuntimeException e) {
             log.warn("Erro ao atualizar usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.badRequest().body(new ErroResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 
@@ -225,7 +226,7 @@ public class UsuarioController {
             return ResponseEntity.ok(new AcaoResponseDTO(usuario.getId(), "Senha redefinida com sucesso"));
         } catch (RuntimeException e) {
             log.warn("Erro ao redefinir senha do usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.badRequest().body(new ErroResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 
@@ -239,7 +240,7 @@ public class UsuarioController {
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             log.warn("Erro ao deletar usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.badRequest().body(new ErroResponse(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
         }
     }
 

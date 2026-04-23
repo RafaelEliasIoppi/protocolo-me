@@ -1,5 +1,6 @@
 package back.backend.controller;
 
+import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.OrgaoDoadoDTO;
 import back.backend.model.OrgaoDoado;
 import back.backend.service.OrgaoDoadoService;
@@ -29,9 +30,9 @@ public class OrgaoDoadoController {
             OrgaoDoado novo = orgaoDoadoService.criar(orgaoDoado);
             return ResponseEntity.status(201).body(dtoFromEntity(novo));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), 400));
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), 400));
         }
     }
 
@@ -63,7 +64,7 @@ public class OrgaoDoadoController {
             OrgaoDoado atualizado = orgaoDoadoService.atualizar(id, orgaoDoadoAtualizado);
             return ResponseEntity.ok(dtoFromEntity(atualizado));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), 400));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
