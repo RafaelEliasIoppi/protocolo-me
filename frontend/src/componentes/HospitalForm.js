@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import { formatarTelefone } from '../utils/telefone';
 import '../styles/HospitalForm.css';
 
 const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
@@ -26,7 +27,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
         endereco: hospitalParaEditar.endereco || '',
         cidade: hospitalParaEditar.cidade || '',
         estado: hospitalParaEditar.estado || '',
-        telefone: hospitalParaEditar.telefone || '',
+        telefone: formatarTelefone(hospitalParaEditar.telefone),
         email: hospitalParaEditar.email || '',
         responsavelMedico: hospitalParaEditar.responsavelMedico || ''
       });
@@ -35,6 +36,19 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'telefone') {
+      const telefoneNumerico = value.replace(/\D/g, '').slice(0, 11);
+      const telefoneFormatado = formatarTelefone(telefoneNumerico);
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: telefoneFormatado
+      }));
+      setErro('');
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -198,6 +212,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
               name="telefone"
               value={formData.telefone}
               onChange={handleChange}
+              maxLength="15"
               placeholder="Ex: (11) 98765-4321"
             />
           </div>

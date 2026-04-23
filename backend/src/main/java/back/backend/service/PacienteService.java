@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -41,6 +42,7 @@ public class PacienteService {
         if (paciente.getStatus() == null || paciente.getStatus() == Paciente.StatusPaciente.EM_PROTOCOLO_ME) {
             paciente.setStatus(Paciente.StatusPaciente.INTERNADO);
         }
+        paciente.setCpf(normalizarCpf(paciente.getCpf()));
         preencherHospitalOrigemSeNecessario(paciente);
         validarPaciente(paciente);
         return pacienteRepository.save(paciente);
@@ -51,6 +53,10 @@ public class PacienteService {
      */
     public Paciente atualizarPaciente(Long id, Paciente pacienteAtualizado) {
         Paciente paciente = obterPacientePorId(id);
+
+        if (pacienteAtualizado.getCpf() != null && !pacienteAtualizado.getCpf().trim().isEmpty()) {
+            paciente.setCpf(normalizarCpf(pacienteAtualizado.getCpf()));
+        }
 
         if (pacienteAtualizado.getHospital() != null) {
             paciente.setHospital(pacienteAtualizado.getHospital());
@@ -354,9 +360,7 @@ public class PacienteService {
             throw new IllegalArgumentException("Nome do paciente é obrigatório");
         }
         
-        if (paciente.getCpf() == null || paciente.getCpf().trim().isEmpty()) {
-            throw new IllegalArgumentException("CPF do paciente é obrigatório");
-        }
+        paciente.setCpf(normalizarCpf(paciente.getCpf()));
         
         if (paciente.getDataNascimento() == null) {
             throw new IllegalArgumentException("Data de nascimento é obrigatória");
@@ -375,10 +379,27 @@ public class PacienteService {
         }
         
         // Validar se CPF já existe (exceto se for update do próprio paciente)
-        Optional<Paciente> existente = pacienteRepository.findByCpf(paciente.getCpf());
+        Optional<Paciente> existente = pacienteRepository.findAll().stream()
+                .filter(item -> item.getCpf() != null)
+                .filter(item -> normalizarCpf(item.getCpf()).equals(normalizarCpf(paciente.getCpf())))
+                .findFirst();
+
         if (existente.isPresent() && !existente.get().getId().equals(paciente.getId())) {
             throw new IllegalArgumentException("CPF já está registrado no sistema");
         }
+    }
+
+    private String normalizarCpf(String cpf) {
+        if (cpf == null) {
+            throw new IllegalArgumentException("CPF do paciente é obrigatório");
+        }
+
+        String apenasNumeros = cpf.replaceAll("\\D", "");
+        if (apenasNumeros.length() != 11) {
+            throw new IllegalArgumentException("CPF deve conter 11 dígitos");
+        }
+
+        return apenasNumeros.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
     }
 
     private void preencherHospitalOrigemSeNecessario(Paciente paciente) {

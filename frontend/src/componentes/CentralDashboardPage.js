@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import apiClient from "../services/apiClient";
 import CentralPacienteEditForm from "./CentralPacienteEditForm";
+import { formatarCpf } from "../utils/cpf";
 import "../styles/CentralDashboardPage.css";
 
 const CHAVE_CONFIG_ESTATISTICA_CENTRAL = "central_dashboard_estatisticas_campos";
@@ -476,7 +477,7 @@ function CentralDashboardPage() {
         <body>
           <h1>Relatorio Final do Paciente</h1>
           <div class="meta"><strong>Paciente:</strong> ${relatorioFinalPaciente.nomePaciente || ""}</div>
-          <div class="meta"><strong>CPF:</strong> ${relatorioFinalPaciente.cpf || ""}</div>
+          <div class="meta"><strong>CPF:</strong> ${formatarCpf(relatorioFinalPaciente.cpf)}</div>
           <div class="meta"><strong>Hospital:</strong> ${relatorioFinalPaciente.hospital || ""}</div>
           <div class="meta"><strong>Status Paciente:</strong> ${relatorioFinalPaciente.statusPaciente || ""}</div>
           <div class="meta"><strong>Status Final Protocolo:</strong> ${relatorioFinalPaciente.statusFinalProtocolo || ""}</div>
@@ -732,7 +733,7 @@ function CentralDashboardPage() {
                       <td className="col-nome" data-label="Nome">
                         <strong>{paciente.nome}</strong>
                       </td>
-                      <td className="col-cpf" data-label="CPF">{paciente.cpf}</td>
+                      <td className="col-cpf" data-label="CPF">{formatarCpf(paciente.cpf)}</td>
                       <td className="col-hospital" data-label="Hospital">{obterNomeHospital(paciente, protocolo)}</td>
                       <td className="col-cidade" data-label="Cidade">{paciente.hospital?.cidade || "N/A"}</td>
                       <td className="col-data" data-label="Data Notificação">
@@ -791,7 +792,7 @@ function CentralDashboardPage() {
                   <strong>Paciente:</strong> {pacienteSelecionado.nome}
                 </div>
                 <div>
-                  <strong>CPF:</strong> {pacienteSelecionado.cpf}
+                  <strong>CPF:</strong> {formatarCpf(pacienteSelecionado.cpf)}
                 </div>
                 <div>
                   <strong>Hospital:</strong> {pacienteSelecionado.hospital}
@@ -832,7 +833,7 @@ function CentralDashboardPage() {
                   </div>
                   <div className="readonly-grid">
                     <div><strong>Paciente:</strong> {relatorioFinalPaciente.nomePaciente}</div>
-                    <div><strong>CPF:</strong> {relatorioFinalPaciente.cpf}</div>
+                    <div><strong>CPF:</strong> {formatarCpf(relatorioFinalPaciente.cpf)}</div>
                     <div><strong>Status Paciente:</strong> {relatorioFinalPaciente.statusPaciente}</div>
                     <div><strong>Status Final Protocolo:</strong> {relatorioFinalPaciente.statusFinalProtocolo}</div>
                     <div><strong>Total Protocolos:</strong> {relatorioFinalPaciente.totalProtocolos}</div>

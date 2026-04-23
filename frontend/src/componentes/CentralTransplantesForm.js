@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import { formatarTelefone } from '../utils/telefone';
 import '../styles/CentralTransplantesForm.css';
 
 const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
@@ -31,12 +32,12 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
         endereco: centralParaEditar.endereco || '',
         cidade: centralParaEditar.cidade || '',
         estado: centralParaEditar.estado || '',
-        telefone: centralParaEditar.telefone || '',
-        telefonePlantao: centralParaEditar.telefonePlantao || '',
+        telefone: formatarTelefone(centralParaEditar.telefone),
+        telefonePlantao: formatarTelefone(centralParaEditar.telefonePlantao),
         email: centralParaEditar.email || '',
         emailPlantao: centralParaEditar.emailPlantao || '',
         coordenador: centralParaEditar.coordenador || '',
-        telefoneCoordenador: centralParaEditar.telefoneCoordenador || '',
+        telefoneCoordenador: formatarTelefone(centralParaEditar.telefoneCoordenador),
         capacidadeProcessamento: centralParaEditar.capacidadeProcessamento || '',
         especialidadesOrgaos: centralParaEditar.especialidadesOrgaos || ''
       });
@@ -45,6 +46,19 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'telefone' || name === 'telefonePlantao' || name === 'telefoneCoordenador') {
+      const telefoneNumerico = value.replace(/\D/g, '').slice(0, 11);
+      const telefoneFormatado = formatarTelefone(telefoneNumerico);
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: telefoneFormatado
+      }));
+      setErro('');
+      return;
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -204,6 +218,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               name="telefone"
               value={formData.telefone}
               onChange={handleChange}
+              maxLength="15"
               placeholder="(11) 3000-0000"
             />
           </div>
@@ -216,6 +231,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               name="telefonePlantao"
               value={formData.telefonePlantao}
               onChange={handleChange}
+              maxLength="15"
               placeholder="(11) 98765-4321"
             />
           </div>
@@ -268,6 +284,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               name="telefoneCoordenador"
               value={formData.telefoneCoordenador}
               onChange={handleChange}
+              maxLength="15"
               placeholder="(11) 99999-9999"
             />
           </div>

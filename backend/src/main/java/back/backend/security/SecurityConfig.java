@@ -78,6 +78,8 @@ public class SecurityConfig {
                     .hasAnyRole("ADMIN","MEDICO")
 
                 // ---------- HOSPITAIS ----------
+                .antMatchers(HttpMethod.GET, "/api/hospitais/**")
+                    .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
                 .antMatchers("/api/hospitais/**")
                     .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
 

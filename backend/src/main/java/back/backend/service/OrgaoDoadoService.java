@@ -80,6 +80,10 @@ public class OrgaoDoadoService {
             orgaoDoado.setStatus(OrgaoDoado.StatusOrgaoDoado.AGUARDANDO_IMPLANTACAO);
         }
 
+        if (orgaoDoado.getCpfReceptor() != null && !orgaoDoado.getCpfReceptor().trim().isEmpty()) {
+            orgaoDoado.setCpfReceptor(normalizarCpf(orgaoDoado.getCpfReceptor()));
+        }
+
         return orgaoDoadoRepository.save(orgaoDoado);
     }
 
@@ -122,7 +126,7 @@ public class OrgaoDoadoService {
         }
 
         if (orgaoDoadoAtualizado.getCpfReceptor() != null) {
-            orgaoDoado.setCpfReceptor(orgaoDoadoAtualizado.getCpfReceptor());
+            orgaoDoado.setCpfReceptor(normalizarCpf(orgaoDoadoAtualizado.getCpfReceptor()));
         }
 
         if (orgaoDoadoAtualizado.getDataArmazenamento() != null) {
@@ -155,6 +159,23 @@ public class OrgaoDoadoService {
         String semAcento = Normalizer.normalize(valor.trim(), Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "");
         return semAcento.toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
+    }
+
+    private String normalizarCpf(String cpf) {
+        if (cpf == null) {
+            return null;
+        }
+
+        String apenasNumeros = cpf.replaceAll("\\D", "");
+        if (apenasNumeros.isEmpty()) {
+            return null;
+        }
+
+        if (apenasNumeros.length() != 11) {
+            throw new IllegalArgumentException("CPF deve conter 11 dígitos");
+        }
+
+        return apenasNumeros.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
     }
 
     /**

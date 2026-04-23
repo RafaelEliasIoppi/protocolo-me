@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import { formatarTelefone } from '../utils/telefone';
 import '../styles/CentralPacienteEditForm.css';
 
 const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
@@ -66,7 +67,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
           diagnosticoPrincipal: paciente.diagnosticoPrincipal || '',
           historicoMedico: paciente.historicoMedico || '',
           nomeResponsavel: paciente.nomeResponsavel || '',
-          telefoneResponsavel: paciente.telefoneResponsavel || '',
+          telefoneResponsavel: formatarTelefone(paciente.telefoneResponsavel),
           emailResponsavel: paciente.emailResponsavel || '',
           status: paciente.status || 'INTERNADO'
         });
@@ -81,6 +82,26 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'cpf') {
+      const cpfNumerico = value.replace(/\D/g, '').slice(0, 11);
+      const cpfFormatado = cpfNumerico
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+      setFormData({ ...formData, [name]: cpfFormatado });
+      return;
+    }
+
+    if (name === 'telefoneResponsavel') {
+      const telefoneNumerico = value.replace(/\D/g, '').slice(0, 11);
+      const telefoneFormatado = formatarTelefone(telefoneNumerico);
+
+      setFormData({ ...formData, [name]: telefoneFormatado });
+      return;
+    }
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -148,6 +169,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
               name="cpf"
               value={formData.cpf}
               onChange={handleInputChange}
+              maxLength={14}
               required
               disabled={carregando}
             />
@@ -257,6 +279,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
               name="telefoneResponsavel"
               value={formData.telefoneResponsavel}
               onChange={handleInputChange}
+              maxLength={15}
               disabled={carregando}
             />
           </div>

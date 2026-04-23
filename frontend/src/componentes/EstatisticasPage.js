@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import { formatarCpf } from '../utils/cpf';
 import '../styles/EstatisticasPage.css';
 
 const CAMPOS_ESTATISTICA_PROTOCOLO = [
@@ -507,7 +508,7 @@ const EstatisticasPage = () => {
                       <summary className="paciente-header">
                         <div className="paciente-info">
                           <strong>{paciente.nomePaciente}</strong>
-                          <span className="cpf">CPF: {paciente.cpfPaciente}</span>
+                          <span className="cpf">CPF: {formatarCpf(paciente.cpfPaciente)}</span>
                           <span className="data-doacao">
                             {new Date(paciente.dataDoacao).toLocaleDateString('pt-BR')}
                           </span>
@@ -539,7 +540,7 @@ const EstatisticasPage = () => {
                                   <tr key={idx}>
                                     <td><strong>{orgao.nomeOrgao}</strong></td>
                                     <td>{orgao.nomeReceptor}</td>
-                                    <td>{orgao.cpfReceptor}</td>
+                                    <td>{formatarCpf(orgao.cpfReceptor)}</td>
                                     <td>{orgao.hospitalReceptor}</td>
                                     <td>{new Date(orgao.dataImplantacao).toLocaleDateString('pt-BR')}</td>
                                   </tr>

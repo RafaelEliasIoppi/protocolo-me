@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import { formatarCpf } from '../utils/cpf';
+import { formatarTelefone } from '../utils/telefone';
 import '../styles/PacienteForm.css';
 
 const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => {
@@ -74,7 +76,7 @@ const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => 
         diagnosticoPrincipal: paciente.diagnosticoPrincipal || '',
         historicoMedico: paciente.historicoMedico || '',
         nomeResponsavel: paciente.nomeResponsavel || '',
-        telefoneResponsavel: paciente.telefoneResponsavel || '',
+        telefoneResponsavel: formatarTelefone(paciente.telefoneResponsavel),
         emailResponsavel: paciente.emailResponsavel || '',
         statusEntrevistaFamiliar: paciente.statusEntrevistaFamiliar || '',
         observacoesEntrevistaFamiliar: paciente.observacoesEntrevistaFamiliar || '',
@@ -135,6 +137,32 @@ const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'telefoneResponsavel') {
+      const telefoneNumerico = value.replace(/\D/g, '').slice(0, 11);
+      const telefoneFormatado = formatarTelefone(telefoneNumerico);
+
+      setFormData({
+        ...formData,
+        [name]: telefoneFormatado
+      });
+      return;
+    }
+
+    if (name === 'cpf') {
+      const cpfNumerico = value.replace(/\D/g, '').slice(0, 11);
+      const cpfFormatado = cpfNumerico
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+      setFormData({
+        ...formData,
+        [name]: cpfFormatado
+      });
+      return;
+    }
+
     setFormData({
       ...formData,
       [name]: value
@@ -188,7 +216,7 @@ const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => 
       diagnosticoPrincipal: pacienteItem.diagnosticoPrincipal || '',
       historicoMedico: pacienteItem.historicoMedico || '',
       nomeResponsavel: pacienteItem.nomeResponsavel || '',
-      telefoneResponsavel: pacienteItem.telefoneResponsavel || '',
+      telefoneResponsavel: formatarTelefone(pacienteItem.telefoneResponsavel),
       emailResponsavel: pacienteItem.emailResponsavel || '',
       statusEntrevistaFamiliar: pacienteItem.statusEntrevistaFamiliar || '',
       observacoesEntrevistaFamiliar: pacienteItem.observacoesEntrevistaFamiliar || '',
@@ -328,6 +356,7 @@ const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => 
               name="cpf"
               value={formData.cpf}
               onChange={handleInputChange}
+              maxLength={14}
               required
               placeholder="XXX.XXX.XXX-XX"
               disabled={editandoId !== null}
@@ -488,6 +517,7 @@ const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => 
               name="telefoneResponsavel"
               value={formData.telefoneResponsavel}
               onChange={handleInputChange}
+              maxLength={15}
               placeholder="(XX) XXXXX-XXXX"
             />
           </div>
@@ -574,7 +604,7 @@ const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => 
                       </span>
                     </div>
                     <div className="card-body">
-                      <p><strong>CPF:</strong> {pItem.cpf}</p>
+                      <p><strong>CPF:</strong> {formatarCpf(pItem.cpf)}</p>
                       <p><strong>Gênero:</strong> {pItem.genero}</p>
                       <p><strong>Data Nascimento:</strong> {formatarData(pItem.dataNascimento)}</p>
                       <p><strong>Hospital:</strong> {pItem.hospital?.nome || pItem.hospital?.nomeHospital || '-'}</p>

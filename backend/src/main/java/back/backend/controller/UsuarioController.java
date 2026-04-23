@@ -201,6 +201,57 @@ public class UsuarioController {
     }
 
     // =========================
+    // ATUALIZAR USUÁRIO
+    // =========================
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizarUsuario(@PathVariable Long id, @RequestBody Usuario dados) {
+        try {
+            normalizarEmail(dados);
+
+            Usuario atualizado = usuarioService.atualizarUsuario(id, dados);
+
+            return ResponseEntity.ok(toUsuarioResponse(atualizado));
+        } catch (RuntimeException e) {
+            log.warn("Erro ao atualizar usuário {}: {}", id, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    // =========================
+    // REDEFINIR SENHA
+    // =========================
+    @PatchMapping("/{id}/senha")
+    public ResponseEntity<?> redefinirSenha(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+        try {
+            String senhaNova = payload.get("senhaNova");
+
+            Usuario usuario = usuarioService.redefinirSenha(id, senhaNova);
+
+            return ResponseEntity.ok(Map.of(
+                    "id", usuario.getId(),
+                    "mensagem", "Senha redefinida com sucesso"
+            ));
+        } catch (RuntimeException e) {
+            log.warn("Erro ao redefinir senha do usuário {}: {}", id, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    // =========================
+    // REMOVER USUÁRIO
+    // =========================
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletarUsuario(@PathVariable Long id) {
+        try {
+            usuarioService.deletar(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            log.warn("Erro ao deletar usuário {}: {}", id, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+    // =========================
     // UTIL
     // =========================
     private void normalizarEmail(Usuario usuario) {

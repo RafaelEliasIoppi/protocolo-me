@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import apiClient from "../services/apiClient";
 import OrgaoDoadoManager from "./OrgaoDoadoManager";
+import { formatarCpf } from "../utils/cpf";
 import "../styles/PacientesProtocoloMEPage.css";
 
 function PacientesProtocoloMEPage() {
@@ -158,7 +159,7 @@ function PacientesProtocoloMEPage() {
                   <div className="card-body">
                     <div className="info-row">
                       <label>CPF:</label>
-                      <span>{paciente.cpf}</span>
+                      <span>{formatarCpf(paciente.cpf)}</span>
                     </div>
                     <div className="info-row">
                       <label>Data de Nascimento:</label>

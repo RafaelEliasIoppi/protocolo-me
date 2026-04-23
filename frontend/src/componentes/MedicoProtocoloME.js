@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import apiClient from "../services/apiClient";
 import ExameMEManager from "./ExameMEManager";
 import EntrevistaFamiliarManager from "./EntrevistaFamiliarManager";
+import { formatarCpf } from "../utils/cpf";
 import "../styles/MedicoProtocoloME.css";
 
 function MedicoProtocoloME() {
@@ -316,7 +317,7 @@ function MedicoProtocoloME() {
                   <option value="">-- Selecione um paciente --</option>
                   {pacientesDisponiveis.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.nome} ({p.cpf}) - {p.hospital?.nome || p.hospitalNome || p.hospital?.nomeHospital || "-"}
+                      {p.nome} ({formatarCpf(p.cpf)}) - {p.hospital?.nome || p.hospitalNome || p.hospital?.nomeHospital || "-"}
                     </option>
                   ))}
                 </select>
@@ -396,7 +397,7 @@ function MedicoProtocoloME() {
                   <div className="card-header">
                     <div>
                       <h3>{paciente.nome}</h3>
-                      <p className="cpf">CPF: {paciente.cpf}</p>
+                      <p className="cpf">CPF: {formatarCpf(paciente.cpf)}</p>
                     </div>
                     <span className={`status-badge status-${statusBadge.cor}`}>
                       {statusBadge.label}

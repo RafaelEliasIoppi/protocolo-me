@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import { formatarTelefone } from '../utils/telefone';
 import '../styles/HospitalStatus.css';
 
 const HospitalStatus = () => {
@@ -117,7 +118,7 @@ const HospitalStatus = () => {
                 <p><strong>Localização:</strong> {hospital.cidade}, {hospital.estado}</p>
                 <p><strong>Responsável Médico:</strong> {hospital.responsavelMedico || 'Não informado'}</p>
                 {hospital.email && <p><strong>Email:</strong> {hospital.email}</p>}
-                {hospital.telefone && <p><strong>Telefone:</strong> {hospital.telefone}</p>}
+                {hospital.telefone && <p><strong>Telefone:</strong> {formatarTelefone(hospital.telefone)}</p>}
               </div>
 
               <div className="hospital-actions">

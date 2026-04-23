@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
+import { formatarCpf } from '../utils/cpf';
 import '../styles/OrgaoDoadoManager.css';
 
 const OrgaoDoadoManager = ({ protocoloId }) => {
@@ -85,6 +86,21 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
+
+    if (name === 'cpfReceptor') {
+      const cpfNumerico = value.replace(/\D/g, '').slice(0, 11);
+      const cpfFormatado = cpfNumerico
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+
+      setFormOrgao(prev => ({
+        ...prev,
+        [name]: cpfFormatado
+      }));
+      return;
+    }
+
     setFormOrgao(prev => ({
       ...prev,
       [name]: value
@@ -327,6 +343,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                     placeholder="CPF do receptor"
                     value={formOrgao.cpfReceptor}
                     onChange={handleChangeForm}
+                    maxLength={14}
                   />
                 </div>
               </div>
@@ -508,7 +525,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                   {orgao.cpfReceptor && (
                     <div className="detail-row">
                       <span className="detail-label">CPF do Receptor:</span>
-                      <span>{orgao.cpfReceptor}</span>
+                      <span>{formatarCpf(orgao.cpfReceptor)}</span>
                     </div>
                   )}
                   {orgao.motivo && (

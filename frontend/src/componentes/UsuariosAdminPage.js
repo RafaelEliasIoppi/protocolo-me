@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import autenticarService from "../services/autenticarService";
 
 const roleOpcoes = [
@@ -32,6 +32,8 @@ function UsuariosAdminPage() {
   const [novaSenha, setNovaSenha] = useState("");
 
   const [usuarios, setUsuarios] = useState([]);
+  const [termoBusca, setTermoBusca] = useState("");
+  const [filtroRole, setFiltroRole] = useState("TODOS");
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
@@ -67,6 +69,21 @@ function UsuariosAdminPage() {
 
   const normalizarEmail = (email) =>
     email.trim().toLowerCase();
+
+  const usuariosFiltrados = useMemo(() => {
+    const busca = termoBusca.trim().toLowerCase();
+
+    return usuarios.filter((u) => {
+      const nome = (u.nome || "").toLowerCase();
+      const email = (u.email || "").toLowerCase();
+      const role = u.role || "";
+
+      const passaRole = filtroRole === "TODOS" || role === filtroRole;
+      const passaBusca = !busca || nome.includes(busca) || email.includes(busca);
+
+      return passaRole && passaBusca;
+    });
+  }, [usuarios, termoBusca, filtroRole]);
 
   // =========================
   // CADASTRO
@@ -242,24 +259,62 @@ function UsuariosAdminPage() {
             </div>
           </header>
 
+          <div className="usuarios-filtros">
+            <input
+              className="input-field"
+              type="text"
+              placeholder="Buscar por nome ou email"
+              value={termoBusca}
+              onChange={(e) => setTermoBusca(e.target.value)}
+            />
+
+            <select
+              className="select-field"
+              value={filtroRole}
+              onChange={(e) => setFiltroRole(e.target.value)}
+            >
+              <option value="TODOS">Todos os perfis</option>
+              {roleOpcoes.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <p className="note usuarios-resumo-lista">
+            Exibindo {usuariosFiltrados.length} de {usuarios.length} usuários
+          </p>
+
           {carregandoLista ? (
             <p>Carregando...</p>
           ) : usuarios.length === 0 ? (
             <p>Nenhum usuário cadastrado</p>
+          ) : usuariosFiltrados.length === 0 ? (
+            <p>Nenhum usuário encontrado com os filtros atuais</p>
           ) : (
             <div className="usuarios-lista">
-              {usuarios.map((u) => (
-                <div key={u.id} className="usuario-card">
-                  <div className="usuario-card-info">
-                    <strong>{u.nome}</strong>
-                    <span>{u.email}</span>
-                    <span className="note">{u.role}</span>
+              {usuariosFiltrados.map((u) => {
+                const roleAtual = roleOpcoes.find((r) => r.value === u.role);
+
+                return (
+                  <div key={u.id} className="usuario-card">
+                    <div className="usuario-card-info">
+                      <strong>{u.nome}</strong>
+                      <span>{u.email}</span>
+                      <div className="usuario-meta">
+                        <span className="usuario-role-badge">{roleAtual?.label || u.role}</span>
+                        <span className={`usuario-status ${u.ativo ? "ativo" : "inativo"}`}>
+                          {u.ativo ? "Ativo" : "Inativo"}
+                        </span>
+                      </div>
+                    </div>
+                    <button className="secondary-button" type="button" onClick={() => abrirEdicao(u)}>
+                      Editar
+                    </button>
                   </div>
-                  <button className="secondary-button" onClick={() => abrirEdicao(u)}>
-                    Editar
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
