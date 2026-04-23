@@ -108,70 +108,79 @@ function Login({ onLogin }) {
   return (
     <div className="login-screen">
       <div className="login-card">
+        <div className="login-hero">
+          <h2>{isRegister ? "Criar conta" : "Login"}</h2>
+          <p>
+            {isRegister
+              ? "Cadastre um novo usuário para acessar o sistema."
+              : "Acesse o sistema com seu email e senha."}
+          </p>
+        </div>
 
-        <h2>{isRegister ? "Criar conta" : "Login"}</h2>
+        <div className="login-panel">
+          {erro && <div className="mensagem erro">{erro}</div>}
+          {mensagem && <div className="mensagem sucesso">{mensagem}</div>}
 
-        {erro && <div className="erro-message">{erro}</div>}
-        {mensagem && <div className="sucesso-message">{mensagem}</div>}
+          <form onSubmit={handleSubmit}>
 
-        <form onSubmit={handleSubmit}>
+            {isRegister && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Nome"
+                  value={form.nome}
+                  onChange={(e) => handleChange("nome", e.target.value)}
+                  disabled={carregando}
+                />
 
-          {isRegister && (
-            <>
-              <input
-                type="text"
-                placeholder="Nome"
-                value={form.nome}
-                onChange={(e) => handleChange("nome", e.target.value)}
-                disabled={carregando}
-              />
+                <select
+                  value={form.role}
+                  onChange={(e) => handleChange("role", e.target.value)}
+                  disabled={carregando}
+                >
+                  <option value="MEDICO">Médico</option>
+                  <option value="ENFERMEIRO">Enfermeiro</option>
+                </select>
+              </>
+            )}
 
-              <select
-                value={form.role}
-                onChange={(e) => handleChange("role", e.target.value)}
-                disabled={carregando}
-              >
-                <option value="MEDICO">Médico</option>
-                <option value="ENFERMEIRO">Enfermeiro</option>
-              </select>
-            </>
-          )}
+            <input
+              type="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              disabled={carregando}
+            />
 
-          <input
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => handleChange("email", e.target.value)}
-            disabled={carregando}
-          />
+            <input
+              type="password"
+              placeholder="Senha"
+              value={form.senha}
+              onChange={(e) => handleChange("senha", e.target.value)}
+              disabled={carregando}
+            />
 
-          <input
-            type="password"
-            placeholder="Senha"
-            value={form.senha}
-            onChange={(e) => handleChange("senha", e.target.value)}
-            disabled={carregando}
-          />
+            <button type="submit" disabled={carregando}>
+              {carregando
+                ? "Processando..."
+                : isRegister
+                ? "Cadastrar"
+                : "Entrar"}
+            </button>
+          </form>
 
-          <button type="submit" disabled={carregando}>
-            {carregando
-              ? "Processando..."
-              : isRegister
-              ? "Cadastrar"
-              : "Entrar"}
-          </button>
-        </form>
-
-        <div style={{ marginTop: 10 }}>
-          <button
-            onClick={() => {
-              setIsRegister(!isRegister);
-              limparMensagens();
-            }}
-            disabled={carregando}
-          >
-            {isRegister ? "Voltar ao login" : "Criar conta"}
-          </button>
+          <div style={{ marginTop: 10 }}>
+            <button
+              className="secondary-button"
+              onClick={() => {
+                setIsRegister(!isRegister);
+                limparMensagens();
+              }}
+              disabled={carregando}
+            >
+              {isRegister ? "Voltar ao login" : "Criar conta"}
+            </button>
+          </div>
         </div>
 
       </div>

@@ -55,6 +55,7 @@ public class SecurityConfig {
             // =========================
             .authorizeRequests()
                 // ---------- PUBLIC ----------
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
@@ -123,10 +124,8 @@ public class SecurityConfig {
 
     // =====================================================
     // CORS CONFIG
-    // =====================================================
-    @Value("${app.cors.allowed-origins}")
+   @Value("${app.cors.allowed-origins:https://*.app.github.dev}")
     private String allowedOrigins;
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();

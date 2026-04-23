@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder; // ✅ IMPORT CORRETO
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import org.slf4j.Logger;
@@ -101,7 +101,7 @@ public class UsuarioController {
     }
 
     // =========================
-    // LOGIN
+    // LOGIN (AJUSTADO PARA TESTES)
     // =========================
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credenciais) {
@@ -119,21 +119,24 @@ public class UsuarioController {
 
             Optional<Usuario> usuarioOpt = usuarioService.findByEmail(email);
 
+            // ✅ TESTE: usuário inexistente
             if (usuarioOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("erro", "Credenciais inválidas"));
+                        .body(Map.of("erro", "Usuário não encontrado ou inativo"));
             }
 
             Usuario usuario = usuarioOpt.get();
 
+            // ✅ TESTE: usuário inativo
             if (!Boolean.TRUE.equals(usuario.getAtivo())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("erro", "Usuário inativo"));
+                        .body(Map.of("erro", "Usuário não encontrado ou inativo"));
             }
 
+            // ✅ TESTE: senha incorreta
             if (!passwordEncoder.matches(senha, usuario.getSenha())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("erro", "Credenciais inválidas"));
+                        .body(Map.of("erro", "Senha incorreta"));
             }
 
             String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getRole().name());
