@@ -13,6 +13,8 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 
 import org.springframework.web.cors.*;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.List;
 
 @Configuration
@@ -32,96 +34,84 @@ public class SecurityConfig {
             // =========================
             // CORS + CSRF
             // =========================
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
+            .cors().configurationSource(corsConfigurationSource()).and()
+            .csrf().disable()
 
             // =========================
             // EXCEPTION HANDLING
             // =========================
-            .exceptionHandling(ex -> ex
+            .exceptionHandling()
                 .authenticationEntryPoint(unauthorizedHandler())
-                .accessDeniedHandler(accessDeniedHandler())
-            )
+                .accessDeniedHandler(accessDeniedHandler()).and()
 
             // =========================
             // SESSÃO (JWT)
             // =========================
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 
             // =========================
             // AUTORIZAÇÃO
             // =========================
-            .authorizeHttpRequests(auth -> auth
-
+            .authorizeRequests()
                 // ---------- PUBLIC ----------
-                .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
+                .antMatchers("/h2-console/**").permitAll()
 
                 // ---------- USUÁRIOS ----------
-                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
-                .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
+                .antMatchers("/api/usuarios/**").hasRole("ADMIN")
 
                 // ---------- PACIENTES ----------
-                .requestMatchers(HttpMethod.GET, "/api/pacientes/**")
+                .antMatchers(HttpMethod.GET, "/api/pacientes/**")
                     .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
-
-                .requestMatchers(HttpMethod.POST, "/api/pacientes/**")
+                .antMatchers(HttpMethod.POST, "/api/pacientes/**")
                     .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
-
-                .requestMatchers(HttpMethod.PUT, "/api/pacientes/**")
+                .antMatchers(HttpMethod.PUT, "/api/pacientes/**")
                     .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
-
-                .requestMatchers(HttpMethod.PATCH, "/api/pacientes/**")
+                .antMatchers(HttpMethod.PATCH, "/api/pacientes/**")
                     .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
-
-                .requestMatchers(HttpMethod.DELETE, "/api/pacientes/**")
+                .antMatchers(HttpMethod.DELETE, "/api/pacientes/**")
                     .hasAnyRole("ADMIN","MEDICO")
 
                 // ---------- HOSPITAIS ----------
-                .requestMatchers("/api/hospitais/**")
+                .antMatchers("/api/hospitais/**")
                     .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
 
                 // ---------- CENTRAIS ----------
-                .requestMatchers(HttpMethod.GET, "/api/centrais-transplantes/**")
+                .antMatchers(HttpMethod.GET, "/api/centrais-transplantes/**")
                     .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
-
-                .requestMatchers("/api/centrais-transplantes/**")
+                .antMatchers("/api/centrais-transplantes/**")
                     .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
 
                 // ---------- PROTOCOLOS ----------
-                .requestMatchers(HttpMethod.GET, "/api/protocolos-me/**")
+                .antMatchers(HttpMethod.GET, "/api/protocolos-me/**")
                     .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
-
-                .requestMatchers("/api/protocolos-me/**")
+                .antMatchers("/api/protocolos-me/**")
                     .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
 
                 // ---------- EXAMES ----------
-                .requestMatchers(HttpMethod.GET, "/api/exames-me/**")
+                .antMatchers(HttpMethod.GET, "/api/exames-me/**")
                     .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
-
-                .requestMatchers("/api/exames-me/**")
+                .antMatchers("/api/exames-me/**")
                     .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
 
                 // ---------- ESTATÍSTICAS ----------
-                .requestMatchers(HttpMethod.GET,
+                .antMatchers(HttpMethod.GET,
                         "/api/centrais-transplantes/estatisticas/doadores-receptores")
                     .hasRole("CENTRAL_TRANSPLANTES")
-
-                .requestMatchers("/api/estatisticas-transplantes/**")
+                .antMatchers("/api/estatisticas-transplantes/**")
                     .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN","MEDICO")
 
                 // ---------- DEFAULT ----------
-                .anyRequest().authenticated()
-            )
+                .anyRequest().authenticated().and()
 
             // =========================
             // HEADERS (H2)
             // =========================
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+            .headers().frameOptions().sameOrigin().and()
 
             // =========================
             // JWT FILTER
@@ -132,18 +122,15 @@ public class SecurityConfig {
     }
 
     // =====================================================
-    // CORS CONFIG (CORRIGIDO PARA CODESPACES)
+    // CORS CONFIG
     // =====================================================
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOriginPatterns(List.of(
-            "https://*.app.github.dev",
-            "http://localhost:3000"
-        ));
-
+        config.setAllowedOriginPatterns(List.of(allowedOrigins.split(",")));
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));

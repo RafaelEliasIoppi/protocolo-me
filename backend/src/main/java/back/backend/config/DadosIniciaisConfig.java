@@ -16,18 +16,23 @@ public class DadosIniciaisConfig {
     private static final Logger logger = LoggerFactory.getLogger(DadosIniciaisConfig.class);
 
     @Bean
-    public CommandLineRunner criarAdminInicial(UsuarioService usuarioService,
-                                               @Value("${app.seed.admin-email:admin@protocolo.me}") String adminEmail,
-                                               @Value("${app.seed.admin-password:Admin123!}") String adminPassword,
-                                               @Value("${app.seed.admin-name:Administrador do Sistema}") String adminNome) {
+    public CommandLineRunner criarAdminInicial(
+            UsuarioService usuarioService,
+            @Value("${app.seed.admin-email:admin@protocolo.me}") String adminEmail,
+            @Value("${app.seed.admin-password:Admin123!}") String adminPassword,
+            @Value("${app.seed.admin-name:Administrador do Sistema}") String adminNome) {
+
         return args -> {
+            // Evita duplicar admin se já existir
             if (usuarioService.countAdmins() > 0) {
+                logger.info("Admin já existente, não será recriado.");
                 return;
             }
 
+            // Cria usuário admin inicial
             Usuario admin = new Usuario();
-            admin.setEmail(adminEmail);
-            admin.setSenha(adminPassword);
+            admin.setEmail(adminEmail.trim().toLowerCase());
+            admin.setSenha(adminPassword); // ⚠️ ideal: aplicar hash antes de salvar
             admin.setNome(adminNome);
             admin.setRole(Role.ADMIN);
             admin.setAtivo(true);
