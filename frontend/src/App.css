@@ -414,6 +414,65 @@ a {
   padding: 12px;
 }
 
+.usuarios-admin-page {
+  display: grid;
+  gap: 16px;
+}
+
+.usuarios-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.usuarios-form {
+  display: grid;
+  gap: 12px;
+}
+
+.usuarios-lista {
+  display: grid;
+  gap: 10px;
+  max-height: 460px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.usuario-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.usuario-card-info {
+  display: grid;
+  gap: 3px;
+}
+
+.usuario-card-info strong {
+  font-size: 1rem;
+}
+
+.usuario-card-info span {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.usuario-ativo-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.usuarios-edicao-panel {
+  margin-top: 4px;
+}
+
 .mensagem {
   padding: 10px 12px;
   border-radius: 10px;
@@ -473,6 +532,11 @@ a {
   .app-shell {
     width: calc(100% - 20px);
     padding: 16px 0 28px;
+  }
+
+  .usuario-card {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .filter-panel {

@@ -164,104 +164,179 @@ function UsuariosAdminPage() {
   // UI
   // =========================
   return (
-    <section>
-
-      <h1>Administração de Usuários</h1>
+    <section className="usuarios-admin-page">
+      <div className="brand-bar">
+        <div>
+          <h1>Administração de Usuários</h1>
+          <p>Cadastre, atualize e gerencie perfis de acesso do sistema.</p>
+        </div>
+      </div>
 
       {erro && <div className="mensagem erro">{erro}</div>}
       {sucesso && <div className="mensagem sucesso">{sucesso}</div>}
 
-      {/* CADASTRO */}
-      <form onSubmit={handleSubmit}>
-        <input
-          placeholder="Nome"
-          value={formData.nome}
-          onChange={(e) =>
-            setFormData({ ...formData, nome: e.target.value })
-          }
-        />
+      <div className="overview-layout">
+        <div className="panel usuarios-panel">
+          <header>
+            <div>
+              <h2>Cadastrar Usuário</h2>
+              <p className="note">Disponível apenas para perfil administrador.</p>
+            </div>
+          </header>
 
-        <input
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) =>
-            setFormData({ ...formData, email: e.target.value })
-          }
-        />
+          <form className="usuarios-form" onSubmit={handleSubmit}>
+            <input
+              className="input-field"
+              placeholder="Nome"
+              value={formData.nome}
+              onChange={(e) =>
+                setFormData({ ...formData, nome: e.target.value })
+              }
+            />
 
-        <input
-          type="password"
-          placeholder="Senha"
-          value={formData.senha}
-          onChange={(e) =>
-            setFormData({ ...formData, senha: e.target.value })
-          }
-        />
+            <input
+              className="input-field"
+              type="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+            />
 
-        <select
-          value={formData.role}
-          onChange={(e) =>
-            setFormData({ ...formData, role: e.target.value })
-          }
-        >
-          {roleOpcoes.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
+            <input
+              className="input-field"
+              type="password"
+              placeholder="Senha"
+              value={formData.senha}
+              onChange={(e) =>
+                setFormData({ ...formData, senha: e.target.value })
+              }
+            />
 
-        <button disabled={carregando}>
-          {carregando ? "Salvando..." : "Cadastrar"}
-        </button>
-      </form>
+            <select
+              className="select-field"
+              value={formData.role}
+              onChange={(e) =>
+                setFormData({ ...formData, role: e.target.value })
+              }
+            >
+              {roleOpcoes.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
 
-      {/* LISTA */}
-      {carregandoLista ? (
-        <p>Carregando...</p>
-      ) : usuarios.length === 0 ? (
-        <p>Nenhum usuário cadastrado</p>
-      ) : (
-        usuarios.map((u) => (
-          <div key={u.id}>
-            <b>{u.nome}</b> ({u.email}) - {u.role}
-            <button onClick={() => abrirEdicao(u)}>Editar</button>
-          </div>
-        ))
-      )}
+            <button className="primary-button" disabled={carregando}>
+              {carregando ? "Salvando..." : "Cadastrar"}
+            </button>
+          </form>
+        </div>
+
+        <div className="panel usuarios-panel">
+          <header>
+            <div>
+              <h2>Usuários Cadastrados</h2>
+              <p className="note">Selecione um usuário para editar dados e permissões.</p>
+            </div>
+          </header>
+
+          {carregandoLista ? (
+            <p>Carregando...</p>
+          ) : usuarios.length === 0 ? (
+            <p>Nenhum usuário cadastrado</p>
+          ) : (
+            <div className="usuarios-lista">
+              {usuarios.map((u) => (
+                <div key={u.id} className="usuario-card">
+                  <div className="usuario-card-info">
+                    <strong>{u.nome}</strong>
+                    <span>{u.email}</span>
+                    <span className="note">{u.role}</span>
+                  </div>
+                  <button className="secondary-button" onClick={() => abrirEdicao(u)}>
+                    Editar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* EDIÇÃO */}
       {usuarioSelecionado && (
-        <form onSubmit={salvarEdicao}>
-          <input
-            value={formEdicao.nome}
-            onChange={(e) =>
-              setFormEdicao({ ...formEdicao, nome: e.target.value })
-            }
-          />
+        <div className="panel usuarios-panel usuarios-edicao-panel">
+          <header>
+            <div>
+              <h2>Editando Usuário</h2>
+              <p className="note">Atualize os campos e salve as alterações.</p>
+            </div>
+          </header>
 
-          <input
-            value={formEdicao.email}
-            onChange={(e) =>
-              setFormEdicao({ ...formEdicao, email: e.target.value })
-            }
-          />
+          <form className="usuarios-form" onSubmit={salvarEdicao}>
+            <input
+              className="input-field"
+              value={formEdicao.nome}
+              onChange={(e) =>
+                setFormEdicao({ ...formEdicao, nome: e.target.value })
+              }
+            />
 
-          <input
-            type="password"
-            placeholder="Nova senha"
-            value={novaSenha}
-            onChange={(e) => setNovaSenha(e.target.value)}
-          />
+            <input
+              className="input-field"
+              type="email"
+              value={formEdicao.email}
+              onChange={(e) =>
+                setFormEdicao({ ...formEdicao, email: e.target.value })
+              }
+            />
 
-          <button disabled={carregando}>
-            {carregando ? "Salvando..." : "Salvar"}
-          </button>
+            <select
+              className="select-field"
+              value={formEdicao.role}
+              onChange={(e) =>
+                setFormEdicao({ ...formEdicao, role: e.target.value })
+              }
+            >
+              {roleOpcoes.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
 
-          <button type="button" onClick={fecharEdicao}>
-            Cancelar
-          </button>
-        </form>
+            <input
+              className="input-field"
+              type="password"
+              placeholder="Nova senha (opcional)"
+              value={novaSenha}
+              onChange={(e) => setNovaSenha(e.target.value)}
+            />
+
+            <label className="usuario-ativo-toggle">
+              <input
+                type="checkbox"
+                checked={formEdicao.ativo}
+                onChange={(e) =>
+                  setFormEdicao({ ...formEdicao, ativo: e.target.checked })
+                }
+              />
+              Usuário ativo
+            </label>
+
+            <div className="action-row">
+              <button className="primary-button" disabled={carregando}>
+                {carregando ? "Salvando..." : "Salvar"}
+              </button>
+
+              <button className="secondary-button" type="button" onClick={fecharEdicao}>
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </section>
   );
