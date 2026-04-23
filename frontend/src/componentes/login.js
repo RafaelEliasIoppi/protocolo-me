@@ -3,57 +3,103 @@ import autenticarService from "../services/autenticarService";
 
 function Login({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [nome, setNome] = useState("");
-  const [role, setRole] = useState("MEDICO");
+  const [form, setForm] = useState({
+    nome: "",
+    email: "",
+    senha: "",
+    role: "MEDICO"
+  });
+
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
   const [mensagem, setMensagem] = useState("");
 
   const validarEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleChange = (campo, valor) => {
+    setForm((prev) => ({
+      ...prev,
+      [campo]: valor
+    }));
+  };
+
+  const limparMensagens = () => {
+    setErro("");
+    setMensagem("");
+  };
+
+  const validarFormulario = () => {
+    if (!form.email || !validarEmail(form.email)) {
+      return "Email inválido";
+    }
+
+    if (!form.senha || form.senha.length < 6) {
+      return "Senha deve ter pelo menos 6 caracteres";
+    }
+
+    if (isRegister && (!form.nome || form.nome.trim().length < 3)) {
+      return "Nome deve ter pelo menos 3 caracteres";
+    }
+
+    return null;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErro("");
-    setMensagem("");
+    limparMensagens();
+
+    const erroValidacao = validarFormulario();
+    if (erroValidacao) {
+      setErro(erroValidacao);
+      return;
+    }
+
+    setCarregando(true);
 
     try {
-      // Validações
-      if (!email || !validarEmail(email)) {
-        setErro("Email inválido");
-        return;
-      }
-      if (!senha || senha.length < 6) {
-        setErro("Senha deve ter pelo menos 6 caracteres");
-        return;
-      }
-
-      setCarregando(true);
+      const emailNormalizado = form.email.trim().toLowerCase();
 
       if (isRegister) {
-        if (!nome || nome.trim().length < 3) {
-          setErro("Nome deve ter pelo menos 3 caracteres");
-          setCarregando(false);
-          return;
-        }
-        await autenticarService.registrar({ nome, email, senha, role });
-        setMensagem("Usuário cadastrado com sucesso! Faça login.");
-        setTimeout(() => setIsRegister(false), 2000);
+        await autenticarService.registrar({
+          nome: form.nome.trim(),
+          email: emailNormalizado,
+          senha: form.senha,
+          role: form.role
+        });
+
+        setMensagem("Usuário cadastrado com sucesso!");
+        setTimeout(() => setIsRegister(false), 1500);
+
       } else {
-        await autenticarService.login(email, senha);
+        const response = await autenticarService.login(
+          emailNormalizado,
+          form.senha
+        );
+
+        // 🔐 SALVAR TOKEN
+        localStorage.setItem("token", response.token);
+        localStorage.setItem("usuario", JSON.stringify(response.usuario));
+
         setMensagem("Login realizado com sucesso!");
-        setTimeout(() => onLogin(), 1500);
+
+        // limpa senha da memória
+        setForm((prev) => ({ ...prev, senha: "" }));
+
+        setTimeout(() => onLogin(), 1000);
       }
+
     } catch (error) {
-      const erroBackend = error.response?.data?.erro || error.response?.data?.mensagem;
-      const mensagemErro = erroBackend === "Email já cadastrado"
-        ? "Este email já está cadastrado. Use outro email para criar a conta."
-        : erroBackend || (isRegister ? "Erro ao cadastrar usuário" : "Email ou senha inválidos");
-      setErro(mensagemErro);
+      const erroBackend =
+        error.response?.data?.erro ||
+        error.response?.data?.mensagem;
+
+      setErro(
+        erroBackend === "Email já cadastrado"
+          ? "Este email já está em uso."
+          : erroBackend || "Erro na operação"
+      );
     } finally {
       setCarregando(false);
     }
@@ -62,98 +108,72 @@ function Login({ onLogin }) {
   return (
     <div className="login-screen">
       <div className="login-card">
-        <div className="login-hero">
-          <h2>{isRegister ? "Crie sua conta" : "Bem-vindo de volta"}</h2>
-          <p>Use seu login para acessar o dashboard moderno da transportadora.</p>
+
+        <h2>{isRegister ? "Criar conta" : "Login"}</h2>
+
+        {erro && <div className="erro-message">{erro}</div>}
+        {mensagem && <div className="sucesso-message">{mensagem}</div>}
+
+        <form onSubmit={handleSubmit}>
+
+          {isRegister && (
+            <>
+              <input
+                type="text"
+                placeholder="Nome"
+                value={form.nome}
+                onChange={(e) => handleChange("nome", e.target.value)}
+                disabled={carregando}
+              />
+
+              <select
+                value={form.role}
+                onChange={(e) => handleChange("role", e.target.value)}
+                disabled={carregando}
+              >
+                <option value="MEDICO">Médico</option>
+                <option value="ENFERMEIRO">Enfermeiro</option>
+              </select>
+            </>
+          )}
+
+          <input
+            type="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={(e) => handleChange("email", e.target.value)}
+            disabled={carregando}
+          />
+
+          <input
+            type="password"
+            placeholder="Senha"
+            value={form.senha}
+            onChange={(e) => handleChange("senha", e.target.value)}
+            disabled={carregando}
+          />
+
+          <button type="submit" disabled={carregando}>
+            {carregando
+              ? "Processando..."
+              : isRegister
+              ? "Cadastrar"
+              : "Entrar"}
+          </button>
+        </form>
+
+        <div style={{ marginTop: 10 }}>
+          <button
+            onClick={() => {
+              setIsRegister(!isRegister);
+              limparMensagens();
+            }}
+            disabled={carregando}
+          >
+            {isRegister ? "Voltar ao login" : "Criar conta"}
+          </button>
         </div>
 
-        {erro && <div className="erro-message" style={{ color: 'red', padding: '10px', marginBottom: '10px', backgroundColor: '#ffe6e6', borderRadius: '4px' }}>{erro}</div>}
-        {mensagem && <div className="sucesso-message" style={{ color: 'green', padding: '10px', marginBottom: '10px', backgroundColor: '#e6ffe6', borderRadius: '4px' }}>{mensagem}</div>}
-
-        <div className="login-panel">
-          <form onSubmit={handleSubmit}>
-            {isRegister && (
-              <>
-                <div className="note" style={{ marginBottom: 8 }}>
-                  Cadastro público liberado apenas para Médico e Enfermeiro. As demais funções são criadas pela administração.
-                </div>
-                <input 
-                  type="text" 
-                  className="input-field" 
-                  placeholder="Nome" 
-                  autoComplete="name"
-                  value={nome} 
-                  onChange={(e) => setNome(e.target.value)} 
-                  disabled={carregando}
-                />
-                <select 
-                  className="select-field" 
-                  value={role} 
-                  onChange={(e) => setRole(e.target.value)}
-                  disabled={carregando}
-                >
-                  <option value="MEDICO">Médico</option>
-                  <option value="ENFERMEIRO">Enfermeiro</option>
-                </select>
-              </>
-            )}
-            <input 
-              type="email" 
-              className="input-field" 
-              placeholder="Email" 
-              autoComplete={isRegister ? "email" : "username"}
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              disabled={carregando}
-            />
-            <input 
-              type="password" 
-              className="input-field" 
-              placeholder="Senha" 
-              autoComplete={isRegister ? "new-password" : "current-password"}
-              value={senha} 
-              onChange={(e) => setSenha(e.target.value)} 
-              disabled={carregando}
-            />
-            <button 
-              type="submit" 
-              className="primary-button"
-              disabled={carregando}
-            >
-              {carregando ? 'Processando...' : (isRegister ? "Cadastrar" : "Entrar")}
-            </button>
-          </form>
-
-          <div className="action-row" style={{ marginTop: 12 }}>
-            <button 
-              type="button" 
-              className="secondary-button" 
-              onClick={() => {
-                setIsRegister(false);
-                setRole("MEDICO");
-              }}
-              disabled={carregando}
-            >
-              Fazer login
-            </button>
-            <button 
-              type="button" 
-              className="secondary-button" 
-              onClick={() => {
-                setIsRegister((valor) => {
-                  const proximoValor = !valor;
-                  if (proximoValor) {
-                    setRole("MEDICO");
-                  }
-                  return proximoValor;
-                });
-              }}
-              disabled={carregando}
-            >
-              {isRegister ? "Voltar ao login" : "Cadastrar médico/enfermeiro"}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

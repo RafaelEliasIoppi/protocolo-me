@@ -1,42 +1,69 @@
-import api from './apiClient';
+import api from "./apiClient";
+
+const TOKEN_KEY = "token";
+const USER_KEY = "usuario";
+
+const salvarSessao = (data) => {
+  if (data?.token) {
+    localStorage.setItem(TOKEN_KEY, data.token);
+  }
+  if (data?.usuario) {
+    localStorage.setItem(USER_KEY, JSON.stringify(data.usuario));
+  }
+};
+
+const limparSessao = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+};
 
 export const autenticarService = {
-  login: async (email, senha) => {
-    const response = await api.post('/api/usuarios/login', { email, senha });
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('usuario', JSON.stringify(response.data.usuario));
-    }
+
+  // =========================
+  // AUTH
+  // =========================
+  async login(email, senha) {
+    const response = await api.post("/api/usuarios/login", { email, senha });
+
+    salvarSessao(response.data);
+
     return response.data;
   },
 
-  registrar: async (usuario) => {
-    const response = await api.post('/api/usuarios', usuario);
+  async registrar(usuario) {
+    const response = await api.post("/api/usuarios", usuario);
     return response.data;
   },
 
-  registrarAdmin: async (usuario) => {
-    const response = await api.post('/api/usuarios/admin/registrar', usuario);
+  async registrarAdmin(usuario) {
+    const response = await api.post("/api/usuarios/admin/registrar", usuario);
     return response.data;
   },
 
-  listarUsuarios: async () => {
-    const response = await api.get('/api/usuarios');
+  logout() {
+    limparSessao();
+  },
+
+  // =========================
+  // USUÁRIO
+  // =========================
+  async listarUsuarios() {
+    const response = await api.get("/api/usuarios");
     return response.data;
   },
 
-  atualizarUsuario: async (id, usuario) => {
+  async atualizarUsuario(id, usuario) {
     const response = await api.put(`/api/usuarios/${id}`, usuario);
     return response.data;
   },
 
-  redefinirSenha: async (id, senhaNova) => {
+  async redefinirSenha(id, senhaNova) {
     const response = await api.patch(`/api/usuarios/${id}/senha`, { senhaNova });
     return response.data;
   },
 
-  alterarMinhaSenha: async (senhaAtual, senhaNova, confirmarSenha) => {
-    const response = await api.patch('/api/usuarios/minha-senha', {
+  async alterarMinhaSenha(senhaAtual, senhaNova, confirmarSenha) {
+    const response = await api.patch("/api/usuarios/minha-senha", {
       senhaAtual,
       senhaNova,
       confirmarSenha,
@@ -44,28 +71,43 @@ export const autenticarService = {
     return response.data;
   },
 
-  obterUsuarioAtual: () => {
-    const usuario = localStorage.getItem('usuario');
-    if (!usuario) return null;
-
+  // =========================
+  // SESSÃO
+  // =========================
+  obterUsuarioAtual() {
     try {
-      return JSON.parse(usuario);
-    } catch (e) {
-      localStorage.removeItem('usuario');
+      const usuario = localStorage.getItem(USER_KEY);
+      return usuario ? JSON.parse(usuario) : null;
+    } catch {
+      limparSessao();
       return null;
     }
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
+  obterToken() {
+    return localStorage.getItem(TOKEN_KEY);
   },
 
-  isAutenticado: () => {
-    const token = localStorage.getItem('token');
-    const usuario = autenticarService.obterUsuarioAtual();
-    return !!token && !!usuario?.role;
+  isAutenticado() {
+    const token = this.obterToken();
+    const usuario = this.obterUsuarioAtual();
+    return !!token && !!usuario;
   },
+
+  isAdmin() {
+    const usuario = this.obterUsuarioAtual();
+    return usuario?.role === "ADMIN";
+  },
+
+  isMedico() {
+    const usuario = this.obterUsuarioAtual();
+    return usuario?.role === "MEDICO";
+  },
+
+  isEnfermeiro() {
+    const usuario = this.obterUsuarioAtual();
+    return usuario?.role === "ENFERMEIRO";
+  }
 };
 
 export default autenticarService;

@@ -4,19 +4,19 @@ import back.backend.model.Usuario;
 import back.backend.model.Role;
 import back.backend.service.UsuarioService;
 import back.backend.security.JwtUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder; // ✅ IMPORT CORRETO
 import org.springframework.web.bind.annotation.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.Locale;
 
@@ -32,6 +32,12 @@ public class UsuarioController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    // =========================
+    // REGISTRO PÚBLICO
+    // =========================
     @PostMapping
     public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
         try {
@@ -39,166 +45,165 @@ public class UsuarioController {
                 usuario.setRole(Role.MEDICO);
             }
 
-            if (usuario.getEmail() != null) {
-                usuario.setEmail(usuario.getEmail().trim().toLowerCase(Locale.ROOT));
-            }
+            normalizarEmail(usuario);
 
             if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("erro", "Cadastro público permite apenas perfis MÉDICO ou ENFERMEIRO"));
+                        .body(Map.of("erro", "Cadastro público permite apenas MÉDICO ou ENFERMEIRO"));
             }
 
-            Usuario usuarioRegistrado = usuarioService.registrar(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(toUsuarioResponse(usuarioRegistrado));
+            Usuario salvo = usuarioService.registrar(usuario);
+            return ResponseEntity.status(HttpStatus.CREATED).body(toUsuarioResponse(salvo));
+
         } catch (RuntimeException e) {
             log.warn("Erro ao registrar usuário: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }
     }
 
+    // =========================
+    // REGISTRO ADMIN
+    // =========================
     @PostMapping("/admin/registrar")
     public ResponseEntity<?> registrarAdministrador(@RequestBody Usuario usuario) {
         try {
             if (usuario.getRole() == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("erro", "Informe a função do usuário"));
+                return ResponseEntity.badRequest().body(Map.of("erro", "Informe a função"));
             }
 
-            if (usuario.getEmail() != null) {
-                usuario.setEmail(usuario.getEmail().trim().toLowerCase(Locale.ROOT));
-            }
+            normalizarEmail(usuario);
 
             long totalAdmins = usuarioService.countAdmins();
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            boolean autenticadoComoAdmin = authentication != null
-                && authentication.isAuthenticated()
-                && authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            boolean isAdmin = auth != null &&
+                    auth.isAuthenticated() &&
+                    auth.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
             if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("erro", "O primeiro usuário administrativo deve ser ADMIN"));
-            } else if (totalAdmins > 0 && !autenticadoComoAdmin) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("erro", "Apenas administradores podem criar outros usuários"));
+                        .body(Map.of("erro", "Primeiro usuário deve ser ADMIN"));
             }
 
-            Usuario usuarioRegistrado = usuarioService.registrar(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(toUsuarioResponse(usuarioRegistrado));
+            if (totalAdmins > 0 && !isAdmin) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("erro", "Apenas ADMIN pode cadastrar usuários"));
+            }
+
+            Usuario salvo = usuarioService.registrar(usuario);
+            return ResponseEntity.status(HttpStatus.CREATED).body(toUsuarioResponse(salvo));
+
         } catch (RuntimeException e) {
-            log.warn("Erro ao registrar usuário administrativo: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+            log.warn("Erro ao registrar admin: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> listarUsuarios() {
-        List<Map<String, Object>> usuarios = usuarioService.listarTodos().stream()
-                .map(this::toUsuarioResponse)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(usuarios);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> atualizarUsuarioAdmin(@PathVariable Long id, @RequestBody Usuario usuarioAtualizado) {
+    // =========================
+    // LOGIN
+    // =========================
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credenciais) {
         try {
-            Usuario usuarioSalvo = usuarioService.atualizarUsuario(id, usuarioAtualizado);
-            return ResponseEntity.ok(toUsuarioResponse(usuarioSalvo));
-        } catch (RuntimeException e) {
-            log.warn("Erro ao atualizar usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+            String email = Optional.ofNullable(credenciais.get("email"))
+                    .map(e -> e.trim().toLowerCase(Locale.ROOT))
+                    .orElse("");
+
+            String senha = Optional.ofNullable(credenciais.get("senha")).orElse("");
+
+            if (email.isBlank() || senha.isBlank()) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("erro", "Email e senha são obrigatórios"));
+            }
+
+            Optional<Usuario> usuarioOpt = usuarioService.findByEmail(email);
+
+            if (usuarioOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("erro", "Credenciais inválidas"));
+            }
+
+            Usuario usuario = usuarioOpt.get();
+
+            if (!Boolean.TRUE.equals(usuario.getAtivo())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("erro", "Usuário inativo"));
+            }
+
+            if (!passwordEncoder.matches(senha, usuario.getSenha())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("erro", "Credenciais inválidas"));
+            }
+
+            String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getRole().name());
+            long expiraEm = jwtUtil.extractExpiration(token).getTime();
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("tokenExpiraEm", expiraEm);
+            response.put("usuario", toUsuarioResponse(usuario));
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Erro interno no login", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("erro", "Erro interno no servidor"));
         }
     }
 
-    @PatchMapping("/{id}/senha")
-    public ResponseEntity<?> redefinirSenha(@PathVariable Long id, @RequestBody Map<String, String> payload) {
-        try {
-            String senhaNova = payload.get("senhaNova");
-            Usuario usuarioSalvo = usuarioService.redefinirSenha(id, senhaNova);
-            return ResponseEntity.ok(Map.of("id", usuarioSalvo.getId(), "mensagem", "Senha redefinida com sucesso"));
-        } catch (RuntimeException e) {
-            log.warn("Erro ao redefinir senha do usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
-        }
-    }
-
+    // =========================
+    // ALTERAR MINHA SENHA
+    // =========================
     @PatchMapping("/minha-senha")
     public ResponseEntity<?> alterarMinhaSenha(@RequestBody Map<String, String> payload) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || authentication.getName() == null || authentication.getName().isBlank()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não autenticado"));
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+            if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("erro", "Usuário não autenticado"));
             }
 
-            Usuario usuarioSalvo = usuarioService.alterarMinhaSenha(
-                    authentication.getName(),
+            Usuario usuario = usuarioService.alterarMinhaSenha(
+                    auth.getName(),
                     payload.get("senhaAtual"),
                     payload.get("senhaNova"),
                     payload.get("confirmarSenha")
             );
 
-            return ResponseEntity.ok(Map.of("id", usuarioSalvo.getId(), "mensagem", "Senha alterada com sucesso"));
+            return ResponseEntity.ok(Map.of(
+                    "id", usuario.getId(),
+                    "mensagem", "Senha alterada com sucesso"
+            ));
+
         } catch (RuntimeException e) {
-            log.warn("Erro ao alterar senha do usuário autenticado: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", e.getMessage()));
+            log.warn("Erro ao alterar senha: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
         }
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> credenciais) {
-        try {
-            String email = credenciais.get("email");
-            String senha = credenciais.get("senha");
-
-            if (email != null) {
-                email = email.trim().toLowerCase(Locale.ROOT);
-            }
-
-            if (email == null || email.isBlank() || senha == null || senha.isBlank()) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("erro", "Email e senha são obrigatórios"));
-            }
-
-            Optional<Usuario> usuarioOpt = usuarioService.findByEmail(email);
-            if (usuarioOpt.isEmpty() || !usuarioOpt.get().getAtivo()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Usuário não encontrado ou inativo"));
-            }
-
-            Usuario usuario = usuarioOpt.get();
-            if (!passwordEncoder.matches(senha, usuario.getSenha())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("erro", "Senha incorreta"));
-            }
-
-            String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getRole().name());
-            long tokenExpiraEm = jwtUtil.extractExpiration(token).getTime();
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("token", token);
-            response.put("tokenExpiraEm", tokenExpiraEm);
-            response.put("usuario", toUsuarioResponse(usuario));
-
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Erro interno no login", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("erro", "Erro ao fazer login"));
-        }
+    // =========================
+    // LISTAR
+    // =========================
+    @GetMapping
+    public ResponseEntity<List<Map<String, Object>>> listarUsuarios() {
+        return ResponseEntity.ok(
+                usuarioService.listarTodos()
+                        .stream()
+                        .map(this::toUsuarioResponse)
+                        .collect(Collectors.toList())
+        );
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> obterUsuario(@PathVariable Long id) {
-        Optional<Usuario> usuario = usuarioService.findById(id);
-        if (usuario.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Usuário não encontrado"));
+    // =========================
+    // UTIL
+    // =========================
+    private void normalizarEmail(Usuario usuario) {
+        if (usuario.getEmail() != null) {
+            usuario.setEmail(usuario.getEmail().trim().toLowerCase(Locale.ROOT));
         }
-        return ResponseEntity.ok(toUsuarioResponse(usuario.get()));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletarUsuario(@PathVariable Long id) {
-        Optional<Usuario> usuario = usuarioService.findById(id);
-        if (usuario.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Usuário não encontrado"));
-        }
-        usuarioService.deletar(id);
-        return ResponseEntity.ok(Map.of("mensagem", "Usuário deletado com sucesso"));
     }
 
     private Map<String, Object> toUsuarioResponse(Usuario usuario) {

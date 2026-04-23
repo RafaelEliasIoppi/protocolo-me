@@ -1,12 +1,11 @@
 package back.backend.service;
 
 import back.backend.model.Usuario;
+import back.backend.model.Role;
 import back.backend.repository.UsuarioRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,39 +24,69 @@ public class UsuarioService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    // =====================================================
+    // SPRING SECURITY
+    // =====================================================
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Usuario usuario = usuarioRepository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
+
+        String emailNormalizado = normalizarEmail(email);
+
+        Usuario usuario = usuarioRepository.findByEmail(emailNormalizado)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+        if (!Boolean.TRUE.equals(usuario.getAtivo())) {
+            throw new UsernameNotFoundException("Usuário inativo");
+        }
 
         return User.builder()
-            .username(usuario.getEmail())
-            .password(usuario.getSenha())
-            .roles(usuario.getRole().name()) // Spring adiciona prefixo ROLE_
-            .build();
+                .username(usuario.getEmail())
+                .password(usuario.getSenha())
+                .authorities("ROLE_" + usuario.getRole().name())
+                .build();
     }
 
+    // =====================================================
+    // REGISTRO
+    // =====================================================
     public Usuario registrar(Usuario usuario) {
-        if (usuarioRepository.findByEmail(usuario.getEmail()).isPresent()) {
+
+        validarUsuarioParaRegistro(usuario);
+
+        String email = normalizarEmail(usuario.getEmail());
+
+        if (usuarioRepository.findByEmail(email).isPresent()) {
             throw new RuntimeException("Email já cadastrado");
         }
-        usuario.setSenha(passwordEncoder.encode(usuario.getSenha())); // Centraliza codificação aqui
+
+        usuario.setEmail(email);
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha().trim()));
+
+        if (usuario.getRole() == null) {
+            usuario.setRole(Role.MEDICO);
+        }
+
+        usuario.setAtivo(true);
         usuario.setDataCriacao(LocalDateTime.now());
         usuario.setDataAtualizacao(LocalDateTime.now());
-        usuario.setAtivo(true);
+
         return usuarioRepository.save(usuario);
     }
 
+    // =====================================================
+    // CONSULTAS
+    // =====================================================
     public long countUsuarios() {
         return usuarioRepository.count();
     }
 
     public long countAdmins() {
-        return usuarioRepository.countByRole(back.backend.model.Role.ADMIN);
+        return usuarioRepository.countByRole(Role.ADMIN);
     }
 
     public Optional<Usuario> findByEmail(String email) {
-        return usuarioRepository.findByEmail(email);
+        if (email == null) return Optional.empty();
+        return usuarioRepository.findByEmail(normalizarEmail(email));
     }
 
     public Optional<Usuario> findById(Long id) {
@@ -68,71 +97,53 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.findAll();
     }
 
-    public Usuario atualizarUsuario(Long id, Usuario usuarioAtualizado) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    // =====================================================
+    // ATUALIZAÇÃO
+    // =====================================================
+    public Usuario atualizarUsuario(Long id, Usuario dados) {
 
-        if (usuarioAtualizado.getEmail() != null && !usuarioAtualizado.getEmail().trim().isEmpty()) {
-            String emailNovo = usuarioAtualizado.getEmail().trim().toLowerCase();
-            usuarioRepository.findByEmail(emailNovo).ifPresent(existente -> {
-                if (!existente.getId().equals(id)) {
-                    throw new RuntimeException("Email já cadastrado");
-                }
-            });
-            usuario.setEmail(emailNovo);
-        }
+        Usuario usuario = buscarUsuarioOuFalhar(id);
 
-        if (usuarioAtualizado.getNome() != null && !usuarioAtualizado.getNome().trim().isEmpty()) {
-            usuario.setNome(usuarioAtualizado.getNome().trim());
-        }
-
-        if (usuarioAtualizado.getRole() != null) {
-            usuario.setRole(usuarioAtualizado.getRole());
-        }
-
-        if (usuarioAtualizado.getAtivo() != null) {
-            usuario.setAtivo(usuarioAtualizado.getAtivo());
-        }
-
-        if (usuarioAtualizado.getCrm() != null) {
-            usuario.setCrm(usuarioAtualizado.getCrm());
-        }
-
-        if (usuarioAtualizado.getCoren() != null) {
-            usuario.setCoren(usuarioAtualizado.getCoren());
-        }
+        atualizarEmail(usuario, dados);
+        atualizarNome(usuario, dados);
+        atualizarRole(usuario, dados);
+        atualizarStatus(usuario, dados);
+        atualizarCrm(usuario, dados);
+        atualizarCoren(usuario, dados);
 
         usuario.setDataAtualizacao(LocalDateTime.now());
+
         return usuarioRepository.save(usuario);
     }
 
+    // =====================================================
+    // SENHAS
+    // =====================================================
     public Usuario redefinirSenha(Long id, String senhaNova) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (senhaNova == null || senhaNova.trim().length() < 6) {
-            throw new RuntimeException("Nova senha deve ter pelo menos 6 caracteres");
-        }
+        Usuario usuario = buscarUsuarioOuFalhar(id);
+
+        validarSenhaNova(senhaNova);
 
         usuario.setSenha(passwordEncoder.encode(senhaNova.trim()));
         usuario.setDataAtualizacao(LocalDateTime.now());
+
         return usuarioRepository.save(usuario);
     }
 
     public Usuario alterarMinhaSenha(String email, String senhaAtual, String senhaNova, String confirmarSenha) {
-        Usuario usuario = usuarioRepository.findByEmail(email)
+
+        Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (senhaAtual == null || senhaAtual.trim().isEmpty()) {
+        if (senhaAtual == null || senhaAtual.isBlank()) {
             throw new RuntimeException("Informe a senha atual");
         }
 
-        if (senhaNova == null || senhaNova.trim().length() < 6) {
-            throw new RuntimeException("A nova senha deve ter pelo menos 6 caracteres");
-        }
+        validarSenhaNova(senhaNova);
 
-        if (confirmarSenha == null || !senhaNova.trim().equals(confirmarSenha.trim())) {
-            throw new RuntimeException("A nova senha e a confirmação não conferem");
+        if (!senhaNova.trim().equals(confirmarSenha != null ? confirmarSenha.trim() : "")) {
+            throw new RuntimeException("Confirmação de senha não confere");
         }
 
         if (!passwordEncoder.matches(senhaAtual, usuario.getSenha())) {
@@ -140,20 +151,101 @@ public class UsuarioService implements UserDetailsService {
         }
 
         if (passwordEncoder.matches(senhaNova.trim(), usuario.getSenha())) {
-            throw new RuntimeException("A nova senha deve ser diferente da senha atual");
+            throw new RuntimeException("Nova senha deve ser diferente da atual");
         }
 
         usuario.setSenha(passwordEncoder.encode(senhaNova.trim()));
         usuario.setDataAtualizacao(LocalDateTime.now());
+
         return usuarioRepository.save(usuario);
     }
 
-    public Usuario atualizar(Usuario usuario) {
-        usuario.setDataAtualizacao(LocalDateTime.now());
-        return usuarioRepository.save(usuario);
-    }
-
+    // =====================================================
+    // DELETE
+    // =====================================================
     public void deletar(Long id) {
+        if (!usuarioRepository.existsById(id)) {
+            throw new RuntimeException("Usuário não encontrado");
+        }
         usuarioRepository.deleteById(id);
+    }
+
+    // =====================================================
+    // MÉTODOS PRIVADOS (PROFISSIONAL)
+    // =====================================================
+
+    private Usuario buscarUsuarioOuFalhar(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    }
+
+    private String normalizarEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new RuntimeException("Email é obrigatório");
+        }
+        return email.trim().toLowerCase();
+    }
+
+    private void validarUsuarioParaRegistro(Usuario usuario) {
+        if (usuario == null) {
+            throw new RuntimeException("Usuário inválido");
+        }
+
+        if (usuario.getEmail() == null || usuario.getEmail().isBlank()) {
+            throw new RuntimeException("Email é obrigatório");
+        }
+
+        validarSenhaNova(usuario.getSenha());
+    }
+
+    private void validarSenhaNova(String senha) {
+        if (senha == null || senha.trim().length() < 6) {
+            throw new RuntimeException("Senha deve ter pelo menos 6 caracteres");
+        }
+    }
+
+    private void atualizarEmail(Usuario usuario, Usuario dados) {
+        if (dados.getEmail() != null && !dados.getEmail().trim().isEmpty()) {
+
+            String novoEmail = normalizarEmail(dados.getEmail());
+
+            usuarioRepository.findByEmail(novoEmail).ifPresent(existente -> {
+                if (!existente.getId().equals(usuario.getId())) {
+                    throw new RuntimeException("Email já cadastrado");
+                }
+            });
+
+            usuario.setEmail(novoEmail);
+        }
+    }
+
+    private void atualizarNome(Usuario usuario, Usuario dados) {
+        if (dados.getNome() != null && !dados.getNome().trim().isEmpty()) {
+            usuario.setNome(dados.getNome().trim());
+        }
+    }
+
+    private void atualizarRole(Usuario usuario, Usuario dados) {
+        if (dados.getRole() != null) {
+            usuario.setRole(dados.getRole());
+        }
+    }
+
+    private void atualizarStatus(Usuario usuario, Usuario dados) {
+        if (dados.getAtivo() != null) {
+            usuario.setAtivo(dados.getAtivo());
+        }
+    }
+
+    private void atualizarCrm(Usuario usuario, Usuario dados) {
+        if (dados.getCrm() != null && !dados.getCrm().trim().isEmpty()) {
+            usuario.setCrm(dados.getCrm().trim());
+        }
+    }
+
+    private void atualizarCoren(Usuario usuario, Usuario dados) {
+        if (dados.getCoren() != null && !dados.getCoren().trim().isEmpty()) {
+            usuario.setCoren(dados.getCoren().trim());
+        }
     }
 }
