@@ -2,31 +2,37 @@
   max-width: 1200px;
   margin: 30px auto;
   padding: 30px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
+  background-color: #f4f6f8;
+  border-radius: 10px;
 }
 
 .exame-manager-container h2 {
   color: #2c3e50;
   margin-bottom: 25px;
-  font-size: 24px;
+  font-size: 26px;
+  font-weight: 700;
 }
 
-/* Resumo de Exames */
+/* ================= RESUMO ================= */
 .resumo-exames {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 15px;
   margin-bottom: 30px;
 }
 
 .card-resumo {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
+  padding: 18px;
+  border-radius: 10px;
   text-align: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #3498db;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  border-left: 5px solid #3498db;
+  transition: 0.2s;
+}
+
+.card-resumo:hover {
+  transform: translateY(-2px);
 }
 
 .card-resumo h4 {
@@ -34,65 +40,35 @@
   color: #7f8c8d;
   font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .card-resumo .valor {
-  font-size: 32px;
+  font-size: 30px;
   font-weight: bold;
   color: #2c3e50;
-  margin: 10px 0 0 0;
+  margin-top: 8px;
 }
 
-.card-resumo.clinicos {
-  border-left-color: #3498db;
-}
-
-.card-resumo.complementares {
-  border-left-color: #27ae60;
-}
-
-.card-resumo.laboratoriais {
-  border-left-color: #9b59b6;
-}
-
-/* Formulário de Novo Exame */
+/* ================= FORM ================= */
 .novo-exame-section {
   background: white;
   padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
-  border-left: 4px solid #e74c3c;
+  border-radius: 10px;
+  margin-bottom: 25px;
+  border-left: 5px solid #e74c3c;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
 .novo-exame-section h3 {
-  color: #2c3e50;
   margin-top: 0;
-  margin-bottom: 20px;
-}
-
-.novo-exame-section form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
+  color: #2c3e50;
 }
 
 .form-group label {
   font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 8px;
   font-size: 13px;
+  margin-bottom: 6px;
+  display: block;
 }
 
 .form-group input,
@@ -100,102 +76,47 @@
 .form-group textarea {
   padding: 10px;
   border: 2px solid #e0e0e0;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 14px;
-  font-family: inherit;
-  transition: all 0.3s ease;
+  transition: 0.2s;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  outline: none;
   border-color: #e74c3c;
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  outline: none;
 }
 
+/* ================= BOTÕES ================= */
 .btn-adicionar {
-  padding: 12px 20px;
-  background-color: #e74c3c;
+  background: #e74c3c;
   color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
   border: none;
-  border-radius: 6px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  align-self: flex-start;
 }
 
 .btn-adicionar:hover {
-  background-color: #c0392b;
-  transform: translateY(-2px);
-}
-
-/* Filtro */
-.filtro-section {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
-  padding: 15px;
-  background: white;
-  border-radius: 8px;
-  align-items: flex-end;
-}
-
-.filtro-section label {
-  font-weight: 600;
-  color: #2c3e50;
-  font-size: 13px;
-}
-
-.filtro-section select {
-  padding: 8px 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-  min-width: 200px;
-}
-
-.filtro-section select:focus {
-  outline: none;
-  border-color: #3498db;
+  background: #c0392b;
 }
 
 .btn-recarregar {
-  padding: 8px 16px;
-  background-color: #3498db;
+  background: #3498db;
   color: white;
   border: none;
-  border-radius: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  transition: all 0.3s ease;
 }
 
 .btn-recarregar:hover {
-  background-color: #2980b9;
+  background: #2980b9;
 }
 
-.impacto-legenda {
-  margin: -10px 0 18px;
-  font-size: 13px;
-  color: #2c3e50;
-}
-
-.impacto-legenda strong {
-  color: #1f618d;
-}
-
-/* Carregando */
-.carregando {
-  text-align: center;
-  padding: 40px;
-  color: #7f8c8d;
-}
-
-/* Lista de Exames */
+/* ================= LISTA ================= */
 .exames-lista {
   display: flex;
   flex-direction: column;
@@ -204,290 +125,147 @@
 
 .exame-item {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  border-left: 4px solid #3498db;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  padding: 18px;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+  border-left: 5px solid #3498db;
+  transition: 0.2s;
 }
 
 .exame-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
-.exame-item.categoria-azul {
-  border-left-color: #3498db;
-}
-
-.exame-item.categoria-verde {
-  border-left-color: #27ae60;
-}
-
-.exame-item.categoria-roxo {
-  border-left-color: #9b59b6;
-}
-
-.exame-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.exame-header h4 {
-  color: #2c3e50;
-  margin: 0;
-  font-size: 15px;
-}
-
-.categoria-badge {
-  display: inline-block;
-  background-color: #ecf0f1;
-  color: #34495e;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-  margin-top: 5px;
-}
-
-.impacta-status-badge {
-  display: inline-block;
-  margin-left: 8px;
-  margin-top: 5px;
-  background-color: #e8f8f5;
-  color: #0b5345;
-  border: 1px solid #a3e4d7;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.exame-status {
-  text-align: right;
-}
-
+/* STATUS */
 .realizado {
-  display: inline-block;
-  color: #27ae60;
-  font-weight: 600;
-  font-size: 13px;
-  background-color: #d4edda;
+  background: #d4edda;
+  color: #155724;
   padding: 4px 10px;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-weight: 600;
 }
 
 .pendente {
-  display: inline-block;
-  color: #f39c12;
-  font-weight: 600;
-  font-size: 13px;
-  background-color: #fff3cd;
+  background: #fff3cd;
+  color: #856404;
   padding: 4px 10px;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-weight: 600;
 }
 
-.exame-info {
-  margin-bottom: 15px;
-  font-size: 13px;
-}
-
-.exame-info p {
-  margin: 8px 0;
-  color: #555;
-}
-
-.exame-info strong {
-  color: #2c3e50;
-}
-
+/* ================= AÇÕES ================= */
 .exame-actions {
   display: flex;
   gap: 10px;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
+  margin-top: 12px;
 }
 
 .btn-resultado {
   flex: 1;
-  min-width: 150px;
-  padding: 8px 12px;
-  background-color: #3498db;
+  background: #3498db;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 8px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 .btn-resultado:hover {
-  background-color: #2980b9;
-  transform: translateY(-2px);
+  background: #2980b9;
 }
 
 .btn-deletar {
-  padding: 8px 12px;
-  background-color: #e74c3c;
+  background: #e74c3c;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 8px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 .btn-deletar:hover {
-  background-color: #c0392b;
+  background: #c0392b;
 }
 
-/* Formulário de Resultado */
-.resultado-form {
-  background-color: #f0f7ff;
-  padding: 15px;
-  border-radius: 6px;
-  margin-top: 15px;
-  border-top: 2px solid #3498db;
-}
-
-.resultado-form h5 {
-  color: #2c3e50;
-  margin: 0 0 15px 0;
-  font-size: 13px;
-}
-
-.resultado-form .form-row {
-  gap: 10px;
-}
-
-.resultado-form input,
-.resultado-form select {
-  padding: 8px;
-  border: 2px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 13px;
-}
-
-.resultado-form input:focus,
-.resultado-form select:focus {
-  outline: none;
-  border-color: #3498db;
-}
-
-.actions-resultado {
+/* ================= MODAL (NOVO IMPORTANTE) ================= */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
   display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.modal-content {
+  background: white;
+  width: 420px;
+  max-width: 95%;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  animation: pop 0.2s ease-in-out;
+}
+
+@keyframes pop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+
+/* BOTÕES MODAL */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 15px;
 }
 
-.btn-salvar {
-  flex: 1;
-  padding: 8px 12px;
-  background-color: #27ae60;
+.btn-confirmar {
+  background: #27ae60;
   color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
-.btn-salvar:hover {
-  background-color: #229954;
+.btn-confirmar:hover {
+  background: #1e8449;
 }
 
 .btn-cancelar {
-  flex: 1;
-  padding: 8px 12px;
-  background-color: #95a5a6;
+  background: #95a5a6;
   color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
   border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
 }
 
 .btn-cancelar:hover {
-  background-color: #7f8c8d;
+  background: #7f8c8d;
 }
 
-/* Vazio */
-.vazio {
-  text-align: center;
-  padding: 60px 20px;
-  color: #7f8c8d;
-}
-
-/* Alertas */
+/* ================= ALERTAS ================= */
 .alerta {
-  padding: 12px 16px;
-  margin-bottom: 20px;
-  border-radius: 6px;
-  font-weight: 500;
-  animation: slideDown 0.3s ease-out;
-}
-
-.alerta-erro {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
 }
 
 .alerta-sucesso {
-  background-color: #d4edda;
+  background: #d4edda;
   color: #155724;
-  border: 1px solid #c3e6cb;
 }
 
-@keyframes slideDown {
-  from {
-    transform: translateY(-20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@media (max-width: 768px) {
-  .exame-manager-container {
-    padding: 15px;
-  }
-
-  .resumo-exames {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .exame-header {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .exame-status {
-    text-align: left;
-  }
-
-  .exame-actions {
-    flex-direction: column;
-  }
-
-  .btn-resultado {
-    min-width: auto;
-  }
-
-  .filtro-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filtro-section select {
-    min-width: auto;
-  }
+.alerta-erro {
+  background: #f8d7da;
+  color: #721c24;
 }

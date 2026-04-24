@@ -19,6 +19,8 @@ public class ExameRequestDTO {
     private String descricao;
 
     private String resultado;
+
+    @NotNull(message = "Resultado positivo/negativo é obrigatório")
     private Boolean resultadoPositivo;
     private LocalDateTime dataRealizacao;
     private String responsavel;

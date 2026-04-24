@@ -46,7 +46,7 @@ const carregarConfiguracaoCampos = () => {
   }
 };
 
-function CentralDashboardPage() {
+function CentralDashboardPage({ telaoMode = false }) {
   const estatisticasIniciais = {
     totalProtocolos: 0,
     doadoresEmAvaliacao: 0,
@@ -72,6 +72,11 @@ function CentralDashboardPage() {
   const [mostrarEditarPaciente, setMostrarEditarPaciente] = useState(false);
   const [pacienteParaEditar, setPacienteParaEditar] = useState(null);
   const [relatorioTextoPorProtocolo, setRelatorioTextoPorProtocolo] = useState({});
+  const [filtroHospitalTelao, setFiltroHospitalTelao] = useState("TODOS");
+  const [filtroStatusTelao, setFiltroStatusTelao] = useState("TODOS");
+  const [estaTelaCheia, setEstaTelaCheia] = useState(Boolean(document.fullscreenElement));
+  const [erroTelaCheia, setErroTelaCheia] = useState("");
+  const modoTelao = telaoMode || new URLSearchParams(window.location.search).get("telao") === "1";
 
   const opcoesPrincipaisEstatistica = [
     { chave: "doadoresEmAvaliacao", label: "Doadores em avaliação" },
@@ -191,13 +196,55 @@ function CentralDashboardPage() {
 
   useEffect(() => {
     carregarPacientesDoEstado();
-    const intervalo = setInterval(carregarPacientesDoEstado, 5000);
+    const intervalo = setInterval(carregarPacientesDoEstado, modoTelao ? 3000 : 5000);
     return () => clearInterval(intervalo);
-  }, []);
+  }, [modoTelao]);
 
   useEffect(() => {
     localStorage.setItem(CHAVE_CONFIG_ESTATISTICA_CENTRAL, JSON.stringify(camposVisiveis));
   }, [camposVisiveis]);
+
+  useEffect(() => {
+    const atualizarEstadoTelaCheia = () => {
+      setEstaTelaCheia(Boolean(document.fullscreenElement));
+    };
+
+    document.addEventListener("fullscreenchange", atualizarEstadoTelaCheia);
+    return () => document.removeEventListener("fullscreenchange", atualizarEstadoTelaCheia);
+  }, []);
+
+  const entrarTelaCheia = async () => {
+    try {
+      setErroTelaCheia("");
+      await document.documentElement.requestFullscreen();
+    } catch (_) {
+      setErroTelaCheia("Não foi possível entrar em tela cheia automaticamente neste navegador.");
+    }
+  };
+
+  const sairTelaCheia = async () => {
+    if (!document.fullscreenElement) {
+      return;
+    }
+
+    try {
+      await document.exitFullscreen();
+    } catch (_) {
+      setErroTelaCheia("Não foi possível sair do modo tela cheia.");
+    }
+  };
+
+  const obterResultadoPositivo = (exame) => {
+    if (typeof exame?.resultadoPositivo === "boolean") {
+      return exame.resultadoPositivo;
+    }
+
+    if (typeof exame?.resultado_positivo === "boolean") {
+      return exame.resultado_positivo;
+    }
+
+    return null;
+  };
 
   const obterExamesPendentes = (protocolo) => {
     if (!protocolo) {
@@ -261,10 +308,33 @@ function CentralDashboardPage() {
 
     return protocolo.exames.filter((exame) => {
       const temResultadoTexto = exame?.resultado && exame.resultado.trim() !== "";
-      const temResultadoBooleano = exame?.resultado_positivo !== null && exame?.resultado_positivo !== undefined;
+      const resultadoPositivo = obterResultadoPositivo(exame);
+      const temResultadoBooleano = resultadoPositivo !== null;
       const temData = !!exame?.dataRealizacao;
       return temResultadoTexto || temResultadoBooleano || temData;
     });
+  };
+
+  const obterResumoStatusExames = (protocolo) => {
+    const exames = Array.isArray(protocolo?.exames) ? protocolo.exames : [];
+    const positivos = exames.filter((exame) => obterResultadoPositivo(exame) === true).length;
+    const negativos = exames.filter((exame) => obterResultadoPositivo(exame) === false).length;
+    const semResultado = exames.filter((exame) => {
+      const resultadoPositivo = obterResultadoPositivo(exame);
+      const temResultadoTexto = exame?.resultado && exame.resultado.trim() !== "";
+      return resultadoPositivo === null && !temResultadoTexto;
+    }).length;
+
+    const concluidos = obterExamesConcluidos(protocolo);
+    const pendentes = Math.max(3 - concluidos, 0);
+
+    return {
+      positivos,
+      negativos,
+      semResultado,
+      concluidos,
+      pendentes
+    };
   };
 
   const formatarResultadoExame = (exame) => {
@@ -272,16 +342,44 @@ function CentralDashboardPage() {
       return exame.resultado;
     }
 
-    if (exame?.resultado_positivo === true) {
+    const resultadoPositivo = obterResultadoPositivo(exame);
+
+    if (resultadoPositivo === true) {
       return "Positivo";
     }
 
-    if (exame?.resultado_positivo === false) {
+    if (resultadoPositivo === false) {
       return "Negativo";
     }
 
     return "Sem resultado informado";
   };
+
+  const hospitaisTelao = [
+    "TODOS",
+    ...Array.from(
+      new Set(
+        pacientes
+          .map((paciente) => obterNomeHospital(paciente, paciente.protocolosME?.[0]))
+          .filter((valor) => valor && valor !== "N/A")
+      )
+    ).sort((a, b) => a.localeCompare(b, "pt-BR"))
+  ];
+
+  const statusTelao = ["TODOS", ...statusAtivos];
+
+  const pacientesFiltrados = pacientes.filter((paciente) => {
+    if (!modoTelao) {
+      return true;
+    }
+
+    const protocolo = paciente.protocolosME?.[0];
+    const hospital = obterNomeHospital(paciente, protocolo);
+    const bateHospital = filtroHospitalTelao === "TODOS" || hospital === filtroHospitalTelao;
+    const bateStatus = filtroStatusTelao === "TODOS" || protocolo?.status === filtroStatusTelao;
+
+    return bateHospital && bateStatus;
+  });
 
   const obterCorStatus = (status) => {
     switch (status) {
@@ -528,21 +626,78 @@ function CentralDashboardPage() {
   };
 
   return (
-    <section className="central-dashboard">
+    <section className={`central-dashboard ${modoTelao ? "telao-mode" : ""}`}>
       <div className="brand-bar dashboard-header">
         <div>
-          <h1>🏥 Painel Central de Monitoramento ME</h1>
+          <h1>{modoTelao ? "📺 Telão Central de Monitoramento ME" : "🏥 Painel Central de Monitoramento ME"}</h1>
           <p>Visão por paciente: nome, hospital e exames que ainda faltam em cada protocolo ME</p>
         </div>
         <div className="action-row">
           <button className="secondary-button" onClick={carregarPacientesDoEstado}>
             🔄 Atualizar
           </button>
+          {!modoTelao && (
+            <button
+              className="secondary-button"
+              onClick={() => window.open("/dashboard-central/telao", "_blank", "noopener,noreferrer")}
+            >
+              📺 Abrir Telão
+            </button>
+          )}
+          {modoTelao && (
+            <button
+              className="secondary-button"
+              onClick={estaTelaCheia ? sairTelaCheia : entrarTelaCheia}
+            >
+              {estaTelaCheia ? "🗗 Sair da Tela Cheia" : "🗖 Entrar em Tela Cheia"}
+            </button>
+          )}
         </div>
       </div>
 
+      {modoTelao && (
+        <div className="telao-filtros-panel">
+          <div className="telao-filtro-item">
+            <label htmlFor="filtro-hospital-telao">Hospital</label>
+            <select
+              id="filtro-hospital-telao"
+              value={filtroHospitalTelao}
+              onChange={(e) => setFiltroHospitalTelao(e.target.value)}
+            >
+              {hospitaisTelao.map((hospital) => (
+                <option key={`hospital-telao-${hospital}`} value={hospital}>
+                  {hospital === "TODOS" ? "Todos os hospitais" : hospital}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="telao-filtro-item">
+            <label htmlFor="filtro-status-telao">Status do protocolo</label>
+            <select
+              id="filtro-status-telao"
+              value={filtroStatusTelao}
+              onChange={(e) => setFiltroStatusTelao(e.target.value)}
+            >
+              {statusTelao.map((status) => (
+                <option key={`status-telao-${status}`} value={status}>
+                  {status === "TODOS" ? "Todos os status" : status.replace(/_/g, " ")}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="telao-filtro-meta">
+            <span>Exibindo {pacientesFiltrados.length} paciente(s)</span>
+          </div>
+        </div>
+      )}
+
+      {modoTelao && erroTelaCheia && <div className="mensagem erro">{erroTelaCheia}</div>}
+
       {erro && <div className="mensagem erro">{erro}</div>}
 
+      {!modoTelao && (
       <div className="panel estatisticas-central-panel">
         <header className="painel-header">
           <div>
@@ -684,6 +839,7 @@ function CentralDashboardPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* Lista de Pacientes */}
       <div className="panel pacientes-painel">
@@ -695,13 +851,13 @@ function CentralDashboardPage() {
                 ? `🔄 Atualizado em: ${ultimaAtualizacao.toLocaleTimeString("pt-BR")}`
                 : "Carregando..."}
             </p>
-            <p className="note central-note-readonly">🔒 Central em modo somente leitura (apenas verificação)</p>
+            <p className="note central-note-readonly">Status clínico em tempo real para apoio à decisão da Central.</p>
           </div>
         </header>
 
         {carregando ? (
           <p className="loading-message">⏳ Atualizando painel em tempo real...</p>
-        ) : pacientes.length === 0 ? (
+        ) : pacientesFiltrados.length === 0 ? (
           <p className="no-data-message">✓ Nenhum paciente em protocolo de ME no momento.</p>
         ) : (
           <div className="pacientes-tabela-wrapper">
@@ -714,21 +870,23 @@ function CentralDashboardPage() {
                   <th className="col-cidade">Cidade</th>
                   <th className="col-data">Data Notificação</th>
                   <th className="col-exames">Exames (Concluídos)</th>
+                  <th className="col-status-exames">Status dos Exames</th>
                   <th className="col-faltantes">Exames Faltantes</th>
                   <th className="col-status">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {pacientes.map((paciente) => {
+                {pacientesFiltrados.map((paciente) => {
                   const protocolo = paciente.protocolosME?.[0];
                   const examesPendentes = obterExamesPendentes(protocolo);
                   const examesConcluidos = obterExamesConcluidos(protocolo);
+                  const resumoStatusExames = obterResumoStatusExames(protocolo);
                   return (
                     <tr 
                       key={paciente.id} 
                       className={`row-status-${obterCorStatus(protocolo?.status)}`}
-                      onClick={() => abrirVisualizacaoSomenteLeitura(paciente, protocolo)}
-                      style={{ cursor: protocolo ? "pointer" : "default" }}
+                      onClick={() => !modoTelao && abrirVisualizacaoSomenteLeitura(paciente, protocolo)}
+                      style={{ cursor: protocolo && !modoTelao ? "pointer" : "default" }}
                     >
                       <td className="col-nome" data-label="Nome">
                         <strong>{paciente.nome}</strong>
@@ -743,6 +901,13 @@ function CentralDashboardPage() {
                       </td>
                       <td className="col-exames" data-label="Exames (Concluídos)">
                         <strong>{examesConcluidos}/3</strong>
+                      </td>
+                      <td className="col-status-exames" data-label="Status dos Exames">
+                        <div className="status-exames-resumo">
+                          <span className="badge-exame badge-exame-positivo">+ {resumoStatusExames.positivos}</span>
+                          <span className="badge-exame badge-exame-negativo">- {resumoStatusExames.negativos}</span>
+                          <span className="badge-exame badge-exame-pendente">⏳ {resumoStatusExames.pendentes}</span>
+                        </div>
                       </td>
                       <td className="col-faltantes" data-label="Exames Faltantes">
                         {examesPendentes.length === 0 ? (
@@ -775,7 +940,7 @@ function CentralDashboardPage() {
       </div>
 
       {/* Modal de Detalhes do Protocolo */}
-      {pacienteSelecionado && (
+      {!modoTelao && pacienteSelecionado && (
         <div className="modal-overlay" onClick={() => setPacienteSelecionado(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">

@@ -42,6 +42,56 @@
   gap: 1rem;
 }
 
+.telao-filtros-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  align-items: end;
+  background: #ffffff;
+  border: 1px solid #dbe7f3;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.telao-filtro-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  gap: 0.35rem;
+}
+
+.telao-filtro-item label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #334155;
+  font-weight: 700;
+}
+
+.telao-filtro-item select {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.58rem 0.7rem;
+  background: #f8fafc;
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+.telao-filtro-item select:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+}
+
+.telao-filtro-meta {
+  margin-left: auto;
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.95rem;
+  padding-bottom: 0.4rem;
+}
+
 .central-dashboard .secondary-button {
   background-color: rgba(255, 255, 255, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.4);
@@ -154,6 +204,10 @@
 
 .tabela-pacientes .col-exames {
   min-width: 150px;
+}
+
+.tabela-pacientes .col-status-exames {
+  min-width: 200px;
 }
 
 .tabela-pacientes .col-faltantes {
@@ -272,6 +326,42 @@
   font-size: 0.78rem;
   color: #5b6472;
   white-space: normal;
+}
+
+.status-exames-resumo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.badge-exame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.badge-exame-positivo {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.badge-exame-negativo {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.badge-exame-pendente {
+  background: #fef3c7;
+  border-color: #fcd34d;
+  color: #92400e;
 }
 
 .status-badge.status-confirmed {
@@ -575,6 +665,45 @@
   color: #cbd5e1;
 }
 
+[data-theme="dark"] .central-dashboard .telao-filtros-panel {
+  background: #0f3460;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+[data-theme="dark"] .central-dashboard .telao-filtro-item label,
+[data-theme="dark"] .central-dashboard .telao-filtro-meta {
+  color: #dbeafe;
+}
+
+[data-theme="dark"] .central-dashboard .telao-filtro-item select {
+  background: #123a63;
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+[data-theme="dark"] .central-dashboard .telao-filtro-item select:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+}
+
+[data-theme="dark"] .central-dashboard .badge-exame-positivo {
+  background: #14532d;
+  border-color: #22c55e;
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .central-dashboard .badge-exame-negativo {
+  background: #7f1d1d;
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
+[data-theme="dark"] .central-dashboard .badge-exame-pendente {
+  background: #78350f;
+  border-color: #f59e0b;
+  color: #fde68a;
+}
+
 [data-theme="dark"] .central-dashboard .pendencia-ok {
   color: #86efac;
 }
@@ -616,6 +745,40 @@
   }
 }
 
+.central-dashboard.telao-mode {
+  padding: 0.6rem 1rem;
+}
+
+.central-dashboard.telao-mode .dashboard-header {
+  margin-bottom: 1rem;
+  padding: 1.2rem 1.5rem;
+}
+
+.central-dashboard.telao-mode .dashboard-header h1 {
+  font-size: 2rem;
+}
+
+.central-dashboard.telao-mode .dashboard-header p {
+  font-size: 1.05rem;
+}
+
+.central-dashboard.telao-mode .pacientes-painel {
+  padding: 1.2rem;
+}
+
+.central-dashboard.telao-mode .painel-header h2 {
+  font-size: 1.45rem;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes {
+  font-size: 0.98rem;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes th,
+.central-dashboard.telao-mode .tabela-pacientes td {
+  padding: 0.95rem 0.85rem;
+}
+
 @media (max-width: 768px) {
   .central-dashboard {
     padding: 0.5rem;
@@ -654,6 +817,20 @@
   .estatisticas-grid,
   .estatisticas-grid.secundario {
     grid-template-columns: 1fr;
+  }
+
+  .telao-filtros-panel {
+    padding: 0.8rem;
+  }
+
+  .telao-filtro-item {
+    min-width: 100%;
+  }
+
+  .telao-filtro-meta {
+    margin-left: 0;
+    width: 100%;
+    padding-bottom: 0;
   }
 
   .tabela-orgaos-tecidos {

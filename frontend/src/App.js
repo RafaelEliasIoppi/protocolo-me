@@ -66,6 +66,15 @@ function App() {
     <div className={`app-shell ${theme}-theme`}>
       <Routes>
         <Route
+          path="/dashboard-central/telao"
+          element={
+            <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES"]}>
+              <CentralDashboardPage telaoMode />
+            </GuardedRoute>
+          }
+        />
+
+        <Route
           path="/login"
           element={isLogged ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />}
         />
