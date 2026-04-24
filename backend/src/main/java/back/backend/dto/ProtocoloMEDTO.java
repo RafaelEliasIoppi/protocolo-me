@@ -1,23 +1,10 @@
 package back.backend.dto;
 
-import back.backend.model.ProtocoloME;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.Hibernate;
-
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProtocoloMEDTO {
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
     public static class PacienteResumoDTO {
         private Long id;
         private String nome;
@@ -26,6 +13,46 @@ public class ProtocoloMEDTO {
         private String hospitalNome;
         private String leito;
         private String statusEntrevistaFamiliar;
+
+        public PacienteResumoDTO() {
+        }
+
+        public PacienteResumoDTO(Long id,
+                                 String nome,
+                                 String cpf,
+                                 Long hospitalId,
+                                 String hospitalNome,
+                                 String leito,
+                                 String statusEntrevistaFamiliar) {
+            this.id = id;
+            this.nome = nome;
+            this.cpf = cpf;
+            this.hospitalId = hospitalId;
+            this.hospitalNome = hospitalNome;
+            this.leito = leito;
+            this.statusEntrevistaFamiliar = statusEntrevistaFamiliar;
+        }
+
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
+
+        public String getNome() { return nome; }
+        public void setNome(String nome) { this.nome = nome; }
+
+        public String getCpf() { return cpf; }
+        public void setCpf(String cpf) { this.cpf = cpf; }
+
+        public Long getHospitalId() { return hospitalId; }
+        public void setHospitalId(Long hospitalId) { this.hospitalId = hospitalId; }
+
+        public String getHospitalNome() { return hospitalNome; }
+        public void setHospitalNome(String hospitalNome) { this.hospitalNome = hospitalNome; }
+
+        public String getLeito() { return leito; }
+        public void setLeito(String leito) { this.leito = leito; }
+
+        public String getStatusEntrevistaFamiliar() { return statusEntrevistaFamiliar; }
+        public void setStatusEntrevistaFamiliar(String statusEntrevistaFamiliar) { this.statusEntrevistaFamiliar = statusEntrevistaFamiliar; }
     }
 
     private Long id;
@@ -76,93 +103,108 @@ public class ProtocoloMEDTO {
 
     private List<OrgaoDoadoDTO> orgaosDoados;
 
-    public static ProtocoloMEDTO fromEntity(ProtocoloME entity) {
-        if (entity == null) return null;
-
-        ProtocoloMEDTO dto = new ProtocoloMEDTO();
-
-        dto.setId(entity.getId());
-        dto.setNumeroProtocolo(entity.getNumeroProtocolo());
-        dto.setHospitalOrigem(entity.getHospitalOrigem());
-        dto.setMedicoResponsavel(entity.getMedicoResponsavel());
-        dto.setEnfermeiro(entity.getEnfermeiro());
-        dto.setStatus(entity.getStatus() != null ? entity.getStatus().name() : null);
-
-        dto.setDiagnosticoBasico(entity.getDiagnosticoBasico());
-        dto.setCausaMorte(entity.getCausaMorte());
-        dto.setObservacoes(entity.getObservacoes());
-
-        dto.setTesteClinico1Realizado(entity.getTesteClinico1Realizado());
-        dto.setDataTesteClinico1(entity.getDataTesteClinico1());
-
-        dto.setTesteClinico2Realizado(entity.getTesteClinico2Realizado());
-        dto.setDataTesteClinico2(entity.getDataTesteClinico2());
-
-        dto.setTestesComplementaresRealizados(entity.getTestesComplementaresRealizados());
-        dto.setTestesComplementares(entity.getTestesComplementares());
-        dto.setDataTesteComplementar(entity.getDataTesteComplementar());
-
-        dto.setFamiliaNotificada(entity.getFamiliaNotificada());
-        dto.setDataNotificacaoFamilia(entity.getDataNotificacaoFamilia());
-
-        dto.setAutopsiaAutorizada(entity.getAutopsiaAutorizada());
-        dto.setOrgaosDisponiveis(entity.getOrgaosDisponiveis());
-
-        dto.setPreservacaoOrgaos(entity.getPreservacaoOrgaos());
-        dto.setDataPreservacao(entity.getDataPreservacao());
-
-        dto.setDataNotificacao(entity.getDataNotificacao());
-        dto.setDataConfirmacaoME(entity.getDataConfirmacaoME());
-        dto.setDataSaidaHospital(entity.getDataSaidaHospital());
-
-        dto.setRelatorioFinalEditavel(entity.getRelatorioFinalEditavel());
-        dto.setRelatorioFinalAtualizadoPor(entity.getRelatorioFinalAtualizadoPor());
-        dto.setRelatorioFinalAtualizadoEm(entity.getRelatorioFinalAtualizadoEm());
-
-        dto.setDataCriacao(entity.getDataCriacao());
-        dto.setDataAtualizacao(entity.getDataAtualizacao());
-
-        // Central
-        if (entity.getCentralTransplantes() != null) {
-            dto.setCentralTransplantesId(entity.getCentralTransplantes().getId());
-            dto.setCentralTransplantesNome(entity.getCentralTransplantes().getNome());
-        }
-
-        // Paciente (com proteção contra lazy)
-        if (entity.getPaciente() != null && Hibernate.isInitialized(entity.getPaciente())) {
-            Long hospitalId = null;
-            String hospitalNome = null;
-
-            if (entity.getPaciente().getHospital() != null &&
-                Hibernate.isInitialized(entity.getPaciente().getHospital())) {
-
-                hospitalId = entity.getPaciente().getHospital().getId();
-                hospitalNome = entity.getPaciente().getHospital().getNome();
-            }
-
-            dto.setPaciente(new PacienteResumoDTO(
-                entity.getPaciente().getId(),
-                entity.getPaciente().getNome(),
-                entity.getPaciente().getCpf(),
-                hospitalId,
-                hospitalNome,
-                entity.getPaciente().getLeito(),
-                entity.getPaciente().getStatusEntrevistaFamiliar()
-            ));
-        }
-
-        // Órgãos doados (lazy safe)
-        if (entity.getOrgaosDoados() != null &&
-            Hibernate.isInitialized(entity.getOrgaosDoados())) {
-
-            dto.setOrgaosDoados(
-                entity.getOrgaosDoados()
-                    .stream()
-                    .map(OrgaoDoadoDTO::fromEntity)
-                    .collect(Collectors.toList())
-            );
-        }
-
-        return dto;
+    public ProtocoloMEDTO() {
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getNumeroProtocolo() { return numeroProtocolo; }
+    public void setNumeroProtocolo(String numeroProtocolo) { this.numeroProtocolo = numeroProtocolo; }
+
+    public String getHospitalOrigem() { return hospitalOrigem; }
+    public void setHospitalOrigem(String hospitalOrigem) { this.hospitalOrigem = hospitalOrigem; }
+
+    public String getMedicoResponsavel() { return medicoResponsavel; }
+    public void setMedicoResponsavel(String medicoResponsavel) { this.medicoResponsavel = medicoResponsavel; }
+
+    public String getEnfermeiro() { return enfermeiro; }
+    public void setEnfermeiro(String enfermeiro) { this.enfermeiro = enfermeiro; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public String getDiagnosticoBasico() { return diagnosticoBasico; }
+    public void setDiagnosticoBasico(String diagnosticoBasico) { this.diagnosticoBasico = diagnosticoBasico; }
+
+    public String getCausaMorte() { return causaMorte; }
+    public void setCausaMorte(String causaMorte) { this.causaMorte = causaMorte; }
+
+    public String getObservacoes() { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+
+    public Boolean getTesteClinico1Realizado() { return testeClinico1Realizado; }
+    public void setTesteClinico1Realizado(Boolean testeClinico1Realizado) { this.testeClinico1Realizado = testeClinico1Realizado; }
+
+    public LocalDateTime getDataTesteClinico1() { return dataTesteClinico1; }
+    public void setDataTesteClinico1(LocalDateTime dataTesteClinico1) { this.dataTesteClinico1 = dataTesteClinico1; }
+
+    public Boolean getTesteClinico2Realizado() { return testeClinico2Realizado; }
+    public void setTesteClinico2Realizado(Boolean testeClinico2Realizado) { this.testeClinico2Realizado = testeClinico2Realizado; }
+
+    public LocalDateTime getDataTesteClinico2() { return dataTesteClinico2; }
+    public void setDataTesteClinico2(LocalDateTime dataTesteClinico2) { this.dataTesteClinico2 = dataTesteClinico2; }
+
+    public Boolean getTestesComplementaresRealizados() { return testesComplementaresRealizados; }
+    public void setTestesComplementaresRealizados(Boolean testesComplementaresRealizados) { this.testesComplementaresRealizados = testesComplementaresRealizados; }
+
+    public String getTestesComplementares() { return testesComplementares; }
+    public void setTestesComplementares(String testesComplementares) { this.testesComplementares = testesComplementares; }
+
+    public LocalDateTime getDataTesteComplementar() { return dataTesteComplementar; }
+    public void setDataTesteComplementar(LocalDateTime dataTesteComplementar) { this.dataTesteComplementar = dataTesteComplementar; }
+
+    public Boolean getFamiliaNotificada() { return familiaNotificada; }
+    public void setFamiliaNotificada(Boolean familiaNotificada) { this.familiaNotificada = familiaNotificada; }
+
+    public LocalDateTime getDataNotificacaoFamilia() { return dataNotificacaoFamilia; }
+    public void setDataNotificacaoFamilia(LocalDateTime dataNotificacaoFamilia) { this.dataNotificacaoFamilia = dataNotificacaoFamilia; }
+
+    public Boolean getAutopsiaAutorizada() { return autopsiaAutorizada; }
+    public void setAutopsiaAutorizada(Boolean autopsiaAutorizada) { this.autopsiaAutorizada = autopsiaAutorizada; }
+
+    public String getOrgaosDisponiveis() { return orgaosDisponiveis; }
+    public void setOrgaosDisponiveis(String orgaosDisponiveis) { this.orgaosDisponiveis = orgaosDisponiveis; }
+
+    public Boolean getPreservacaoOrgaos() { return preservacaoOrgaos; }
+    public void setPreservacaoOrgaos(Boolean preservacaoOrgaos) { this.preservacaoOrgaos = preservacaoOrgaos; }
+
+    public LocalDateTime getDataPreservacao() { return dataPreservacao; }
+    public void setDataPreservacao(LocalDateTime dataPreservacao) { this.dataPreservacao = dataPreservacao; }
+
+    public LocalDateTime getDataNotificacao() { return dataNotificacao; }
+    public void setDataNotificacao(LocalDateTime dataNotificacao) { this.dataNotificacao = dataNotificacao; }
+
+    public LocalDateTime getDataConfirmacaoME() { return dataConfirmacaoME; }
+    public void setDataConfirmacaoME(LocalDateTime dataConfirmacaoME) { this.dataConfirmacaoME = dataConfirmacaoME; }
+
+    public LocalDateTime getDataSaidaHospital() { return dataSaidaHospital; }
+    public void setDataSaidaHospital(LocalDateTime dataSaidaHospital) { this.dataSaidaHospital = dataSaidaHospital; }
+
+    public String getRelatorioFinalEditavel() { return relatorioFinalEditavel; }
+    public void setRelatorioFinalEditavel(String relatorioFinalEditavel) { this.relatorioFinalEditavel = relatorioFinalEditavel; }
+
+    public String getRelatorioFinalAtualizadoPor() { return relatorioFinalAtualizadoPor; }
+    public void setRelatorioFinalAtualizadoPor(String relatorioFinalAtualizadoPor) { this.relatorioFinalAtualizadoPor = relatorioFinalAtualizadoPor; }
+
+    public LocalDateTime getRelatorioFinalAtualizadoEm() { return relatorioFinalAtualizadoEm; }
+    public void setRelatorioFinalAtualizadoEm(LocalDateTime relatorioFinalAtualizadoEm) { this.relatorioFinalAtualizadoEm = relatorioFinalAtualizadoEm; }
+
+    public LocalDateTime getDataCriacao() { return dataCriacao; }
+    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
+
+    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
+    public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
+
+    public Long getCentralTransplantesId() { return centralTransplantesId; }
+    public void setCentralTransplantesId(Long centralTransplantesId) { this.centralTransplantesId = centralTransplantesId; }
+
+    public String getCentralTransplantesNome() { return centralTransplantesNome; }
+    public void setCentralTransplantesNome(String centralTransplantesNome) { this.centralTransplantesNome = centralTransplantesNome; }
+
+    public PacienteResumoDTO getPaciente() { return paciente; }
+    public void setPaciente(PacienteResumoDTO paciente) { this.paciente = paciente; }
+
+    public List<OrgaoDoadoDTO> getOrgaosDoados() { return orgaosDoados; }
+    public void setOrgaosDoados(List<OrgaoDoadoDTO> orgaosDoados) { this.orgaosDoados = orgaosDoados; }
 }

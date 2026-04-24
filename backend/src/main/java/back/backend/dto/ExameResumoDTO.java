@@ -1,15 +1,5 @@
 package back.backend.dto;
 
-import back.backend.service.ExameMEService;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ExameResumoDTO {
 
     private int totalExames;
@@ -25,36 +15,33 @@ public class ExameResumoDTO {
     private int examesLaboratoriais;
     private int examesLaboratoriaisTotal;
 
-    // =========================
-    // SERVICE -> DTO
-    // =========================
-    public static ExameResumoDTO fromService(ExameMEService.ExameResumo resumo) {
-        if (resumo == null) return null;
-
-        return ExameResumoDTO.builder()
-                .totalExames(resumo.getTotalExames())
-                .examesRealizados(resumo.getExamesRealizados())
-                .examesPendentes(resumo.getExamesPendentes())
-
-                .examesClinicos(getClinicos(resumo))
-                .examesClinicosTotal(resumo.getExamesClinicosTotal())
-
-                .examesComplementares(resumo.getExamesComplementares())
-                .examesComplementaresTotal(resumo.getExamesComplementaresTotal())
-
-                .examesLaboratoriais(resumo.getExamesLaboratoriais())
-                .examesLaboratoriaisTotal(resumo.getExamesLaboratoriaisTotal())
-                .build();
+    public ExameResumoDTO() {
     }
 
-    // =========================
-    // COMPATIBILIDADE (legacy)
-    // =========================
-    private static int getClinicos(ExameMEService.ExameResumo r) {
-        try {
-            return r.getExames_Clinicos(); // legado
-        } catch (Exception e) {
-            return 0;
-        }
-    }
+    public int getTotalExames() { return totalExames; }
+    public void setTotalExames(int totalExames) { this.totalExames = totalExames; }
+
+    public int getExamesRealizados() { return examesRealizados; }
+    public void setExamesRealizados(int examesRealizados) { this.examesRealizados = examesRealizados; }
+
+    public int getExamesPendentes() { return examesPendentes; }
+    public void setExamesPendentes(int examesPendentes) { this.examesPendentes = examesPendentes; }
+
+    public int getExamesClinicos() { return examesClinicos; }
+    public void setExamesClinicos(int examesClinicos) { this.examesClinicos = examesClinicos; }
+
+    public int getExamesClinicosTotal() { return examesClinicosTotal; }
+    public void setExamesClinicosTotal(int examesClinicosTotal) { this.examesClinicosTotal = examesClinicosTotal; }
+
+    public int getExamesComplementares() { return examesComplementares; }
+    public void setExamesComplementares(int examesComplementares) { this.examesComplementares = examesComplementares; }
+
+    public int getExamesComplementaresTotal() { return examesComplementaresTotal; }
+    public void setExamesComplementaresTotal(int examesComplementaresTotal) { this.examesComplementaresTotal = examesComplementaresTotal; }
+
+    public int getExamesLaboratoriais() { return examesLaboratoriais; }
+    public void setExamesLaboratoriais(int examesLaboratoriais) { this.examesLaboratoriais = examesLaboratoriais; }
+
+    public int getExamesLaboratoriaisTotal() { return examesLaboratoriaisTotal; }
+    public void setExamesLaboratoriaisTotal(int examesLaboratoriaisTotal) { this.examesLaboratoriaisTotal = examesLaboratoriaisTotal; }
 }

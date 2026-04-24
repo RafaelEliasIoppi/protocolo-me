@@ -1,15 +1,9 @@
 package back.backend.dto;
 
 import back.backend.model.AnexoDocumento;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class AnexoDocumentoDTO {
 
     private Long id;
@@ -27,24 +21,60 @@ public class AnexoDocumentoDTO {
     private LocalDateTime dataUpload;
     private LocalDateTime dataCriacao;
 
+    public AnexoDocumentoDTO() {
+    }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getNomeArquivo() { return nomeArquivo; }
+    public void setNomeArquivo(String nomeArquivo) { this.nomeArquivo = nomeArquivo; }
+
+    public String getTipoMime() { return tipoMime; }
+    public void setTipoMime(String tipoMime) { this.tipoMime = tipoMime; }
+
+    public Long getTamanhoBytes() { return tamanhoBytes; }
+    public void setTamanhoBytes(Long tamanhoBytes) { this.tamanhoBytes = tamanhoBytes; }
+
+    public String getTipoAnexo() { return tipoAnexo; }
+    public void setTipoAnexo(String tipoAnexo) { this.tipoAnexo = tipoAnexo; }
+
+    public Long getExameMEId() { return exameMEId; }
+    public void setExameMEId(Long exameMEId) { this.exameMEId = exameMEId; }
+
+    public Long getProtocoloMEId() { return protocoloMEId; }
+    public void setProtocoloMEId(Long protocoloMEId) { this.protocoloMEId = protocoloMEId; }
+
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+
+    public String getUploadPor() { return uploadPor; }
+    public void setUploadPor(String uploadPor) { this.uploadPor = uploadPor; }
+
+    public LocalDateTime getDataUpload() { return dataUpload; }
+    public void setDataUpload(LocalDateTime dataUpload) { this.dataUpload = dataUpload; }
+
+    public LocalDateTime getDataCriacao() { return dataCriacao; }
+    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
+
     // ---------------- CONVERSÃO ----------------
 
     public static AnexoDocumentoDTO fromEntity(AnexoDocumento entity) {
 
         if (entity == null) return null;
 
-        return new AnexoDocumentoDTO(
-                entity.getId(),
-                entity.getNomeArquivo(),
-                entity.getTipoMime(),
-                entity.getTamanhoBytes(),
-                entity.getTipoAnexo(),
-                entity.getExameMEId(),
-                entity.getProtocoloMEId(),
-                entity.getDescricao(),
-                entity.getUploadPor(),
-                entity.getDataUpload(),
-                entity.getDataCriacao()
-        );
+        AnexoDocumentoDTO dto = new AnexoDocumentoDTO();
+        dto.setId(entity.getId());
+        dto.setNomeArquivo(entity.getNomeArquivo());
+        dto.setTipoMime(entity.getTipoMime());
+        dto.setTamanhoBytes(entity.getTamanhoBytes());
+        dto.setTipoAnexo(entity.getTipoAnexo());
+        dto.setExameMEId(entity.getExameMEId());
+        dto.setProtocoloMEId(entity.getProtocoloMEId());
+        dto.setDescricao(entity.getDescricao());
+        dto.setUploadPor(entity.getUploadPor());
+        dto.setDataUpload(entity.getDataUpload());
+        dto.setDataCriacao(entity.getDataCriacao());
+        return dto;
     }
 }

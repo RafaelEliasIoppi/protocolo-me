@@ -3,6 +3,7 @@ package back.backend.controller;
 import back.backend.dto.*;
 import back.backend.model.Usuario;
 import back.backend.model.Role;
+import back.backend.mapper.UsuarioMapper;
 import back.backend.service.UsuarioService;
 import back.backend.security.JwtUtil;
 
@@ -26,7 +27,7 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
     private final JwtUtil jwtUtil;
-    private final PasswordEncoder passwordEncoder;
+    private final UsuarioMapper usuarioMapper;
 
     // =========================
     // REGISTRO PÚBLICO
@@ -47,7 +48,7 @@ public class UsuarioController {
         Usuario salvo = usuarioService.registrar(usuario);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(UsuarioDTO.fromEntity(salvo));
+            .body(usuarioMapper.toDTO(salvo));
     }
 
     // =========================
@@ -67,7 +68,7 @@ public class UsuarioController {
         Usuario salvo = usuarioService.registrar(usuario);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(UsuarioDTO.fromEntity(salvo));
+            .body(usuarioMapper.toDTO(salvo));
     }
 
     // =========================
@@ -82,7 +83,7 @@ public class UsuarioController {
         long expiraEm = jwtUtil.extractExpiration(token).getTime();
 
         return ResponseEntity.ok(
-                new AuthResponseDTO(token, expiraEm, UsuarioDTO.fromEntity(usuario))
+            new AuthResponseDTO(token, expiraEm, usuarioMapper.toDTO(usuario))
         );
     }
 
@@ -110,10 +111,9 @@ public class UsuarioController {
     @GetMapping
     public ResponseEntity<List<UsuarioDTO>> listarUsuarios() {
         return ResponseEntity.ok(
-                usuarioService.listarTodos()
-                        .stream()
-                        .map(UsuarioDTO::fromEntity)
-                        .collect(Collectors.toList())
+            usuarioService.listarTodos().stream()
+                .map(usuarioMapper::toDTO)
+                .collect(Collectors.toList())
         );
     }
 
@@ -127,7 +127,7 @@ public class UsuarioController {
 
         Usuario atualizado = usuarioService.atualizarUsuario(id, dados);
 
-        return ResponseEntity.ok(UsuarioDTO.fromEntity(atualizado));
+        return ResponseEntity.ok(usuarioMapper.toDTO(atualizado));
     }
 
     // =========================

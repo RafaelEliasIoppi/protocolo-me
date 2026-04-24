@@ -1,3 +1,22 @@
+package back.backend.service;
+
+import back.backend.model.Role;
+import back.backend.model.Usuario;
+import back.backend.repository.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -6,9 +25,10 @@ public class UsuarioService implements UserDetailsService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // =========================
-    // AUTH
-    // =========================
+    public long countAdmins() {
+        return usuarioRepository.countByRole(Role.ADMIN);
+    }
+
     public Usuario autenticar(String email, String senha) {
 
         String emailNormalizado = normalizarEmail(email);
@@ -27,19 +47,15 @@ public class UsuarioService implements UserDetailsService {
         return usuario;
     }
 
-    // =========================
-    // ADMIN RULE
-    // =========================
     public void validarPermissaoCriacaoAdmin(Usuario usuario) {
 
         long totalAdmins = usuarioRepository.countByRole(Role.ADMIN);
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        boolean isAdmin = auth != null &&
-                auth.isAuthenticated() &&
-                auth.getAuthorities().stream()
-                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        boolean isAdmin = auth != null
+                && auth.isAuthenticated()
+                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
             throw new RuntimeException("Primeiro usuário deve ser ADMIN");
@@ -50,9 +66,6 @@ public class UsuarioService implements UserDetailsService {
         }
     }
 
-    // =========================
-    // SPRING SECURITY
-    // =========================
     @Override
     public UserDetails loadUserByUsername(String email) {
 
@@ -66,9 +79,6 @@ public class UsuarioService implements UserDetailsService {
                 .build();
     }
 
-    // =========================
-    // REGISTRO
-    // =========================
     public Usuario registrar(Usuario usuario) {
 
         validarUsuario(usuario);
@@ -93,9 +103,6 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.save(usuario);
     }
 
-    // =========================
-    // UPDATE
-    // =========================
     public Usuario atualizarUsuario(Long id, Usuario dados) {
 
         Usuario usuario = buscarOuFalhar(id);
@@ -121,9 +128,6 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.save(usuario);
     }
 
-    // =========================
-    // SENHAS
-    // =========================
     public Usuario redefinirSenha(Long id, String senhaNova) {
 
         Usuario usuario = buscarOuFalhar(id);
@@ -157,9 +161,6 @@ public class UsuarioService implements UserDetailsService {
         return usuarioRepository.save(usuario);
     }
 
-    // =========================
-    // CONSULTAS
-    // =========================
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
     }
@@ -171,9 +172,6 @@ public class UsuarioService implements UserDetailsService {
         usuarioRepository.deleteById(id);
     }
 
-    // =========================
-    // HELPERS
-    // =========================
     private Usuario buscarOuFalhar(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));

@@ -88,6 +88,26 @@ public class CentralTransplantesService {
         return centralRepository.findById(id);
     }
 
+    public Optional<CentralTransplantes> buscarPorCnpj(String cnpj) {
+        return centralRepository.findByCnpj(cnpj);
+    }
+
+    public Optional<CentralTransplantes> buscarPorNome(String nome) {
+        return centralRepository.findByNome(nome);
+    }
+
+    public List<CentralTransplantes> listarPorCidade(String cidade) {
+        return centralRepository.findByCidade(cidade);
+    }
+
+    public List<CentralTransplantes> listarPorEstado(String estado) {
+        return centralRepository.findByEstado(estado);
+    }
+
+    public List<CentralTransplantes> listarPorStatus(CentralTransplantes.StatusCentral status) {
+        return centralRepository.findByStatusOperacional(status);
+    }
+
     public void deletarCentral(Long id) {
         if (!centralRepository.existsById(id)) {
             throw new RuntimeException("Central não encontrada");
@@ -145,11 +165,11 @@ public class CentralTransplantesService {
 
     private void validarDuplicidade(CentralTransplantes central) {
 
-        if (centralRepository.existsByNome(central.getNome())) {
+        if (centralRepository.findByNome(central.getNome()).isPresent()) {
             throw new RuntimeException("Nome já cadastrado");
         }
 
-        if (centralRepository.existsByCnpj(central.getCnpj())) {
+        if (centralRepository.findByCnpj(central.getCnpj()).isPresent()) {
             throw new RuntimeException("CNPJ já cadastrado");
         }
     }

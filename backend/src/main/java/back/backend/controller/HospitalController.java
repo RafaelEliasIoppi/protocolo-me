@@ -49,18 +49,18 @@ public class HospitalController {
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
         return hospitalService.buscarPorId(id)
-                .map(h -> ResponseEntity.ok(HospitalDTO.fromEntity(h)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ErrorResponseDTO("Hospital não encontrado", 404)));
+            .<ResponseEntity<?>>map(h -> ResponseEntity.ok(HospitalDTO.fromEntity(h)))
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponseDTO("Hospital não encontrado", 404)));
     }
 
     // GET BY CNPJ
     @GetMapping("/cnpj/{cnpj}")
     public ResponseEntity<?> buscarPorCnpj(@PathVariable String cnpj) {
         return hospitalService.buscarPorCnpj(cnpj)
-                .map(h -> ResponseEntity.ok(HospitalDTO.fromEntity(h)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(new ErrorResponseDTO("Hospital não encontrado", 404)));
+            .<ResponseEntity<?>>map(h -> ResponseEntity.ok(HospitalDTO.fromEntity(h)))
+            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponseDTO("Hospital não encontrado", 404)));
     }
 
     // GET BY STATUS

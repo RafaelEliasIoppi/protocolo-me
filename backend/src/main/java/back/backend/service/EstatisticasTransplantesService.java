@@ -139,7 +139,7 @@ public class EstatisticasTransplantesService {
     /**
      * Obtém anos disponíveis para filtro
      */
-    public List<Integer> obterAnosaDisponiveis() {
+    public List<Integer> obterAnosDisponiveis() {
         List<ProtocoloME> protocolos = protocoloMERepository.findAll();
         return protocolos.stream()
                 .filter(p -> p.getDataCriacao() != null)
@@ -147,6 +147,10 @@ public class EstatisticasTransplantesService {
                 .distinct()
                 .sorted((a, b) -> b.compareTo(a))
                 .collect(Collectors.toList());
+    }
+
+    public List<Integer> obterAnosaDisponiveis() {
+        return obterAnosDisponiveis();
     }
 
     /**

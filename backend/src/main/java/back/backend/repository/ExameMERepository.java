@@ -9,6 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface ExameMERepository extends JpaRepository<ExameME, Long> {
+    List<ExameME> findByProtocoloME_Id(Long protocoloMEId);
+    List<ExameME> findByProtocoloME_IdAndCategoria(Long protocoloMEId, ExameME.CategoriaExame categoria);
     List<ExameME> findByProtocoloME(ProtocoloME protocoloME);
     List<ExameME> findByProtocoloMEAndCategoria(ProtocoloME protocoloME, ExameME.CategoriaExame categoria);
     List<ExameME> findByProtocoloMEAndTipoExame(ProtocoloME protocoloME, ExameME.TipoExame tipoExame);

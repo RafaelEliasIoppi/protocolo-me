@@ -3,9 +3,10 @@ package back.backend.controller;
 import back.backend.dto.AcaoResponseDTO;
 import back.backend.dto.CentralTransplantesDTO;
 import back.backend.model.CentralTransplantes;
+import back.backend.mapper.CentralTransplantesMapper;
 import back.backend.service.CentralTransplantesService;
 
-import jakarta.validation.Valid;
+import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,20 +17,18 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/centrais-transplantes")
+@lombok.RequiredArgsConstructor
 public class CentralTransplantesController {
 
     private final CentralTransplantesService centralService;
-
-    public CentralTransplantesController(CentralTransplantesService centralService) {
-        this.centralService = centralService;
-    }
+    private final CentralTransplantesMapper centralTransplantesMapper;
 
     // ---------------- CREATE ----------------
 
     @PostMapping
     public ResponseEntity<CentralTransplantesDTO> criar(@Valid @RequestBody CentralTransplantesDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(toDTO(centralService.criarCentralFromDTO(dto)));
+                .body(centralTransplantesMapper.toDTO(centralService.criarCentralFromDTO(dto)));
     }
 
     // ---------------- READ ALL ----------------
@@ -39,7 +38,7 @@ public class CentralTransplantesController {
         return ResponseEntity.ok(
                 centralService.listarTodas()
                         .stream()
-                        .map(this::toDTO)
+                .map(centralTransplantesMapper::toDTO)
                         .collect(Collectors.toList())
         );
     }
@@ -51,7 +50,7 @@ public class CentralTransplantesController {
 
         Optional<CentralTransplantes> central = centralService.buscarPorId(id);
 
-        return central.map(c -> ResponseEntity.ok(toDTO(c)))
+        return central.map(c -> ResponseEntity.ok(centralTransplantesMapper.toDTO(c)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -61,7 +60,7 @@ public class CentralTransplantesController {
     public ResponseEntity<CentralTransplantesDTO> buscarPorCnpj(@PathVariable String cnpj) {
 
         return centralService.buscarPorCnpj(cnpj)
-                .map(c -> ResponseEntity.ok(toDTO(c)))
+                .map(c -> ResponseEntity.ok(centralTransplantesMapper.toDTO(c)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -69,18 +68,28 @@ public class CentralTransplantesController {
     public ResponseEntity<CentralTransplantesDTO> buscarPorNome(@PathVariable String nome) {
 
         return centralService.buscarPorNome(nome)
-                .map(c -> ResponseEntity.ok(toDTO(c)))
+                .map(c -> ResponseEntity.ok(centralTransplantesMapper.toDTO(c)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/cidade/{cidade}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorCidade(@PathVariable String cidade) {
-        return ResponseEntity.ok(mapList(centralService.listarPorCidade(cidade)));
+        return ResponseEntity.ok(
+                centralService.listarPorCidade(cidade)
+                        .stream()
+                        .map(centralTransplantesMapper::toDTO)
+                        .collect(Collectors.toList())
+        );
     }
 
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorEstado(@PathVariable String estado) {
-        return ResponseEntity.ok(mapList(centralService.listarPorEstado(estado)));
+        return ResponseEntity.ok(
+                centralService.listarPorEstado(estado)
+                        .stream()
+                        .map(centralTransplantesMapper::toDTO)
+                        .collect(Collectors.toList())
+        );
     }
 
     @GetMapping("/status/{status}")
@@ -94,9 +103,12 @@ public class CentralTransplantesController {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.ok(
-                mapList(centralService.listarPorStatus(statusEnum))
-        );
+    return ResponseEntity.ok(
+        centralService.listarPorStatus(statusEnum)
+            .stream()
+            .map(centralTransplantesMapper::toDTO)
+            .collect(Collectors.toList())
+    );
     }
 
     // ---------------- UPDATE ----------------
@@ -107,7 +119,7 @@ public class CentralTransplantesController {
             @Valid @RequestBody CentralTransplantesDTO dto) {
 
         return ResponseEntity.ok(
-                toDTO(centralService.atualizarCentralFromDTO(id, dto))
+            centralTransplantesMapper.toDTO(centralService.atualizarCentralFromDTO(id, dto))
         );
     }
 
@@ -127,7 +139,7 @@ public class CentralTransplantesController {
         }
 
         return ResponseEntity.ok(
-                toDTO(centralService.alterarStatus(id, novoStatus))
+            centralTransplantesMapper.toDTO(centralService.alterarStatus(id, novoStatus))
         );
     }
 
@@ -172,32 +184,5 @@ public class CentralTransplantesController {
         return ResponseEntity.ok(
                 centralService.obterEstatisticasDoacaoTransplante()
         );
-    }
-
-    // ---------------- HELPERS ----------------
-
-    private CentralTransplantesDTO toDTO(CentralTransplantes c) {
-        CentralTransplantesDTO dto = new CentralTransplantesDTO();
-        dto.setId(c.getId());
-        dto.setNome(c.getNome());
-        dto.setCnpj(c.getCnpj());
-        dto.setEndereco(c.getEndereco());
-        dto.setCidade(c.getCidade());
-        dto.setEstado(c.getEstado());
-        dto.setTelefone(c.getTelefone());
-        dto.setTelefonePlantao(c.getTelefonePlantao());
-        dto.setEmail(c.getEmail());
-        dto.setEmailPlantao(c.getEmailPlantao());
-        dto.setCoordenador(c.getCoordenador());
-        dto.setTelefoneCoordenador(c.getTelefoneCoordenador());
-        dto.setCapacidadeProcessamento(c.getCapacidadeProcessamento());
-        dto.setEspecialidadesOrgaos(c.getEspecialidadesOrgaos());
-        return dto;
-    }
-
-    private List<CentralTransplantesDTO> mapList(List<CentralTransplantes> list) {
-        return list.stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
     }
 }

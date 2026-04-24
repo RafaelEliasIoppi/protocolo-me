@@ -1,17 +1,7 @@
 package back.backend.dto;
 
-import back.backend.model.ExameME;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ExameMEDTO {
 
     private Long id;
@@ -28,67 +18,45 @@ public class ExameMEDTO {
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
 
-    // =========================
-    // ENTITY -> DTO
-    // =========================
-    public static ExameMEDTO fromEntity(ExameME entity) {
-        if (entity == null) return null;
-
-        return ExameMEDTO.builder()
-                .id(entity.getId())
-                .protocoloId(getProtocoloId(entity))
-                .protocoloNumero(getProtocoloNumero(entity))
-                .categoria(getEnumName(entity.getCategoria()))
-                .tipoExame(getEnumName(entity.getTipoExame()))
-                .descricao(entity.getDescricao())
-                .resultado(entity.getResultado())
-                .resultadoPositivo(entity.getResultado_positivo())
-                .dataRealizacao(entity.getDataRealizacao())
-                .responsavel(entity.getResponsavel())
-                .observacoes(entity.getObservacoes())
-                .dataCriacao(entity.getDataCriacao())
-                .dataAtualizacao(entity.getDataAtualizacao())
-                .build();
+    public ExameMEDTO() {
     }
 
-    // =========================
-    // HELPERS
-    // =========================
-    private static Long getProtocoloId(ExameME e) {
-        return (e.getProtocoloME() != null) ? e.getProtocoloME().getId() : null;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    private static String getProtocoloNumero(ExameME e) {
-        return (e.getProtocoloME() != null) ? e.getProtocoloME().getNumeroProtocolo() : null;
-    }
+    public Long getProtocoloId() { return protocoloId; }
+    public void setProtocoloId(Long protocoloId) { this.protocoloId = protocoloId; }
 
-    private static String getEnumName(Enum<?> e) {
-        return e != null ? e.name() : null;
-    }
+    public String getProtocoloNumero() { return protocoloNumero; }
+    public void setProtocoloNumero(String protocoloNumero) { this.protocoloNumero = protocoloNumero; }
 
-    // =========================
-    // (OPCIONAL) DTO -> ENTITY
-    // =========================
-    public ExameME toEntity() {
-        ExameME entity = new ExameME();
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String categoria) { this.categoria = categoria; }
 
-        entity.setId(this.id);
-        entity.setDescricao(this.descricao);
-        entity.setResultado(this.resultado);
-        entity.setResultado_positivo(this.resultadoPositivo);
-        entity.setDataRealizacao(this.dataRealizacao);
-        entity.setResponsavel(this.responsavel);
-        entity.setObservacoes(this.observacoes);
+    public String getTipoExame() { return tipoExame; }
+    public void setTipoExame(String tipoExame) { this.tipoExame = tipoExame; }
 
-        // enums (cuidado com null)
-        if (this.categoria != null) {
-            entity.setCategoria(ExameME.CategoriaExame.valueOf(this.categoria));
-        }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 
-        if (this.tipoExame != null) {
-            entity.setTipoExame(ExameME.TipoExame.valueOf(this.tipoExame));
-        }
+    public String getResultado() { return resultado; }
+    public void setResultado(String resultado) { this.resultado = resultado; }
 
-        return entity;
-    }
+    public Boolean getResultadoPositivo() { return resultadoPositivo; }
+    public void setResultadoPositivo(Boolean resultadoPositivo) { this.resultadoPositivo = resultadoPositivo; }
+
+    public LocalDateTime getDataRealizacao() { return dataRealizacao; }
+    public void setDataRealizacao(LocalDateTime dataRealizacao) { this.dataRealizacao = dataRealizacao; }
+
+    public String getResponsavel() { return responsavel; }
+    public void setResponsavel(String responsavel) { this.responsavel = responsavel; }
+
+    public String getObservacoes() { return observacoes; }
+    public void setObservacoes(String observacoes) { this.observacoes = observacoes; }
+
+    public LocalDateTime getDataCriacao() { return dataCriacao; }
+    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
+
+    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
+    public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
 }

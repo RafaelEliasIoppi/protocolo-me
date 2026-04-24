@@ -3,8 +3,9 @@ package back.backend.controller;
 import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.ProtocoloMEDTO;
 import back.backend.model.ProtocoloME;
+import back.backend.mapper.ProtocoloMapper;
 import back.backend.service.ProtocoloMEService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +17,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/protocolos-me")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class ProtocoloMEController {
 
-    @Autowired
-    private ProtocoloMEService protocoloService;
+    private final ProtocoloMEService protocoloService;
+    private final ProtocoloMapper protocoloMapper;
 
     // ================= CREATE =================
 
@@ -34,7 +36,7 @@ public class ProtocoloMEController {
 
             return ResponseEntity
                     .status(HttpStatus.CREATED)
-                    .body(ProtocoloMEDTO.fromEntity(novo));
+                    .body(protocoloMapper.toDTO(novo));
 
         } catch (IllegalArgumentException e) {
             return badRequest(e.getMessage());
@@ -48,7 +50,7 @@ public class ProtocoloMEController {
         return ResponseEntity.ok(
                 protocoloService.listarTodos()
                         .stream()
-                        .map(ProtocoloMEDTO::fromEntity)
+                .map(protocoloMapper::toDTO)
                         .toList()
         );
     }
@@ -56,7 +58,7 @@ public class ProtocoloMEController {
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
         return protocoloService.buscarPorId(id)
-                .map(ProtocoloMEDTO::fromEntity)
+            .map(protocoloMapper::toDTO)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -64,7 +66,7 @@ public class ProtocoloMEController {
     @GetMapping("/numero/{numero}")
     public ResponseEntity<?> buscarPorNumero(@PathVariable String numero) {
         return protocoloService.buscarPorNumeroProtocolo(numero)
-                .map(ProtocoloMEDTO::fromEntity)
+            .map(protocoloMapper::toDTO)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -75,7 +77,7 @@ public class ProtocoloMEController {
             return ResponseEntity.ok(
                     protocoloService.listarPorCentral(centralId)
                             .stream()
-                            .map(ProtocoloMEDTO::fromEntity)
+                        .map(protocoloMapper::toDTO)
                             .toList()
             );
         } catch (RuntimeException e) {
@@ -91,7 +93,7 @@ public class ProtocoloMEController {
             return ResponseEntity.ok(
                     protocoloService.listarPorStatus(s)
                             .stream()
-                            .map(ProtocoloMEDTO::fromEntity)
+                        .map(protocoloMapper::toDTO)
                             .toList()
             );
 
@@ -111,7 +113,7 @@ public class ProtocoloMEController {
             return ResponseEntity.ok(
                     protocoloService.listarPorCentralEStatus(centralId, s)
                             .stream()
-                            .map(ProtocoloMEDTO::fromEntity)
+                        .map(protocoloMapper::toDTO)
                             .toList()
             );
 
@@ -128,7 +130,7 @@ public class ProtocoloMEController {
         return ResponseEntity.ok(
                 protocoloService.listarPorPeriodo(inicio, fim)
                         .stream()
-                        .map(ProtocoloMEDTO::fromEntity)
+                .map(protocoloMapper::toDTO)
                         .toList()
         );
     }
@@ -138,7 +140,7 @@ public class ProtocoloMEController {
         return ResponseEntity.ok(
                 protocoloService.listarPorHospitalOrigem(hospital)
                         .stream()
-                        .map(ProtocoloMEDTO::fromEntity)
+                .map(protocoloMapper::toDTO)
                         .toList()
         );
     }
@@ -149,9 +151,7 @@ public class ProtocoloMEController {
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody ProtocoloME protocolo) {
         try {
             return ResponseEntity.ok(
-                    ProtocoloMEDTO.fromEntity(
-                            protocoloService.atualizarProtocolo(id, protocolo)
-                    )
+                protocoloMapper.toDTO(protocoloService.atualizarProtocolo(id, protocolo))
             );
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -165,13 +165,11 @@ public class ProtocoloMEController {
 
         try {
             return ResponseEntity.ok(
-                    ProtocoloMEDTO.fromEntity(
-                            protocoloService.atualizarRelatorioFinal(
-                                    id,
-                                    request.getTextoRelatorio(),
-                                    request.getAtualizadoPor()
-                            )
-                    )
+                protocoloMapper.toDTO(protocoloService.atualizarRelatorioFinal(
+                    id,
+                    request.getTextoRelatorio(),
+                    request.getAtualizadoPor()
+                ))
             );
 
         } catch (RuntimeException e) {
@@ -188,9 +186,7 @@ public class ProtocoloMEController {
             ProtocoloME.StatusProtocoloME s = parseStatus(status);
 
             return ResponseEntity.ok(
-                    ProtocoloMEDTO.fromEntity(
-                            protocoloService.alterarStatus(id, s)
-                    )
+                protocoloMapper.toDTO(protocoloService.alterarStatus(id, s))
             );
 
         } catch (IllegalArgumentException e) {
@@ -263,7 +259,7 @@ public class ProtocoloMEController {
     private ResponseEntity<?> action(Long id, java.util.function.Function<Long, ProtocoloME> fn) {
         try {
             return ResponseEntity.ok(
-                    ProtocoloMEDTO.fromEntity(fn.apply(id))
+                protocoloMapper.toDTO(fn.apply(id))
             );
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

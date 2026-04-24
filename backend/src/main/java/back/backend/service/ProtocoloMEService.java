@@ -199,6 +199,20 @@ public class ProtocoloMEService {
         return executar(id, p -> p.setStatus(status));
     }
 
+    public ProtocoloME atualizarStatusAutomatico(Long id) {
+        ProtocoloME protocolo = buscarOuFalhar(id);
+
+        if (Boolean.TRUE.equals(protocolo.getAutopsiaAutorizada())) {
+            protocolo.setStatus(ProtocoloME.StatusProtocoloME.DOACAO_AUTORIZADA);
+        } else if (Boolean.TRUE.equals(protocolo.getFamiliaNotificada())) {
+            protocolo.setStatus(ProtocoloME.StatusProtocoloME.EM_PROCESSO);
+        } else {
+            protocolo.setStatus(ProtocoloME.StatusProtocoloME.NOTIFICADO);
+        }
+
+        return salvar(protocolo);
+    }
+
     // ================= CORE ENGINE =================
 
     private ProtocoloME executar(Long id, java.util.function.Consumer<ProtocoloME> acao) {

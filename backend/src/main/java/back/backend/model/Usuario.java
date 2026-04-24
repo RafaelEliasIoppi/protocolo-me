@@ -1,16 +1,10 @@
 package back.backend.model;
 
 import javax.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "usuario")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Usuario {
 
     @Id
@@ -53,6 +47,26 @@ public class Usuario {
     @Column(name = "data_atualizacao")
     private LocalDateTime dataAtualizacao;
 
+    public Usuario() {
+    }
+
+    public Usuario(Long id, String email, String senha, String nome, String crm, String coren, Role role,
+                   Hospital hospital, CentralTransplantes centralTransplantes, Boolean ativo,
+                   LocalDateTime dataCriacao, LocalDateTime dataAtualizacao) {
+        this.id = id;
+        this.email = email;
+        this.senha = senha;
+        this.nome = nome;
+        this.crm = crm;
+        this.coren = coren;
+        this.role = role;
+        this.hospital = hospital;
+        this.centralTransplantes = centralTransplantes;
+        this.ativo = ativo;
+        this.dataCriacao = dataCriacao;
+        this.dataAtualizacao = dataAtualizacao;
+    }
+
     @PrePersist
     protected void onCreate() {
         dataCriacao = LocalDateTime.now();
@@ -62,5 +76,101 @@ public class Usuario {
     @PreUpdate
     protected void onUpdate() {
         dataAtualizacao = LocalDateTime.now();
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getCrm() {
+        return crm;
+    }
+
+    public void setCrm(String crm) {
+        this.crm = crm;
+    }
+
+    public String getCoren() {
+        return coren;
+    }
+
+    public void setCoren(String coren) {
+        this.coren = coren;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    public Hospital getHospital() {
+        return hospital;
+    }
+
+    public void setHospital(Hospital hospital) {
+        this.hospital = hospital;
+    }
+
+    public CentralTransplantes getCentralTransplantes() {
+        return centralTransplantes;
+    }
+
+    public void setCentralTransplantes(CentralTransplantes centralTransplantes) {
+        this.centralTransplantes = centralTransplantes;
+    }
+
+    public Boolean getAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(Boolean ativo) {
+        this.ativo = ativo;
+    }
+
+    public LocalDateTime getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public void setDataCriacao(LocalDateTime dataCriacao) {
+        this.dataCriacao = dataCriacao;
+    }
+
+    public LocalDateTime getDataAtualizacao() {
+        return dataAtualizacao;
+    }
+
+    public void setDataAtualizacao(LocalDateTime dataAtualizacao) {
+        this.dataAtualizacao = dataAtualizacao;
     }
 }

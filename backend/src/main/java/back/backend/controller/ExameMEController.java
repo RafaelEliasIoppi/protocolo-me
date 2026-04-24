@@ -3,9 +3,11 @@ package back.backend.controller;
 import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.ExameMEDTO;
 import back.backend.dto.ExameResumoDTO;
+import back.backend.mapper.ExameMapper;
+import back.backend.mapper.ExameResumoMapper;
 import back.backend.model.ExameME;
 import back.backend.service.ExameMEService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,17 +18,19 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/exames-me")
 @CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class ExameMEController {
 
-    @Autowired
-    private ExameMEService exameService;
+    private final ExameMEService exameService;
+    private final ExameMapper exameMapper;
+    private final ExameResumoMapper exameResumoMapper;
 
     // POST - Criar novo exame
     @PostMapping
     public ResponseEntity<ExameMEDTO> criarExame(@RequestBody ExameME exame) {
         try {
             ExameME novoExame = exameService.criarExame(exame);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ExameMEDTO.fromEntity(novoExame));
+            return ResponseEntity.status(HttpStatus.CREATED).body(exameMapper.toDTO(novoExame));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -37,7 +41,7 @@ public class ExameMEController {
     public ResponseEntity<List<ExameMEDTO>> listarExamePorProtocolo(@PathVariable Long protocoloId) {
         try {
             List<ExameME> exames = exameService.listarExamesPorProtocolo(protocoloId);
-            return ResponseEntity.ok(exames.stream().map(ExameMEDTO::fromEntity).collect(Collectors.toList()));
+            return ResponseEntity.ok(exames.stream().map(exameMapper::toDTO).collect(Collectors.toList()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -48,7 +52,7 @@ public class ExameMEController {
     public ResponseEntity<List<ExameMEDTO>> listarExamesClinico(@PathVariable Long protocoloId) {
         try {
             List<ExameME> exames = exameService.listarExamesClinico(protocoloId);
-            return ResponseEntity.ok(exames.stream().map(ExameMEDTO::fromEntity).collect(Collectors.toList()));
+            return ResponseEntity.ok(exames.stream().map(exameMapper::toDTO).collect(Collectors.toList()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -59,7 +63,7 @@ public class ExameMEController {
     public ResponseEntity<List<ExameMEDTO>> listarExamesComplementares(@PathVariable Long protocoloId) {
         try {
             List<ExameME> exames = exameService.listarExamesComplementares(protocoloId);
-            return ResponseEntity.ok(exames.stream().map(ExameMEDTO::fromEntity).collect(Collectors.toList()));
+            return ResponseEntity.ok(exames.stream().map(exameMapper::toDTO).collect(Collectors.toList()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -70,7 +74,7 @@ public class ExameMEController {
     public ResponseEntity<List<ExameMEDTO>> listarExamesLaboratoriais(@PathVariable Long protocoloId) {
         try {
             List<ExameME> exames = exameService.listarExamesLaboratoriais(protocoloId);
-            return ResponseEntity.ok(exames.stream().map(ExameMEDTO::fromEntity).collect(Collectors.toList()));
+            return ResponseEntity.ok(exames.stream().map(exameMapper::toDTO).collect(Collectors.toList()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -80,7 +84,7 @@ public class ExameMEController {
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
         Optional<ExameME> exame = exameService.buscarPorId(id);
-        return exame.map(value -> ResponseEntity.ok(ExameMEDTO.fromEntity(value)))
+        return exame.map(value -> ResponseEntity.ok(exameMapper.toDTO(value)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -89,7 +93,7 @@ public class ExameMEController {
     public ResponseEntity<?> atualizarExame(@PathVariable Long id, @RequestBody ExameME exame) {
         try {
             ExameME exameAtualizado = exameService.atualizarExame(id, exame);
-            return ResponseEntity.ok(ExameMEDTO.fromEntity(exameAtualizado));
+            return ResponseEntity.ok(exameMapper.toDTO(exameAtualizado));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -104,7 +108,7 @@ public class ExameMEController {
             @RequestParam(required = false) String responsavel) {
         try {
             ExameME exame = exameService.registrarResultado(id, resultado, resultado_positivo, responsavel);
-            return ResponseEntity.ok(ExameMEDTO.fromEntity(exame));
+            return ResponseEntity.ok(exameMapper.toDTO(exame));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -115,7 +119,7 @@ public class ExameMEController {
     public ResponseEntity<ExameResumoDTO> obterResumo(@PathVariable Long protocoloId) {
         try {
             ExameMEService.ExameResumo resumo = exameService.obterResumoExames(protocoloId);
-            return ResponseEntity.ok(ExameResumoDTO.fromService(resumo));
+            return ResponseEntity.ok(exameResumoMapper.toDTO(resumo));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -137,7 +141,7 @@ public class ExameMEController {
     public ResponseEntity<?> criarExameIncremental(@RequestBody ExameME exame) {
         try {
             ExameME novoExame = exameService.criarExame(exame);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ExameMEDTO.fromEntity(novoExame));
+            return ResponseEntity.status(HttpStatus.CREATED).body(exameMapper.toDTO(novoExame));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponseDTO("Erro ao criar exame: " + e.getMessage(), HttpStatus.BAD_REQUEST.value()));

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.validation.ObjectError;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -44,13 +45,10 @@ public class GlobalExceptionHandler {
 
         Map<String, String> errors = new HashMap<>();
 
-        String field;
-
-            if (error instanceof FieldError) {
-                field = ((FieldError) error).getField();
-            } else {
-                field = error.getObjectName();
-            }
+        for (ObjectError error : ex.getBindingResult().getAllErrors()) {
+            String field = error instanceof FieldError ? ((FieldError) error).getField() : error.getObjectName();
+            errors.put(field, error.getDefaultMessage());
+        }
 
         log.warn("Erro de validação: {}", errors);
 

@@ -1,15 +1,7 @@
 package back.backend.dto;
 
-import back.backend.model.Usuario;
-import lombok.*;
-
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class UsuarioDTO {
 
     private Long id;
@@ -28,26 +20,45 @@ public class UsuarioDTO {
     private Long centralTransplantesId;
     private String centralTransplantesNome;
 
-    public static UsuarioDTO fromEntity(Usuario usuario) {
-        if (usuario == null) return null;
-
-        return UsuarioDTO.builder()
-                .id(usuario.getId())
-                .email(usuario.getEmail())
-                .nome(usuario.getNome())
-                .role(usuario.getRole() != null ? usuario.getRole().name() : null)
-                .ativo(usuario.getAtivo())
-                .crm(usuario.getCrm())
-                .coren(usuario.getCoren())
-                .dataCriacao(usuario.getDataCriacao())
-                .dataAtualizacao(usuario.getDataAtualizacao())
-
-                .hospitalId(usuario.getHospital() != null ? usuario.getHospital().getId() : null)
-                .hospitalNome(usuario.getHospital() != null ? usuario.getHospital().getNome() : null)
-
-                .centralTransplantesId(usuario.getCentralTransplantes() != null ? usuario.getCentralTransplantes().getId() : null)
-                .centralTransplantesNome(usuario.getCentralTransplantes() != null ? usuario.getCentralTransplantes().getNome() : null)
-
-                .build();
+    public UsuarioDTO() {
     }
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
+    public Boolean getAtivo() { return ativo; }
+    public void setAtivo(Boolean ativo) { this.ativo = ativo; }
+
+    public String getCrm() { return crm; }
+    public void setCrm(String crm) { this.crm = crm; }
+
+    public String getCoren() { return coren; }
+    public void setCoren(String coren) { this.coren = coren; }
+
+    public LocalDateTime getDataCriacao() { return dataCriacao; }
+    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
+
+    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
+    public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
+
+    public Long getHospitalId() { return hospitalId; }
+    public void setHospitalId(Long hospitalId) { this.hospitalId = hospitalId; }
+
+    public String getHospitalNome() { return hospitalNome; }
+    public void setHospitalNome(String hospitalNome) { this.hospitalNome = hospitalNome; }
+
+    public Long getCentralTransplantesId() { return centralTransplantesId; }
+    public void setCentralTransplantesId(Long centralTransplantesId) { this.centralTransplantesId = centralTransplantesId; }
+
+    public String getCentralTransplantesNome() { return centralTransplantesNome; }
+    public void setCentralTransplantesNome(String centralTransplantesNome) { this.centralTransplantesNome = centralTransplantesNome; }
 }
