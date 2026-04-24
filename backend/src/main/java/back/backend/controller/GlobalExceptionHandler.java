@@ -2,15 +2,17 @@ package back.backend.controller;
 
 import back.backend.dto.ErrorResponseDTO;
 import back.backend.exception.RecursoNaoEncontradoException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,59 +21,106 @@ public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // ---------------- 404 ----------------
+    // =========================
+    // 404 - NOT FOUND
+    // =========================
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ErrorResponseDTO> handleNotFound(RecursoNaoEncontradoException ex) {
+
         log.warn("Recurso não encontrado: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponseDTO(ex.getMessage(), 404));
+
+        return buildResponse(
+                ex.getMessage(),
+                HttpStatus.NOT_FOUND,
+                null
+        );
     }
 
-    // ---------------- VALIDATION (@Valid) ----------------
+    // =========================
+    // 400 - VALIDATION (@Valid)
+    // =========================
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponseDTO> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponseDTO> handleValidation(MethodArgumentNotValidException ex) {
 
         Map<String, String> errors = new HashMap<>();
 
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = error instanceof FieldError fe ? fe.getField() : error.getObjectName();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
+        String field;
+
+            if (error instanceof FieldError) {
+                field = ((FieldError) error).getField();
+            } else {
+                field = error.getObjectName();
+            }
 
         log.warn("Erro de validação: {}", errors);
 
-        return ResponseEntity.badRequest()
-                .body(new ErrorResponseDTO("Erro de validação", 400, errors));
+        return buildResponse(
+                "Erro de validação",
+                HttpStatus.BAD_REQUEST,
+                errors
+        );
     }
 
-    // ---------------- BUSINESS / GENERIC ----------------
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponseDTO> handleRuntimeException(RuntimeException ex) {
-
-        log.error("Erro de runtime capturado", ex);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponseDTO(ex.getMessage(), 400));
-    }
-
-    // ---------------- ILLEGAL ARGUMENT ----------------
+    // =========================
+    // 400 - ILLEGAL ARGUMENT
+    // =========================
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponseDTO> handleIllegalArgumentException(IllegalArgumentException ex) {
+    public ResponseEntity<ErrorResponseDTO> handleIllegalArgument(IllegalArgumentException ex) {
 
         log.warn("Parâmetro inválido: {}", ex.getMessage());
 
-        return ResponseEntity.badRequest()
-                .body(new ErrorResponseDTO("Parâmetro inválido: " + ex.getMessage(), 400));
+        return buildResponse(
+                "Parâmetro inválido: " + ex.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                null
+        );
     }
 
-    // ---------------- FALLBACK (IMPORTANTE EM PRODUÇÃO) ----------------
+    // =========================
+    // 400 - BUSINESS RULE
+    // =========================
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ErrorResponseDTO> handleBusiness(RuntimeException ex) {
+
+        log.error("Erro de regra de negócio", ex);
+
+        return buildResponse(
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                null
+        );
+    }
+
+    // =========================
+    // 500 - GENERIC (FALLBACK)
+    // =========================
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDTO> handleGenericException(Exception ex) {
+    public ResponseEntity<ErrorResponseDTO> handleGeneric(Exception ex) {
 
         log.error("Erro inesperado no sistema", ex);
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseDTO("Erro interno no servidor", 500));
+        return buildResponse(
+                "Erro interno no servidor",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                null
+        );
+    }
+
+    // =========================
+    // BUILDER CENTRALIZADO
+    // =========================
+    private ResponseEntity<ErrorResponseDTO> buildResponse(
+            String mensagem,
+            HttpStatus status,
+            Map<String, String> detalhes
+    ) {
+        ErrorResponseDTO body = new ErrorResponseDTO(
+                mensagem,
+                status.value(),
+                detalhes,
+                LocalDateTime.now()
+        );
+
+        return ResponseEntity.status(status).body(body);
     }
 }

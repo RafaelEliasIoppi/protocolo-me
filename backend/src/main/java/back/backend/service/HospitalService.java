@@ -7,14 +7,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-package back.backend.service;
-
-import back.backend.model.Hospital;
-import back.backend.repository.HospitalRepository;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class HospitalService {

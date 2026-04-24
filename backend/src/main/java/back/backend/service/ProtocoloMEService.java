@@ -208,20 +208,30 @@ public class ProtocoloMEService {
     }
 
     private void sincronizarStatusPaciente(ProtocoloME protocolo) {
-        if (protocolo.getPaciente() == null) return;
+    if (protocolo.getPaciente() == null) return;
 
-        Paciente paciente = pacienteRepository.findById(protocolo.getPaciente().getId())
-                .orElseThrow();
+    Paciente paciente = pacienteRepository.findById(protocolo.getPaciente().getId())
+            .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
 
-        switch (protocolo.getStatus()) {
-            case DOACAO_AUTORIZADA -> paciente.setStatus(Paciente.StatusPaciente.APTO_TRANSPLANTE);
-            case FINALIZADO, FAMILIA_RECUSOU, CONTRAINDICADO -> paciente.setStatus(Paciente.StatusPaciente.NAO_APTO);
-            default -> paciente.setStatus(Paciente.StatusPaciente.EM_PROTOCOLO_ME);
-        }
+    switch (protocolo.getStatus()) {
 
-        pacienteRepository.save(paciente);
+        case DOACAO_AUTORIZADA:
+            paciente.setStatus(Paciente.StatusPaciente.APTO_TRANSPLANTE);
+            break;
+
+        case FINALIZADO:
+        case FAMILIA_RECUSOU:
+        case CONTRAINDICADO:
+            paciente.setStatus(Paciente.StatusPaciente.NAO_APTO);
+            break;
+
+        default:
+            paciente.setStatus(Paciente.StatusPaciente.EM_PROTOCOLO_ME);
+            break;
     }
 
+    pacienteRepository.save(paciente);
+}
     // ================= DELETE =================
 
     public void deletarProtocolo(Long id) {
