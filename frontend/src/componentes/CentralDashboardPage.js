@@ -474,6 +474,24 @@ function CentralDashboardPage({ telaoMode = false }) {
     setPaginaAtualTelao(0);
   };
 
+  const irPaginaAnteriorTelao = () => {
+    if (totalPaginasTelao <= 1) {
+      return;
+    }
+
+    setPaginaAtualTelao((paginaAnterior) =>
+      paginaAnterior === 0 ? totalPaginasTelao - 1 : paginaAnterior - 1,
+    );
+  };
+
+  const irProximaPaginaTelao = () => {
+    if (totalPaginasTelao <= 1) {
+      return;
+    }
+
+    setPaginaAtualTelao((paginaAnterior) => (paginaAnterior + 1) % totalPaginasTelao);
+  };
+
   const obterCorStatus = (status) => {
     switch (status) {
       case "NOTIFICADO":
@@ -845,6 +863,23 @@ function CentralDashboardPage({ telaoMode = false }) {
             />
             <span>Mostrar só pacientes com pendências</span>
           </label>
+
+          <div className="telao-paginacao-manual">
+            <button
+              className="secondary-button"
+              onClick={irPaginaAnteriorTelao}
+              disabled={totalPaginasTelao <= 1}
+            >
+              ◀ Página anterior
+            </button>
+            <button
+              className="secondary-button"
+              onClick={irProximaPaginaTelao}
+              disabled={totalPaginasTelao <= 1}
+            >
+              Próxima página ▶
+            </button>
+          </div>
 
           <button className="secondary-button telao-reset-button" onClick={resetarOpcoesTelao}>
             Restaurar padrões

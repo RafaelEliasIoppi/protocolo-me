@@ -145,6 +145,28 @@
   height: 16px;
 }
 
+.telao-paginacao-manual {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.telao-paginacao-manual .secondary-button {
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.telao-paginacao-manual .secondary-button:hover {
+  background: #cbd5e1;
+}
+
+.telao-paginacao-manual .secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .telao-reset-button {
   background: #e2e8f0;
   color: #0f172a;
@@ -775,6 +797,16 @@
   border-color: rgba(148, 163, 184, 0.4);
 }
 
+[data-theme="dark"] .central-dashboard .telao-paginacao-manual .secondary-button {
+  background: #0b2947;
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+[data-theme="dark"] .central-dashboard .telao-paginacao-manual .secondary-button:hover {
+  background: #123a63;
+}
+
 [data-theme="dark"] .central-dashboard .telao-reset-button:hover {
   background: #123a63;
 }
@@ -928,7 +960,8 @@
 }
 
 .central-dashboard.telao-mode.tv-fullscreen .dashboard-header,
-.central-dashboard.telao-mode.tv-fullscreen .telao-filtros-panel {
+.central-dashboard.telao-mode.tv-fullscreen .telao-filtros-panel,
+.central-dashboard.telao-mode.tv-fullscreen .telao-opcoes-panel {
   display: none;
 }
 
@@ -1056,6 +1089,7 @@
 
   .telao-opcao-item,
   .telao-opcao-checkbox,
+  .telao-paginacao-manual,
   .telao-reset-button {
     width: 100%;
   }
