@@ -1,5 +1,6 @@
 package back.backend.service;
 
+import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.model.ExameME;
 import back.backend.repository.ExameMERepository;
 import org.springframework.stereotype.Service;
@@ -43,9 +44,14 @@ public class ExameMEService {
         return exameRepository.findById(id);
     }
 
+    public ExameME buscarPorIdOuFalhar(Long id) {
+        return exameRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Exame não encontrado"));
+    }
+
     public ExameME atualizarExame(Long id, ExameME dados) {
         ExameME exame = exameRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Exame não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Exame não encontrado"));
 
         exame.setDescricao(dados.getDescricao());
         exame.setCategoria(dados.getCategoria());
@@ -60,7 +66,7 @@ public class ExameMEService {
 
     public ExameME registrarResultado(Long id, String resultado, Boolean resultadoPositivo, String responsavel) {
         ExameME exame = exameRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Exame não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Exame não encontrado"));
 
         exame.setResultado(resultado);
         exame.setResultado_positivo(resultadoPositivo);
@@ -73,7 +79,7 @@ public class ExameMEService {
 
     public void deletarExame(Long id) {
         if (!exameRepository.existsById(id)) {
-            throw new RuntimeException("Exame não encontrado");
+            throw new RecursoNaoEncontradoException("Exame não encontrado");
         }
         exameRepository.deleteById(id);
     }

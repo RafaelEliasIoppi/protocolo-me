@@ -1,5 +1,6 @@
 package back.backend.service;
 
+import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.model.Hospital;
 import back.backend.repository.HospitalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +38,18 @@ public class HospitalService {
         return hospitalRepository.findById(id);
     }
 
+    public Hospital buscarPorIdOuFalhar(Long id) {
+        return hospitalRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado: " + id));
+    }
+
     public Optional<Hospital> buscarPorCnpj(String cnpj) {
         return hospitalRepository.findByCnpj(cnpj);
+    }
+
+    public Hospital buscarPorCnpjOuFalhar(String cnpj) {
+        return hospitalRepository.findByCnpj(cnpj)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado"));
     }
 
     public List<Hospital> listarPorStatus(Hospital.StatusHospital status) {

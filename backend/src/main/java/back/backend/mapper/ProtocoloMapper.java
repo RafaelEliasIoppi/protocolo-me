@@ -9,17 +9,13 @@ import back.backend.model.ProtocoloME;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = OrgaoDoadoMapper.class)
 public interface ProtocoloMapper {
 
     @Mapping(target = "status", expression = "java(entity.getStatus() != null ? entity.getStatus().name() : null)")
     @Mapping(target = "centralTransplantesId", expression = "java(getCentralTransplantesId(entity.getCentralTransplantes()))")
     @Mapping(target = "centralTransplantesNome", expression = "java(getCentralTransplantesNome(entity.getCentralTransplantes()))")
     @Mapping(target = "paciente", expression = "java(toPacienteResumo(entity.getPaciente()))")
-    @Mapping(target = "orgaosDoados", expression = "java(toOrgaosDoados(entity.getOrgaosDoados()))")
     ProtocoloMEDTO toDTO(ProtocoloME entity);
 
     default Long getCentralTransplantesId(CentralTransplantes centralTransplantes) {
@@ -47,15 +43,5 @@ public interface ProtocoloMapper {
                 paciente.getLeito(),
                 paciente.getStatusEntrevistaFamiliar()
         );
-    }
-
-    default List<OrgaoDoadoDTO> toOrgaosDoados(List<OrgaoDoado> orgaosDoados) {
-        if (orgaosDoados == null) {
-            return null;
-        }
-
-        return orgaosDoados.stream()
-                .map(OrgaoDoadoDTO::fromEntity)
-                .collect(Collectors.toList());
     }
 }

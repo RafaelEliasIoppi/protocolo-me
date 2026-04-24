@@ -2,8 +2,12 @@ package back.backend.controller;
 
 import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.HospitalDTO;
+import back.backend.dto.HospitalRequestDTO;
+import back.backend.mapper.HospitalMapper;
+import back.backend.mapper.HospitalRequestMapper;
 import back.backend.model.Hospital;
 import back.backend.service.HospitalService;
+import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,22 +20,22 @@ import java.util.List;
 public class HospitalController {
 
     private final HospitalService hospitalService;
+    private final HospitalMapper hospitalMapper;
+    private final HospitalRequestMapper hospitalRequestMapper;
 
-    public HospitalController(HospitalService hospitalService) {
+    public HospitalController(HospitalService hospitalService, HospitalMapper hospitalMapper, HospitalRequestMapper hospitalRequestMapper) {
         this.hospitalService = hospitalService;
+        this.hospitalMapper = hospitalMapper;
+        this.hospitalRequestMapper = hospitalRequestMapper;
     }
 
     // POST
     @PostMapping
-    public ResponseEntity<?> criarHospital(@RequestBody Hospital hospital) {
-        try {
-            Hospital novo = hospitalService.criarHospital(hospital);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(HospitalDTO.fromEntity(novo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest()
-                    .body(new ErrorResponseDTO(e.getMessage(), 400));
-        }
+    public ResponseEntity<?> criarHospital(@Valid @RequestBody HospitalRequestDTO request) {
+        Hospital hospital = hospitalRequestMapper.toEntity(request);
+        Hospital novo = hospitalService.criarHospital(hospital);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(hospitalMapper.toDTO(novo));
     }
 
     // GET ALL
@@ -40,7 +44,7 @@ public class HospitalController {
         return ResponseEntity.ok(
                 hospitalService.listarTodos()
                         .stream()
-                        .map(HospitalDTO::fromEntity)
+                    .map(hospitalMapper::toDTO)
                         .toList()
         );
     }
@@ -48,39 +52,26 @@ public class HospitalController {
     // GET BY ID
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
-        return hospitalService.buscarPorId(id)
-            .<ResponseEntity<?>>map(h -> ResponseEntity.ok(HospitalDTO.fromEntity(h)))
-            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponseDTO("Hospital não encontrado", 404)));
+        return ResponseEntity.ok(hospitalMapper.toDTO(hospitalService.buscarPorIdOuFalhar(id)));
     }
 
     // GET BY CNPJ
     @GetMapping("/cnpj/{cnpj}")
     public ResponseEntity<?> buscarPorCnpj(@PathVariable String cnpj) {
-        return hospitalService.buscarPorCnpj(cnpj)
-            .<ResponseEntity<?>>map(h -> ResponseEntity.ok(HospitalDTO.fromEntity(h)))
-            .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponseDTO("Hospital não encontrado", 404)));
+        return ResponseEntity.ok(hospitalMapper.toDTO(hospitalService.buscarPorCnpjOuFalhar(cnpj)));
     }
 
     // GET BY STATUS
     @GetMapping("/status/{status}")
     public ResponseEntity<?> listarPorStatus(@PathVariable String status) {
-        try {
-            Hospital.StatusHospital statusEnum =
-                    Hospital.StatusHospital.valueOf(status.toUpperCase());
+        Hospital.StatusHospital statusEnum = Hospital.StatusHospital.valueOf(status.toUpperCase());
 
-            return ResponseEntity.ok(
-                    hospitalService.listarPorStatus(statusEnum)
-                            .stream()
-                            .map(HospitalDTO::fromEntity)
-                            .toList()
-            );
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(new ErrorResponseDTO("Status inválido", 400));
-        }
+        return ResponseEntity.ok(
+            hospitalService.listarPorStatus(statusEnum)
+                .stream()
+                .map(hospitalMapper::toDTO)
+                .toList()
+        );
     }
 
     // GET BY CIDADE
@@ -89,7 +80,7 @@ public class HospitalController {
         return ResponseEntity.ok(
                 hospitalService.listarPorCidade(cidade)
                         .stream()
-                        .map(HospitalDTO::fromEntity)
+                    .map(hospitalMapper::toDTO)
                         .toList()
         );
     }
@@ -100,24 +91,20 @@ public class HospitalController {
         return ResponseEntity.ok(
                 hospitalService.listarPorEstado(estado)
                         .stream()
-                        .map(HospitalDTO::fromEntity)
+                    .map(hospitalMapper::toDTO)
                         .toList()
         );
     }
 
     // PUT
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizarHospital(@PathVariable Long id, @RequestBody Hospital hospital) {
-        try {
+        public ResponseEntity<?> atualizarHospital(@PathVariable Long id, @Valid @RequestBody HospitalRequestDTO request) {
+            Hospital hospital = hospitalRequestMapper.toEntity(request);
             return ResponseEntity.ok(
-                    HospitalDTO.fromEntity(
-                            hospitalService.atualizarHospital(id, hospital)
-                    )
+                hospitalMapper.toDTO(
+                    hospitalService.atualizarHospital(id, hospital)
+                )
             );
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponseDTO(e.getMessage(), 404));
-        }
     }
 
     // PATCH STATUS
@@ -125,35 +112,19 @@ public class HospitalController {
     public ResponseEntity<?> alterarStatus(
             @PathVariable Long id,
             @RequestParam String status) {
+        Hospital.StatusHospital novoStatus = Hospital.StatusHospital.valueOf(status.toUpperCase());
 
-        try {
-            Hospital.StatusHospital novoStatus =
-                    Hospital.StatusHospital.valueOf(status.toUpperCase());
-
-            return ResponseEntity.ok(
-                    HospitalDTO.fromEntity(
-                            hospitalService.alterarStatus(id, novoStatus)
-                    )
-            );
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest()
-                    .body(new ErrorResponseDTO("Status inválido", 400));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponseDTO(e.getMessage(), 404));
-        }
+        return ResponseEntity.ok(
+            hospitalMapper.toDTO(
+                hospitalService.alterarStatus(id, novoStatus)
+            )
+        );
     }
 
     // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletarHospital(@PathVariable Long id) {
-        try {
-            hospitalService.deletarHospital(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ErrorResponseDTO(e.getMessage(), 404));
-        }
+        hospitalService.deletarHospital(id);
+        return ResponseEntity.noContent().build();
     }
 }

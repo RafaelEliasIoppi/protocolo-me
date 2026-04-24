@@ -1,27 +1,31 @@
 package back.backend.dto;
 
-import java.time.LocalDateTime;
+import javax.validation.constraints.NotBlank;
 
-public class HospitalDTO {
+public class HospitalRequestDTO {
 
-    private Long id;
+    @NotBlank(message = "Nome é obrigatório")
     private String nome;
+
+    @NotBlank(message = "CNPJ é obrigatório")
     private String cnpj;
+
+    @NotBlank(message = "Endereço é obrigatório")
     private String endereco;
+
+    @NotBlank(message = "Cidade é obrigatória")
     private String cidade;
+
+    @NotBlank(message = "Estado é obrigatório")
     private String estado;
+
+    @NotBlank(message = "Telefone é obrigatório")
     private String telefone;
+
+    @NotBlank(message = "Email é obrigatório")
     private String email;
-    private String status;
+
     private String responsavelMedico;
-    private LocalDateTime dataCriacao;
-    private LocalDateTime dataAtualizacao;
-
-    public HospitalDTO() {
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -44,15 +48,6 @@ public class HospitalDTO {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
     public String getResponsavelMedico() { return responsavelMedico; }
     public void setResponsavelMedico(String responsavelMedico) { this.responsavelMedico = responsavelMedico; }
-
-    public LocalDateTime getDataCriacao() { return dataCriacao; }
-    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
-
-    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
-    public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
 }

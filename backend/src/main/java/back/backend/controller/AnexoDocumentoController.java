@@ -1,6 +1,7 @@
 package back.backend.controller;
 
 import back.backend.dto.AnexoDocumentoDTO;
+import back.backend.mapper.AnexoDocumentoMapper;
 import back.backend.model.AnexoDocumento;
 import back.backend.service.AnexoDocumentoService;
 
@@ -21,9 +22,11 @@ import java.util.List;
 public class AnexoDocumentoController {
 
     private final AnexoDocumentoService anexoService;
+    private final AnexoDocumentoMapper anexoDocumentoMapper;
 
-    public AnexoDocumentoController(AnexoDocumentoService anexoService) {
+    public AnexoDocumentoController(AnexoDocumentoService anexoService, AnexoDocumentoMapper anexoDocumentoMapper) {
         this.anexoService = anexoService;
+        this.anexoDocumentoMapper = anexoDocumentoMapper;
     }
 
     // ---------------- UPLOAD EXAME ----------------
@@ -40,7 +43,7 @@ public class AnexoDocumentoController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(AnexoDocumentoDTO.fromEntity(anexo));
+            .body(anexoDocumentoMapper.toDTO(anexo));
     }
 
     // ---------------- UPLOAD ENTREVISTA ----------------
@@ -57,7 +60,7 @@ public class AnexoDocumentoController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(AnexoDocumentoDTO.fromEntity(anexo));
+            .body(anexoDocumentoMapper.toDTO(anexo));
     }
 
     // ---------------- LIST EXAME ----------------
@@ -67,7 +70,7 @@ public class AnexoDocumentoController {
 
         List<AnexoDocumentoDTO> lista = anexoService.listarAnexosExame(exameMEId)
                 .stream()
-                .map(AnexoDocumentoDTO::fromEntity)
+            .map(anexoDocumentoMapper::toDTO)
                 .toList();
 
         return ResponseEntity.ok(lista);
@@ -80,7 +83,7 @@ public class AnexoDocumentoController {
 
         List<AnexoDocumentoDTO> lista = anexoService.listarAnexosEntrevista(protocoloMEId)
                 .stream()
-                .map(AnexoDocumentoDTO::fromEntity)
+            .map(anexoDocumentoMapper::toDTO)
                 .toList();
 
         return ResponseEntity.ok(lista);
@@ -93,7 +96,7 @@ public class AnexoDocumentoController {
 
         AnexoDocumento anexo = anexoService.obterPorId(id);
 
-        return ResponseEntity.ok(AnexoDocumentoDTO.fromEntity(anexo));
+        return ResponseEntity.ok(anexoDocumentoMapper.toDTO(anexo));
     }
 
     // ---------------- DOWNLOAD ----------------

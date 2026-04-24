@@ -1,9 +1,11 @@
 package back.backend.controller;
 
 import back.backend.dto.*;
+import back.backend.dto.UsuarioRequestDTO;
 import back.backend.model.Usuario;
 import back.backend.model.Role;
 import back.backend.mapper.UsuarioMapper;
+import back.backend.mapper.UsuarioRequestMapper;
 import back.backend.service.UsuarioService;
 import back.backend.security.JwtUtil;
 
@@ -16,8 +18,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,18 +31,19 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
     private final JwtUtil jwtUtil;
     private final UsuarioMapper usuarioMapper;
+    private final UsuarioRequestMapper usuarioRequestMapper;
 
     // =========================
     // REGISTRO PÚBLICO
     // =========================
     @PostMapping
-    public ResponseEntity<UsuarioDTO> registrar(@RequestBody Usuario usuario) {
+    public ResponseEntity<UsuarioDTO> registrar(@Valid @RequestBody UsuarioRequestDTO request) {
+
+        Usuario usuario = usuarioRequestMapper.toEntity(request);
 
         if (usuario.getRole() == null) {
             usuario.setRole(Role.MEDICO);
         }
-
-        normalizarEmail(usuario);
 
         if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
             throw new RuntimeException("Cadastro público permite apenas MÉDICO ou ENFERMEIRO");
@@ -55,13 +59,13 @@ public class UsuarioController {
     // REGISTRO ADMIN
     // =========================
     @PostMapping("/admin/registrar")
-    public ResponseEntity<UsuarioDTO> registrarAdmin(@RequestBody Usuario usuario) {
+    public ResponseEntity<UsuarioDTO> registrarAdmin(@Valid @RequestBody UsuarioRequestDTO request) {
+
+        Usuario usuario = usuarioRequestMapper.toEntity(request);
 
         if (usuario.getRole() == null) {
             throw new RuntimeException("Informe a função");
         }
-
-        normalizarEmail(usuario);
 
         usuarioService.validarPermissaoCriacaoAdmin(usuario);
 
@@ -121,9 +125,9 @@ public class UsuarioController {
     // ATUALIZAR
     // =========================
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> atualizarUsuario(@PathVariable Long id, @RequestBody Usuario dados) {
+    public ResponseEntity<UsuarioDTO> atualizarUsuario(@PathVariable Long id, @Valid @RequestBody UsuarioRequestDTO request) {
 
-        normalizarEmail(dados);
+        Usuario dados = usuarioRequestMapper.toEntity(request);
 
         Usuario atualizado = usuarioService.atualizarUsuario(id, dados);
 
@@ -154,9 +158,4 @@ public class UsuarioController {
     // =========================
     // UTIL
     // =========================
-    private void normalizarEmail(Usuario usuario) {
-        if (usuario.getEmail() != null) {
-            usuario.setEmail(usuario.getEmail().trim().toLowerCase(Locale.ROOT));
-        }
-    }
 }

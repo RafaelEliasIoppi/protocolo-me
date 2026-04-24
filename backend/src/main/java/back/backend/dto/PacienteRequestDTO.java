@@ -1,41 +1,39 @@
 package back.backend.dto;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class PacienteDTO {
+public class PacienteRequestDTO {
 
-    private Long id;
+    @NotBlank(message = "Nome obrigatório")
     private String nome;
+
+    @NotBlank(message = "CPF obrigatório")
     private String cpf;
+
+    @NotNull(message = "Data de nascimento obrigatória")
     private LocalDate dataNascimento;
+
+    @NotBlank(message = "Gênero obrigatório")
     private String genero;
 
+    @NotNull(message = "Hospital obrigatório")
     private Long hospitalId;
-    private String hospitalNome;
-    private String hospitalOrigem;
 
+    private String hospitalOrigem;
     private String leito;
+    private LocalDate dataInternacao;
     private String diagnosticoPrincipal;
     private String historicoMedico;
-
     private String nomeResponsavel;
     private String telefoneResponsavel;
     private String emailResponsavel;
-
     private String status;
     private String statusEntrevistaFamiliar;
     private String observacoesEntrevistaFamiliar;
     private LocalDateTime dataEntrevistaFamiliar;
-
-    private LocalDateTime dataCriacao;
-    private LocalDateTime dataAtualizacao;
-
-    public PacienteDTO() {
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -52,14 +50,14 @@ public class PacienteDTO {
     public Long getHospitalId() { return hospitalId; }
     public void setHospitalId(Long hospitalId) { this.hospitalId = hospitalId; }
 
-    public String getHospitalNome() { return hospitalNome; }
-    public void setHospitalNome(String hospitalNome) { this.hospitalNome = hospitalNome; }
-
     public String getHospitalOrigem() { return hospitalOrigem; }
     public void setHospitalOrigem(String hospitalOrigem) { this.hospitalOrigem = hospitalOrigem; }
 
     public String getLeito() { return leito; }
     public void setLeito(String leito) { this.leito = leito; }
+
+    public LocalDate getDataInternacao() { return dataInternacao; }
+    public void setDataInternacao(LocalDate dataInternacao) { this.dataInternacao = dataInternacao; }
 
     public String getDiagnosticoPrincipal() { return diagnosticoPrincipal; }
     public void setDiagnosticoPrincipal(String diagnosticoPrincipal) { this.diagnosticoPrincipal = diagnosticoPrincipal; }
@@ -87,11 +85,4 @@ public class PacienteDTO {
 
     public LocalDateTime getDataEntrevistaFamiliar() { return dataEntrevistaFamiliar; }
     public void setDataEntrevistaFamiliar(LocalDateTime dataEntrevistaFamiliar) { this.dataEntrevistaFamiliar = dataEntrevistaFamiliar; }
-
-    public LocalDateTime getDataCriacao() { return dataCriacao; }
-    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
-
-    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
-    public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
-
 }

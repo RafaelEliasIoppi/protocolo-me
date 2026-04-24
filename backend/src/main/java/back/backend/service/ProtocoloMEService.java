@@ -1,5 +1,6 @@
 package back.backend.service;
 
+import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.model.*;
 import back.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class ProtocoloMEService {
 
     private ProtocoloME buscarOuFalhar(Long id) {
         return protocoloRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado: " + id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado: " + id));
     }
 
     private CentralTransplantes obterCentralPadrao() {
@@ -92,13 +93,23 @@ public class ProtocoloMEService {
         return protocoloRepository.findByIdWithDetalhes(id);
     }
 
+    public ProtocoloME buscarPorIdOuFalhar(Long id) {
+        return protocoloRepository.findByIdWithDetalhes(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado: " + id));
+    }
+
     public Optional<ProtocoloME> buscarPorNumeroProtocolo(String numero) {
         return protocoloRepository.findByNumeroProtocolo(numero);
     }
 
+    public ProtocoloME buscarPorNumeroProtocoloOuFalhar(String numero) {
+        return protocoloRepository.findByNumeroProtocolo(numero)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado"));
+    }
+
     public List<ProtocoloME> listarPorCentral(Long centralId) {
         CentralTransplantes c = centralRepository.findById(centralId)
-                .orElseThrow(() -> new RuntimeException("Central não encontrada"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
 
         return protocoloRepository.findByCentralTransplantes(c);
     }
@@ -109,7 +120,7 @@ public class ProtocoloMEService {
 
     public List<ProtocoloME> listarPorCentralEStatus(Long id, ProtocoloME.StatusProtocoloME status) {
         CentralTransplantes c = centralRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Central não encontrada"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
 
         return protocoloRepository.findByCentralTransplantesAndStatus(c, status);
     }
@@ -250,7 +261,7 @@ public class ProtocoloMEService {
 
     public void deletarProtocolo(Long id) {
         if (!protocoloRepository.existsById(id)) {
-            throw new RuntimeException("Protocolo não encontrado");
+            throw new RecursoNaoEncontradoException("Protocolo não encontrado");
         }
         protocoloRepository.deleteById(id);
     }

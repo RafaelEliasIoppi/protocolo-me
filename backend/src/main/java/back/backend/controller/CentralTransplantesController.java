@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -47,29 +46,19 @@ public class CentralTransplantesController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CentralTransplantesDTO> buscarPorId(@PathVariable Long id) {
-
-        Optional<CentralTransplantes> central = centralService.buscarPorId(id);
-
-        return central.map(c -> ResponseEntity.ok(centralTransplantesMapper.toDTO(c)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(centralTransplantesMapper.toDTO(centralService.buscarPorIdOuFalhar(id)));
     }
 
     // ---------------- FILTERS ----------------
 
     @GetMapping("/cnpj/{cnpj}")
     public ResponseEntity<CentralTransplantesDTO> buscarPorCnpj(@PathVariable String cnpj) {
-
-        return centralService.buscarPorCnpj(cnpj)
-                .map(c -> ResponseEntity.ok(centralTransplantesMapper.toDTO(c)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(centralTransplantesMapper.toDTO(centralService.buscarPorCnpjOuFalhar(cnpj)));
     }
 
     @GetMapping("/nome/{nome}")
     public ResponseEntity<CentralTransplantesDTO> buscarPorNome(@PathVariable String nome) {
-
-        return centralService.buscarPorNome(nome)
-                .map(c -> ResponseEntity.ok(centralTransplantesMapper.toDTO(c)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(centralTransplantesMapper.toDTO(centralService.buscarPorNomeOuFalhar(nome)));
     }
 
     @GetMapping("/cidade/{cidade}")
@@ -94,21 +83,14 @@ public class CentralTransplantesController {
 
     @GetMapping("/status/{status}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorStatus(@PathVariable String status) {
+        CentralTransplantes.StatusCentral statusEnum = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
 
-        CentralTransplantes.StatusCentral statusEnum;
-
-        try {
-            statusEnum = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
-
-    return ResponseEntity.ok(
-        centralService.listarPorStatus(statusEnum)
-            .stream()
-            .map(centralTransplantesMapper::toDTO)
-            .collect(Collectors.toList())
-    );
+        return ResponseEntity.ok(
+                centralService.listarPorStatus(statusEnum)
+                        .stream()
+                        .map(centralTransplantesMapper::toDTO)
+                        .collect(Collectors.toList())
+        );
     }
 
     // ---------------- UPDATE ----------------
@@ -130,13 +112,7 @@ public class CentralTransplantesController {
             @PathVariable Long id,
             @RequestParam String status) {
 
-        CentralTransplantes.StatusCentral novoStatus;
-
-        try {
-            novoStatus = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        CentralTransplantes.StatusCentral novoStatus = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
 
         return ResponseEntity.ok(
             centralTransplantesMapper.toDTO(centralService.alterarStatus(id, novoStatus))

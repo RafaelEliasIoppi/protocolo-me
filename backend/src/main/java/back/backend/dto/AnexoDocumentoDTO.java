@@ -1,7 +1,5 @@
 package back.backend.dto;
 
-import back.backend.model.AnexoDocumento;
-
 import java.time.LocalDateTime;
 
 public class AnexoDocumentoDTO {
@@ -56,25 +54,4 @@ public class AnexoDocumentoDTO {
 
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
-
-    // ---------------- CONVERSÃO ----------------
-
-    public static AnexoDocumentoDTO fromEntity(AnexoDocumento entity) {
-
-        if (entity == null) return null;
-
-        AnexoDocumentoDTO dto = new AnexoDocumentoDTO();
-        dto.setId(entity.getId());
-        dto.setNomeArquivo(entity.getNomeArquivo());
-        dto.setTipoMime(entity.getTipoMime());
-        dto.setTamanhoBytes(entity.getTamanhoBytes());
-        dto.setTipoAnexo(entity.getTipoAnexo());
-        dto.setExameMEId(entity.getExameMEId());
-        dto.setProtocoloMEId(entity.getProtocoloMEId());
-        dto.setDescricao(entity.getDescricao());
-        dto.setUploadPor(entity.getUploadPor());
-        dto.setDataUpload(entity.getDataUpload());
-        dto.setDataCriacao(entity.getDataCriacao());
-        return dto;
-    }
 }

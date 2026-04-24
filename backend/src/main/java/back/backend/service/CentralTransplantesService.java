@@ -1,6 +1,7 @@
 package back.backend.service;
 
 import back.backend.dto.CentralTransplantesDTO;
+import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.model.CentralTransplantes;
 import back.backend.model.Hospital;
 import back.backend.model.Paciente;
@@ -88,12 +89,27 @@ public class CentralTransplantesService {
         return centralRepository.findById(id);
     }
 
+    public CentralTransplantes buscarPorIdOuFalhar(Long id) {
+        return centralRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
+    }
+
     public Optional<CentralTransplantes> buscarPorCnpj(String cnpj) {
         return centralRepository.findByCnpj(cnpj);
     }
 
+    public CentralTransplantes buscarPorCnpjOuFalhar(String cnpj) {
+        return centralRepository.findByCnpj(cnpj)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
+    }
+
     public Optional<CentralTransplantes> buscarPorNome(String nome) {
         return centralRepository.findByNome(nome);
+    }
+
+    public CentralTransplantes buscarPorNomeOuFalhar(String nome) {
+        return centralRepository.findByNome(nome)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
     }
 
     public List<CentralTransplantes> listarPorCidade(String cidade) {
@@ -155,12 +171,12 @@ public class CentralTransplantesService {
 
     private CentralTransplantes getCentral(Long id) {
         return centralRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Central não encontrada"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
     }
 
     private Hospital getHospital(Long id) {
         return hospitalRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Hospital não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado"));
     }
 
     private void validarDuplicidade(CentralTransplantes central) {
