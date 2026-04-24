@@ -4,126 +4,97 @@ import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.OrgaoDoadoDTO;
 import back.backend.model.OrgaoDoado;
 import back.backend.service.OrgaoDoadoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orgaos-doados")
 @CrossOrigin(origins = "*")
 public class OrgaoDoadoController {
 
-    @Autowired
-    private OrgaoDoadoService orgaoDoadoService;
+    private final OrgaoDoadoService orgaoDoadoService;
 
-    /**
-     * POST - Criar novo órgão doado
-     */
+    public OrgaoDoadoController(OrgaoDoadoService orgaoDoadoService) {
+        this.orgaoDoadoService = orgaoDoadoService;
+    }
+
     @PostMapping
     public ResponseEntity<?> criar(@RequestBody OrgaoDoado orgaoDoado) {
         try {
             OrgaoDoado novo = orgaoDoadoService.criar(orgaoDoado);
-            return ResponseEntity.status(201).body(dtoFromEntity(novo));
+            return ResponseEntity.status(201).body(OrgaoDoadoDTO.fromEntity(novo));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), 400));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), 400));
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseDTO(e.getMessage(), 400));
         }
     }
 
-    /**
-     * GET - Buscar órgão doado por ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
-        Optional<OrgaoDoado> orgaoDoado = orgaoDoadoService.buscarPorId(id);
-        return orgaoDoado.map(value -> ResponseEntity.ok(dtoFromEntity(value)))
+        Optional<OrgaoDoado> orgao = orgaoDoadoService.buscarPorId(id);
+
+        return orgao.map(o -> ResponseEntity.ok(OrgaoDoadoDTO.fromEntity(o)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    /**
-     * GET - Listar órgãos doados por protocolo
-     */
     @GetMapping("/protocolo/{protocoloId}")
     public ResponseEntity<List<OrgaoDoadoDTO>> listarPorProtocolo(@PathVariable Long protocoloId) {
-        List<OrgaoDoado> orgaos = orgaoDoadoService.listarPorProtocolo(protocoloId);
-        return ResponseEntity.ok(orgaos.stream().map(this::dtoFromEntity).collect(Collectors.toList()));
+        return ResponseEntity.ok(
+                orgaoDoadoService.listarPorProtocolo(protocoloId)
+                        .stream()
+                        .map(OrgaoDoadoDTO::fromEntity)
+                        .toList()
+        );
     }
 
-    /**
-     * PUT - Atualizar órgão doado
-     */
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody OrgaoDoado orgaoDoadoAtualizado) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id,
+                                       @RequestBody OrgaoDoado orgaoDoado) {
         try {
-            OrgaoDoado atualizado = orgaoDoadoService.atualizar(id, orgaoDoadoAtualizado);
-            return ResponseEntity.ok(dtoFromEntity(atualizado));
+            OrgaoDoado atualizado = orgaoDoadoService.atualizar(id, orgaoDoado);
+            return ResponseEntity.ok(OrgaoDoadoDTO.fromEntity(atualizado));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), 400));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseDTO(e.getMessage(), 400));
         }
     }
 
-    /**
-     * POST - Registrar implantação
-     */
     @PostMapping("/{id}/implantar")
     public ResponseEntity<?> registrarImplantacao(
             @PathVariable Long id,
             @RequestParam String hospitalReceptor,
             @RequestParam String pacienteReceptor) {
-        try {
-            OrgaoDoado implantado = orgaoDoadoService.registrarImplantacao(id, hospitalReceptor, pacienteReceptor);
-            return ResponseEntity.ok(dtoFromEntity(implantado));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+
+        OrgaoDoado implantado =
+                orgaoDoadoService.registrarImplantacao(id, hospitalReceptor, pacienteReceptor);
+
+        return ResponseEntity.ok(OrgaoDoadoDTO.fromEntity(implantado));
     }
 
-    /**
-     * POST - Registrar descarte
-     */
     @PostMapping("/{id}/descartar")
     public ResponseEntity<?> registrarDescarte(
             @PathVariable Long id,
             @RequestParam String motivo) {
-        try {
-            OrgaoDoado descartado = orgaoDoadoService.registrarDescarte(id, motivo);
-            return ResponseEntity.ok(dtoFromEntity(descartado));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+
+        OrgaoDoado descartado =
+                orgaoDoadoService.registrarDescarte(id, motivo);
+
+        return ResponseEntity.ok(OrgaoDoadoDTO.fromEntity(descartado));
     }
 
-    /**
-     * DELETE - Deletar órgão doado
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        try {
-            orgaoDoadoService.deletar(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        orgaoDoadoService.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 
-    /**
-     * GET - Obter estatísticas de órgãos de um protocolo
-     */
     @GetMapping("/protocolo/{protocoloId}/estatisticas")
-    public ResponseEntity<OrgaoDoadoService.OrgaoStatisticas> obterEstatisticas(@PathVariable Long protocoloId) {
-        OrgaoDoadoService.OrgaoStatisticas stats = orgaoDoadoService.obterEstatisticas(protocoloId);
-        return ResponseEntity.ok(stats);
-    }
-
-    private OrgaoDoadoDTO dtoFromEntity(OrgaoDoado entity) {
-        return OrgaoDoadoDTO.fromEntity(entity);
+    public ResponseEntity<?> obterEstatisticas(@PathVariable Long protocoloId) {
+        return ResponseEntity.ok(
+                orgaoDoadoService.obterEstatisticas(protocoloId)
+        );
     }
 }

@@ -2,208 +2,185 @@ package back.backend.service;
 
 import back.backend.model.AnexoDocumento;
 import back.backend.repository.AnexoDocumentoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AnexoDocumentoService {
 
-    @Autowired
-    private AnexoDocumentoRepository anexoRepository;
+    private final AnexoDocumentoRepository anexoRepository;
 
-    // Diretório onde os arquivos serão armazenados
+    public AnexoDocumentoService(AnexoDocumentoRepository anexoRepository) {
+        this.anexoRepository = anexoRepository;
+    }
+
     @Value("${file.upload.dir:uploads/anexos}")
     private String uploadDir;
 
-    // Extensões permitidas
-    private static final String[] EXTENSOES_PERMITIDAS = {
-        "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", 
-        "jpg", "jpeg", "png", "gif", "bmp",
-        "txt", "csv", "zip", "rar"
-    };
+    private static final Set<String> EXTENSOES_PERMITIDAS = Set.of(
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
+            "jpg", "jpeg", "png", "gif", "bmp",
+            "txt", "csv", "zip", "rar"
+    );
 
-    // Tamanho máximo em bytes (20MB)
     private static final long TAMANHO_MAXIMO = 20 * 1024 * 1024;
 
-    /**
-     * Upload de arquivo para exame
-     */
-    public AnexoDocumento uploadAnexoExame(Long exameMEId, MultipartFile file, 
-                                           String descricao, String uploadPor) throws IOException {
-        return uploadArquivo(file, "EXAME", exameMEId, null, descricao, uploadPor);
+    // ---------------- UPLOAD ----------------
+
+    public AnexoDocumento uploadAnexoExame(Long exameId, MultipartFile file,
+                                            String descricao, String uploadPor) throws IOException {
+        return upload(file, "EXAME", exameId, null, descricao, uploadPor);
     }
 
-    /**
-     * Upload de arquivo para entrevista familiar
-     */
-    public AnexoDocumento uploadAnexoEntrevista(Long protocoloMEId, MultipartFile file, 
-                                               String descricao, String uploadPor) throws IOException {
-        return uploadArquivo(file, "ENTREVISTA", null, protocoloMEId, descricao, uploadPor);
+    public AnexoDocumento uploadAnexoEntrevista(Long protocoloId, MultipartFile file,
+                                                 String descricao, String uploadPor) throws IOException {
+        return upload(file, "ENTREVISTA", null, protocoloId, descricao, uploadPor);
     }
 
-    /**
-     * Upload genérico de arquivo
-     */
-    private AnexoDocumento uploadArquivo(MultipartFile file, String tipoAnexo, 
-                                        Long exameMEId, Long protocoloMEId, 
-                                        String descricao, String uploadPor) throws IOException {
-        // Validações
-        validarArquivo(file);
+    private AnexoDocumento upload(MultipartFile file, String tipo,
+                                  Long exameId, Long protocoloId,
+                                  String descricao, String uploadPor) throws IOException {
 
-        // Criar diretório se não existir
-        Path uploadPath = Paths.get(uploadDir, tipoAnexo.toLowerCase());
-        Files.createDirectories(uploadPath);
+        validar(file);
 
-        // Gerar nome único para o arquivo
-        String nomeOriginal = file.getOriginalFilename();
-        String extensao = nomeOriginal.substring(nomeOriginal.lastIndexOf(".") + 1);
-        String nomeUnico = UUID.randomUUID().toString() + "." + extensao;
-        
-        // Salvar arquivo no disco
-        Path caminhoCompleto = uploadPath.resolve(nomeUnico);
-        Files.write(caminhoCompleto, file.getBytes());
+        Path dir = Paths.get(uploadDir, tipo.toLowerCase()).normalize();
+        Files.createDirectories(dir);
 
-        // Criar registro no banco de dados
+        String original = file.getOriginalFilename();
+        String ext = getExtensao(original);
+
+        String nomeUnico = UUID.randomUUID() + "." + ext;
+
+        Path destino = dir.resolve(nomeUnico).normalize();
+        Files.write(destino, file.getBytes());
+
         AnexoDocumento anexo = new AnexoDocumento();
-        anexo.setNomeArquivo(nomeOriginal);
-        anexo.setCaminhoArquivo(caminhoCompleto.toString());
+        anexo.setNomeArquivo(original);
+        anexo.setCaminhoArquivo(destino.toString());
         anexo.setTipoMime(file.getContentType());
         anexo.setTamanhoBytes(file.getSize());
-        anexo.setTipoAnexo(tipoAnexo);
-        anexo.setExameMEId(exameMEId);
-        anexo.setProtocoloMEId(protocoloMEId);
+        anexo.setTipoAnexo(tipo);
+        anexo.setExameMEId(exameId);
+        anexo.setProtocoloMEId(protocoloId);
         anexo.setDescricao(descricao);
         anexo.setUploadPor(uploadPor);
 
         return anexoRepository.save(anexo);
     }
 
-    /**
-     * Validar arquivo
-     */
-    private void validarArquivo(MultipartFile file) throws IOException {
-        if (file.isEmpty()) {
-            throw new IOException("Arquivo vazio");
+    // ---------------- VALIDATION ----------------
+
+    private void validar(MultipartFile file) {
+
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("Arquivo inválido");
         }
 
         if (file.getSize() > TAMANHO_MAXIMO) {
-            throw new IOException("Arquivo excede tamanho máximo de 20MB");
+            throw new RuntimeException("Arquivo maior que 20MB");
         }
 
-        String nomeArquivo = file.getOriginalFilename();
-        if (nomeArquivo == null || !nomeArquivo.contains(".")) {
-            throw new IOException("Arquivo sem extensão válida");
-        }
+        String ext = getExtensao(file.getOriginalFilename());
 
-        String extensao = nomeArquivo.substring(nomeArquivo.lastIndexOf(".") + 1).toLowerCase();
-        boolean extensaoValida = false;
-        for (String ext : EXTENSOES_PERMITIDAS) {
-            if (ext.equals(extensao)) {
-                extensaoValida = true;
-                break;
-            }
-        }
-
-        if (!extensaoValida) {
-            throw new IOException("Tipo de arquivo não permitido: " + extensao);
+        if (!EXTENSOES_PERMITIDAS.contains(ext)) {
+            throw new RuntimeException("Extensão não permitida: " + ext);
         }
     }
 
-    /**
-     * Listar anexos de um exame
-     */
-    public List<AnexoDocumento> listarAnexosExame(Long exameMEId) {
-        return anexoRepository.findByExameMEId(exameMEId);
+    private String getExtensao(String nome) {
+        if (nome == null || !nome.contains(".")) {
+            throw new RuntimeException("Arquivo sem extensão");
+        }
+        return nome.substring(nome.lastIndexOf(".") + 1).toLowerCase();
     }
 
-    /**
-     * Listar anexos de entrevista (protocolo)
-     */
-    public List<AnexoDocumento> listarAnexosEntrevista(Long protocoloMEId) {
-        return anexoRepository.findByProtocoloMEId(protocoloMEId);
+    // ---------------- QUERY ----------------
+
+    public List<AnexoDocumento> listarAnexosExame(Long exameId) {
+        return anexoRepository.findByExameMEId(exameId);
     }
 
-    /**
-     * Obter anexo por ID
-     */
-    public Optional<AnexoDocumento> obterAnexoPorId(Long id) {
-        return anexoRepository.findById(id);
+    public List<AnexoDocumento> listarAnexosEntrevista(Long protocoloId) {
+        return anexoRepository.findByProtocoloMEId(protocoloId);
     }
 
-    /**
-     * Download de arquivo
-     */
-    public byte[] downloadArquivo(Long anexoId) throws IOException {
-        AnexoDocumento anexo = anexoRepository.findById(anexoId)
+    public AnexoDocumento obterPorId(Long id) {
+        return anexoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Anexo não encontrado"));
-
-        Path caminhoArquivo = Paths.get(anexo.getCaminhoArquivo());
-        if (!Files.exists(caminhoArquivo)) {
-            throw new IOException("Arquivo não encontrado no servidor");
-        }
-
-        return Files.readAllBytes(caminhoArquivo);
     }
 
-    /**
-     * Deletar anexo
-     */
-    public void deletarAnexo(Long anexoId) throws IOException {
-        AnexoDocumento anexo = anexoRepository.findById(anexoId)
-                .orElseThrow(() -> new RuntimeException("Anexo não encontrado"));
+    // ---------------- DOWNLOAD ----------------
 
-        // Deletar arquivo do disco
-        Path caminhoArquivo = Paths.get(anexo.getCaminhoArquivo());
-        if (Files.exists(caminhoArquivo)) {
-            Files.delete(caminhoArquivo);
+    public byte[] downloadArquivo(Long id) throws IOException {
+
+        AnexoDocumento anexo = obterPorId(id);
+
+        Path file = Paths.get(anexo.getCaminhoArquivo()).normalize();
+
+        if (!Files.exists(file)) {
+            throw new RuntimeException("Arquivo não encontrado no disco");
         }
 
-        // Deletar registro do banco
+        return Files.readAllBytes(file);
+    }
+
+    // ---------------- DELETE ----------------
+
+    public void deletarAnexo(Long id) throws IOException {
+
+        AnexoDocumento anexo = obterPorId(id);
+
+        Path file = Paths.get(anexo.getCaminhoArquivo()).normalize();
+
+        if (Files.exists(file)) {
+            Files.delete(file);
+        }
+
         anexoRepository.delete(anexo);
     }
 
-    /**
-     * Deletar todos os anexos de um exame
-     */
-    public void deletarAnexosExame(Long exameMEId) throws IOException {
-        List<AnexoDocumento> anexos = anexoRepository.findByExameMEId(exameMEId);
-        for (AnexoDocumento anexo : anexos) {
-            deletarAnexo(anexo.getId());
+    public void deletarAnexosExame(Long exameId) throws IOException {
+
+        List<AnexoDocumento> anexos = anexoRepository.findByExameMEId(exameId);
+
+        for (AnexoDocumento a : anexos) {
+            deletarAnexo(a.getId());
         }
     }
 
-    /**
-     * Limpar diretório de upload (manutenção)
-     */
-    public void limparArquivosOrfaos() throws IOException {
-        List<AnexoDocumento> anexos = anexoRepository.findAll();
-        Path uploadPath = Paths.get(uploadDir);
+    // ---------------- MAINTENANCE ----------------
 
-        Files.walk(uploadPath)
-                .filter(Files::isRegularFile)
-                .forEach(file -> {
-                    boolean existe = anexos.stream()
-                            .anyMatch(a -> a.getCaminhoArquivo().equals(file.toString()));
-                    if (!existe) {
-                        try {
-                            Files.delete(file);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+    public void limparArquivosOrfaos() throws IOException {
+
+        List<AnexoDocumento> anexos = anexoRepository.findAll();
+
+        Set<String> arquivosBanco = anexos.stream()
+                .map(AnexoDocumento::getCaminhoArquivo)
+                .collect(Collectors.toSet());
+
+        try (var stream = Files.walk(Paths.get(uploadDir))) {
+
+            stream.filter(Files::isRegularFile)
+                    .forEach(file -> {
+
+                        if (!arquivosBanco.contains(file.toString())) {
+                            try {
+                                Files.delete(file);
+                            } catch (IOException e) {
+                                System.err.println("Erro ao deletar arquivo órfão: " + file);
+                            }
                         }
-                    }
-                });
+                    });
+        }
     }
 }

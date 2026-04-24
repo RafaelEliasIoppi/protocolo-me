@@ -17,30 +17,34 @@ public class AnexoDocumentoDTO {
     private String tipoMime;
     private Long tamanhoBytes;
     private String tipoAnexo;
+
     private Long exameMEId;
     private Long protocoloMEId;
+
     private String descricao;
     private String uploadPor;
+
     private LocalDateTime dataUpload;
     private LocalDateTime dataCriacao;
 
+    // ---------------- CONVERSÃO ----------------
+
     public static AnexoDocumentoDTO fromEntity(AnexoDocumento entity) {
-        if (entity == null) {
-            return null;
-        }
+
+        if (entity == null) return null;
 
         return new AnexoDocumentoDTO(
-            entity.getId(),
-            entity.getNomeArquivo(),
-            entity.getTipoMime(),
-            entity.getTamanhoBytes(),
-            entity.getTipoAnexo(),
-            entity.getExameMEId(),
-            entity.getProtocoloMEId(),
-            entity.getDescricao(),
-            entity.getUploadPor(),
-            entity.getDataUpload(),
-            entity.getDataCriacao()
+                entity.getId(),
+                entity.getNomeArquivo(),
+                entity.getTipoMime(),
+                entity.getTamanhoBytes(),
+                entity.getTipoAnexo(),
+                entity.getExameMEId(),
+                entity.getProtocoloMEId(),
+                entity.getDescricao(),
+                entity.getUploadPor(),
+                entity.getDataUpload(),
+                entity.getDataCriacao()
         );
     }
 }

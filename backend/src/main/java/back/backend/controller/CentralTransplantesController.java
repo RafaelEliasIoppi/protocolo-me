@@ -1,11 +1,11 @@
 package back.backend.controller;
 
 import back.backend.dto.AcaoResponseDTO;
+import back.backend.dto.CentralTransplantesDTO;
 import back.backend.model.CentralTransplantes;
 import back.backend.service.CentralTransplantesService;
-import back.backend.dto.CentralTransplantesDTO;
-import javax.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,135 +13,170 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/centrais-transplantes")
 public class CentralTransplantesController {
 
-    @Autowired
-    private CentralTransplantesService centralService;
+    private final CentralTransplantesService centralService;
 
-    // POST - Criar nova central
-    @PostMapping
-    public ResponseEntity<CentralTransplantesDTO> criarCentral(@Valid @RequestBody CentralTransplantesDTO dto) {
-        CentralTransplantes novaCentral = centralService.criarCentralFromDTO(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dtoFromEntity(novaCentral));
+    public CentralTransplantesController(CentralTransplantesService centralService) {
+        this.centralService = centralService;
     }
 
-    // GET - Listar todas as centrais
+    // ---------------- CREATE ----------------
+
+    @PostMapping
+    public ResponseEntity<CentralTransplantesDTO> criar(@Valid @RequestBody CentralTransplantesDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(toDTO(centralService.criarCentralFromDTO(dto)));
+    }
+
+    // ---------------- READ ALL ----------------
+
     @GetMapping
     public ResponseEntity<List<CentralTransplantesDTO>> listarTodas() {
-        List<CentralTransplantes> centrais = centralService.listarTodas();
-        List<CentralTransplantesDTO> dtos = centrais.stream()
-                .map(this::dtoFromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(
+                centralService.listarTodas()
+                        .stream()
+                        .map(this::toDTO)
+                        .collect(Collectors.toList())
+        );
     }
 
-    // GET - Buscar central por ID
+    // ---------------- READ BY ID ----------------
+
     @GetMapping("/{id}")
     public ResponseEntity<CentralTransplantesDTO> buscarPorId(@PathVariable Long id) {
+
         Optional<CentralTransplantes> central = centralService.buscarPorId(id);
-        return central.map(c -> ResponseEntity.ok(dtoFromEntity(c)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+
+        return central.map(c -> ResponseEntity.ok(toDTO(c)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // GET - Buscar por CNPJ
+    // ---------------- FILTERS ----------------
+
     @GetMapping("/cnpj/{cnpj}")
     public ResponseEntity<CentralTransplantesDTO> buscarPorCnpj(@PathVariable String cnpj) {
-        Optional<CentralTransplantes> central = centralService.buscarPorCnpj(cnpj);
-        return central.map(c -> ResponseEntity.ok(dtoFromEntity(c)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+
+        return centralService.buscarPorCnpj(cnpj)
+                .map(c -> ResponseEntity.ok(toDTO(c)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // GET - Buscar por Nome
     @GetMapping("/nome/{nome}")
     public ResponseEntity<CentralTransplantesDTO> buscarPorNome(@PathVariable String nome) {
-        Optional<CentralTransplantes> central = centralService.buscarPorNome(nome);
-        return central.map(c -> ResponseEntity.ok(dtoFromEntity(c)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+
+        return centralService.buscarPorNome(nome)
+                .map(c -> ResponseEntity.ok(toDTO(c)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // GET - Listar por cidade
     @GetMapping("/cidade/{cidade}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorCidade(@PathVariable String cidade) {
-        List<CentralTransplantes> centrais = centralService.listarPorCidade(cidade);
-        List<CentralTransplantesDTO> dtos = centrais.stream()
-                .map(this::dtoFromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(mapList(centralService.listarPorCidade(cidade)));
     }
 
-    // GET - Listar por estado
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorEstado(@PathVariable String estado) {
-        List<CentralTransplantes> centrais = centralService.listarPorEstado(estado);
-        List<CentralTransplantesDTO> dtos = centrais.stream()
-                .map(this::dtoFromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(mapList(centralService.listarPorEstado(estado)));
     }
 
-    // GET - Listar por status
     @GetMapping("/status/{status}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorStatus(@PathVariable String status) {
-        CentralTransplantes.StatusCentral statusEnum = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
-        List<CentralTransplantes> centrais = centralService.listarPorStatus(statusEnum);
-        List<CentralTransplantesDTO> dtos = centrais.stream()
-                .map(this::dtoFromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+
+        CentralTransplantes.StatusCentral statusEnum;
+
+        try {
+            statusEnum = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(
+                mapList(centralService.listarPorStatus(statusEnum))
+        );
     }
 
-    // GET - Estatísticas de doadores/receptores e órgãos/tecidos (Painel da Central)
-    @GetMapping("/estatisticas/doadores-receptores")
-    public ResponseEntity<CentralTransplantesService.EstatisticasCentralDoacaoTransplante> obterEstatisticasDoadoresReceptores() {
-        CentralTransplantesService.EstatisticasCentralDoacaoTransplante estatisticas =
-                centralService.obterEstatisticasDoacaoTransplante();
-        return ResponseEntity.ok(estatisticas);
-    }
+    // ---------------- UPDATE ----------------
 
-    // PUT - Atualizar central
     @PutMapping("/{id}")
-    public ResponseEntity<CentralTransplantesDTO> atualizarCentral(@PathVariable Long id,
-                                                                   @Valid @RequestBody CentralTransplantesDTO dto) {
-        CentralTransplantes centralAtualizada = centralService.atualizarCentralFromDTO(id, dto);
-        return ResponseEntity.ok(dtoFromEntity(centralAtualizada));
+    public ResponseEntity<CentralTransplantesDTO> atualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody CentralTransplantesDTO dto) {
+
+        return ResponseEntity.ok(
+                toDTO(centralService.atualizarCentralFromDTO(id, dto))
+        );
     }
 
-    // PATCH - Alterar status da central
+    // ---------------- PATCH STATUS ----------------
+
     @PatchMapping("/{id}/status")
-    public ResponseEntity<CentralTransplantesDTO> alterarStatus(@PathVariable Long id,
-                                                                @RequestParam String status) {
-        CentralTransplantes.StatusCentral novoStatus = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
-        CentralTransplantes central = centralService.alterarStatus(id, novoStatus);
-        return ResponseEntity.ok(dtoFromEntity(central));
+    public ResponseEntity<CentralTransplantesDTO> alterarStatus(
+            @PathVariable Long id,
+            @RequestParam String status) {
+
+        CentralTransplantes.StatusCentral novoStatus;
+
+        try {
+            novoStatus = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(
+                toDTO(centralService.alterarStatus(id, novoStatus))
+        );
     }
 
-    // POST - Vincular hospital à central
+    // ---------------- RELATIONSHIPS ----------------
+
     @PostMapping("/{centralId}/hospitais/{hospitalId}")
-    public ResponseEntity<AcaoResponseDTO> vincularHospital(@PathVariable Long centralId,
-                                                            @PathVariable Long hospitalId) {
+    public ResponseEntity<AcaoResponseDTO> vincularHospital(
+            @PathVariable Long centralId,
+            @PathVariable Long hospitalId) {
+
         centralService.vincularHospital(centralId, hospitalId);
-        return ResponseEntity.ok(new AcaoResponseDTO(centralId, "Hospital vinculado com sucesso"));
+
+        return ResponseEntity.ok(
+                new AcaoResponseDTO(centralId, "Hospital vinculado com sucesso")
+        );
     }
 
-    // DELETE - Remover hospital da central
     @DeleteMapping("/{centralId}/hospitais/{hospitalId}")
-    public ResponseEntity<AcaoResponseDTO> removerHospital(@PathVariable Long centralId,
-                                                          @PathVariable Long hospitalId) {
+    public ResponseEntity<AcaoResponseDTO> removerHospital(
+            @PathVariable Long centralId,
+            @PathVariable Long hospitalId) {
+
         centralService.removerHospital(centralId, hospitalId);
-        return ResponseEntity.ok(new AcaoResponseDTO(centralId, "Hospital removido com sucesso"));
+
+        return ResponseEntity.ok(
+                new AcaoResponseDTO(centralId, "Hospital removido com sucesso")
+        );
     }
 
-    // DELETE - Deletar central
+    // ---------------- DELETE ----------------
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarCentral(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         centralService.deletarCentral(id);
         return ResponseEntity.noContent().build();
     }
 
-    // Conversão Entity -> DTO
-    private CentralTransplantesDTO dtoFromEntity(CentralTransplantes c) {
+    // ---------------- STATS ----------------
+
+    @GetMapping("/estatisticas/doadores-receptores")
+    public ResponseEntity<?> estatisticas() {
+        return ResponseEntity.ok(
+                centralService.obterEstatisticasDoacaoTransplante()
+        );
+    }
+
+    // ---------------- HELPERS ----------------
+
+    private CentralTransplantesDTO toDTO(CentralTransplantes c) {
         CentralTransplantesDTO dto = new CentralTransplantesDTO();
         dto.setId(c.getId());
         dto.setNome(c.getNome());
@@ -158,5 +193,11 @@ public class CentralTransplantesController {
         dto.setCapacidadeProcessamento(c.getCapacidadeProcessamento());
         dto.setEspecialidadesOrgaos(c.getEspecialidadesOrgaos());
         return dto;
+    }
+
+    private List<CentralTransplantesDTO> mapList(List<CentralTransplantes> list) {
+        return list.stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 }
