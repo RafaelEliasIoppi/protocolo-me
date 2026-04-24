@@ -22,178 +22,119 @@ public class PacienteController {
     @Autowired
     private PacienteService pacienteService;
 
-    /**
-     * POST /api/pacientes - Criar novo paciente
-     */
     @Transactional
     @PostMapping
-    public ResponseEntity<PacienteDTO> criar(@RequestBody Paciente paciente) {
-        Paciente pacienteCriado = pacienteService.criarPaciente(paciente);
-        return ResponseEntity.status(HttpStatus.CREATED).body(PacienteDTO.fromEntity(pacienteCriado));
+    public ResponseEntity<?> criar(@RequestBody Paciente paciente) {
+        try {
+            Paciente criado = pacienteService.criarPaciente(paciente);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(PacienteDTO.fromEntity(criado));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    /**
-     * GET /api/pacientes - Listar todos os pacientes
-     */
     @GetMapping
     public ResponseEntity<List<PacienteDTO>> listarTodos() {
-        List<Paciente> pacientes = pacienteService.listarTodos();
-        List<PacienteDTO> dtos = pacientes.stream()
-            .map(PacienteDTO::fromEntity)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(
+                pacienteService.listarTodos()
+                        .stream()
+                        .map(PacienteDTO::fromEntity)
+                        .toList()
+        );
     }
 
-    /**
-     * GET /api/pacientes/{id} - Obter paciente por ID
-     */
     @GetMapping("/{id:\\d+}")
-    public ResponseEntity<PacienteDTO> obterPorId(@PathVariable Long id) {
-        Paciente paciente = pacienteService.obterPacientePorId(id);
-        return ResponseEntity.ok(PacienteDTO.fromEntity(paciente));
+    public ResponseEntity<?> obterPorId(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(
+                    PacienteDTO.fromEntity(pacienteService.obterPacientePorId(id))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    /**
-     * GET /api/pacientes/cpf/{cpf} - Obter paciente por CPF
-     */
     @GetMapping("/cpf/{cpf}")
-    public ResponseEntity<PacienteDTO> obterPorCpf(@PathVariable String cpf) {
-        Paciente paciente = pacienteService.obterPacientePorCpf(cpf);
-        return ResponseEntity.ok(PacienteDTO.fromEntity(paciente));
+    public ResponseEntity<?> obterPorCpf(@PathVariable String cpf) {
+        try {
+            return ResponseEntity.ok(
+                    PacienteDTO.fromEntity(pacienteService.obterPacientePorCpf(cpf))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    /**
-     * GET /api/pacientes/hospital/{hospitalId} - Listar pacientes por hospital
-     */
     @GetMapping("/hospital/{hospitalId}")
     public ResponseEntity<List<PacienteDTO>> listarPorHospital(@PathVariable Long hospitalId) {
-        List<Paciente> pacientes = pacienteService.listarPorHospital(hospitalId);
-        List<PacienteDTO> dtos = pacientes.stream()
-            .map(PacienteDTO::fromEntity)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(
+                pacienteService.listarPorHospital(hospitalId)
+                        .stream()
+                        .map(PacienteDTO::fromEntity)
+                        .toList()
+        );
     }
 
-    /**
-     * GET /api/pacientes/status/{status} - Listar pacientes por status
-     */
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<PacienteDTO>> listarPorStatus(@PathVariable String status) {
-        List<Paciente> pacientes = pacienteService.listarPorStatus(status);
-        List<PacienteDTO> dtos = pacientes.stream()
-            .map(PacienteDTO::fromEntity)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+    public ResponseEntity<?> listarPorStatus(@PathVariable String status) {
+        try {
+            return ResponseEntity.ok(
+                    pacienteService.listarPorStatus(status)
+                            .stream()
+                            .map(PacienteDTO::fromEntity)
+                            .toList()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Status inválido");
+        }
     }
 
-    /**
-     * GET /api/pacientes/hospital/{hospitalId}/status/{status} - Listar por hospital e status
-     */
     @GetMapping("/hospital/{hospitalId}/status/{status}")
-    public ResponseEntity<List<PacienteDTO>> listarPorHospitalEStatus(
+    public ResponseEntity<?> listarPorHospitalEStatus(
             @PathVariable Long hospitalId,
             @PathVariable String status) {
-        List<Paciente> pacientes = pacienteService.listarPorHospitalEStatus(hospitalId, status);
-        List<PacienteDTO> dtos = pacientes.stream()
-            .map(PacienteDTO::fromEntity)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+
+        try {
+            return ResponseEntity.ok(
+                    pacienteService.listarPorHospitalEStatus(hospitalId, status)
+                            .stream()
+                            .map(PacienteDTO::fromEntity)
+                            .toList()
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Status inválido");
+        }
     }
 
-    /**
-     * GET /api/pacientes/em-protocolo-me - Listar apenas pacientes em Protocolo de ME
-     */
-    @GetMapping("/em-protocolo-me")
-    public ResponseEntity<List<PacienteDTO>> listarPacientesEmProtocoloME() {
-        List<Paciente> pacientes = pacienteService.listarPacientesEmProtocoloME();
-        List<PacienteDTO> dtos = pacientes.stream()
-            .map(PacienteDTO::fromEntity)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
-    }
-
-    /**
-     * GET /api/pacientes/em-protocolo-me/hospital/{hospitalId} - Listar pacientes em Protocolo de ME por hospital
-     */
-    @GetMapping("/em-protocolo-me/hospital/{hospitalId}")
-    public ResponseEntity<List<PacienteDTO>> listarPacientesEmProtocoloMEPorHospital(@PathVariable Long hospitalId) {
-        List<Paciente> pacientes = pacienteService.listarPacientesEmProtocoloMEPorHospital(hospitalId);
-        List<PacienteDTO> dtos = pacientes.stream()
-            .map(PacienteDTO::fromEntity)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
-    }
-
-    /**
-     * GET /api/pacientes/{id}/relatorio-final - Relatório final completo de um paciente
-     */
-    @GetMapping("/{id:\\d+}/relatorio-final")
-    public ResponseEntity<PacienteService.RelatorioFinalPaciente> obterRelatorioFinalPaciente(@PathVariable Long id) {
-        PacienteService.RelatorioFinalPaciente relatorio = pacienteService.gerarRelatorioFinalPaciente(id);
-        return ResponseEntity.ok(relatorio);
-    }
-
-    /**
-     * GET /api/pacientes/relatorios-finais - Relatório final de todos os pacientes
-     */
-    @GetMapping("/relatorios-finais")
-    public ResponseEntity<List<PacienteService.RelatorioFinalPaciente>> listarRelatoriosFinaisPacientes() {
-        List<PacienteService.RelatorioFinalPaciente> relatorios = pacienteService.gerarRelatoriosFinaisPacientes();
-        return ResponseEntity.ok(relatorios);
-    }
-
-    /**
-     * GET /api/pacientes/buscar?nome={nome} - Procurar pacientes por nome
-     */
-    @GetMapping("/buscar")
-    public ResponseEntity<List<PacienteDTO>> buscarPorNome(@RequestParam String nome) {
-        List<Paciente> pacientes = pacienteService.procurarPorNome(nome);
-        List<PacienteDTO> dtos = pacientes.stream()
-            .map(PacienteDTO::fromEntity)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
-    }
-
-    /**
-     * GET /api/pacientes/hospital/{hospitalId}/buscar?nome={nome} - Procurar por nome no hospital
-     */
-    @GetMapping("/hospital/{hospitalId}/buscar")
-    public ResponseEntity<List<PacienteDTO>> buscarPorNomeEHospital(
-            @PathVariable Long hospitalId,
-            @RequestParam String nome) {
-        List<Paciente> pacientes = pacienteService.procurarPorNomeEHospital(hospitalId, nome);
-        List<PacienteDTO> dtos = pacientes.stream()
-            .map(PacienteDTO::fromEntity)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
-    }
-
-    /**
-     * PUT /api/pacientes/{id} - Atualizar paciente
-     */
     @Transactional
     @PutMapping("/{id:\\d+}")
-    public ResponseEntity<PacienteDTO> atualizar(@PathVariable Long id, @RequestBody Paciente paciente) {
-        Paciente pacienteAtualizado = pacienteService.atualizarPaciente(id, paciente);
-        return ResponseEntity.ok(PacienteDTO.fromEntity(pacienteAtualizado));
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Paciente paciente) {
+        try {
+            return ResponseEntity.ok(
+                    PacienteDTO.fromEntity(pacienteService.atualizarPaciente(id, paciente))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    /**
-     * PATCH /api/pacientes/{id}/status - Atualizar status do paciente
-     */
     @Transactional
     @PatchMapping("/{id:\\d+}/status")
-    public ResponseEntity<PacienteDTO> atualizarStatus(
+    public ResponseEntity<?> atualizarStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {
-        String statusStr = body.get("status");
-        Paciente pacienteAtualizado = pacienteService.atualizarStatus(id, statusStr);
-        return ResponseEntity.ok(PacienteDTO.fromEntity(pacienteAtualizado));
+
+        try {
+            String status = body.get("status");
+            return ResponseEntity.ok(
+                    PacienteDTO.fromEntity(pacienteService.atualizarStatus(id, status))
+            );
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Status inválido");
+        }
     }
 
-    /**
-     * DELETE /api/pacientes/{id} - Deletar paciente
-     */
     @Transactional
     @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
@@ -201,13 +142,8 @@ public class PacienteController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * GET /api/pacientes/estatisticas - Obter estatísticas de pacientes
-     */
     @GetMapping("/estatisticas/resumo")
     public ResponseEntity<PacienteService.PacienteStatisticas> obterEstatisticas() {
-        PacienteService.PacienteStatisticas stats = pacienteService.obterEstatisticas();
-        return ResponseEntity.ok(stats);
+        return ResponseEntity.ok(pacienteService.obterEstatisticas());
     }
-
 }

@@ -4,12 +4,9 @@ import back.backend.model.Paciente;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.Hibernate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -21,58 +18,64 @@ public class PacienteDTO {
     private String cpf;
     private LocalDate dataNascimento;
     private String genero;
-    private String hospitalOrigem;
+
     private Long hospitalId;
     private String hospitalNome;
+    private String hospitalOrigem;
+
     private String leito;
-    private LocalDate dataInternacao;
     private String diagnosticoPrincipal;
     private String historicoMedico;
+
     private String nomeResponsavel;
     private String telefoneResponsavel;
     private String emailResponsavel;
+
+    private String status;
     private String statusEntrevistaFamiliar;
     private String observacoesEntrevistaFamiliar;
     private LocalDateTime dataEntrevistaFamiliar;
-    private String status;
+
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
-    private List<ProtocoloMEDTO> protocolosME;
 
     public static PacienteDTO fromEntity(Paciente entity) {
         if (entity == null) return null;
-        PacienteDTO dto = new PacienteDTO();
-        dto.setId(entity.getId());
-        dto.setNome(entity.getNome());
-        dto.setCpf(entity.getCpf());
-        dto.setDataNascimento(entity.getDataNascimento());
-        dto.setGenero(entity.getGenero() != null ? entity.getGenero().name() : null);
-        dto.setHospitalOrigem(entity.getHospitalOrigem());
-        dto.setLeito(entity.getLeito());
-        dto.setDataInternacao(entity.getDataInternacao());
-        dto.setDiagnosticoPrincipal(entity.getDiagnosticoPrincipal());
-        dto.setHistoricoMedico(entity.getHistoricoMedico());
-        dto.setNomeResponsavel(entity.getNomeResponsavel());
-        dto.setTelefoneResponsavel(entity.getTelefoneResponsavel());
-        dto.setEmailResponsavel(entity.getEmailResponsavel());
-        dto.setStatusEntrevistaFamiliar(entity.getStatusEntrevistaFamiliar());
-        dto.setObservacoesEntrevistaFamiliar(entity.getObservacoesEntrevistaFamiliar());
-        dto.setDataEntrevistaFamiliar(entity.getDataEntrevistaFamiliar());
-        dto.setStatus(entity.getStatus() != null ? entity.getStatus().name() : null);
-        
+
+        Long hospitalId = null;
+        String hospitalNome = null;
+
         if (entity.getHospital() != null) {
-            dto.setHospitalId(entity.getHospital().getId());
-            dto.setHospitalNome(entity.getHospital().getNome());
+            hospitalId = entity.getHospital().getId();
+            hospitalNome = entity.getHospital().getNome();
         }
-        
-        if (entity.getProtocolosME() != null && Hibernate.isInitialized(entity.getProtocolosME())) {
-            dto.setProtocolosME(
-                entity.getProtocolosME().stream()
-                    .map(ProtocoloMEDTO::fromEntity)
-                    .collect(Collectors.toList())
-            );
-        }
-        
-        return dto;
+
+        return new PacienteDTO(
+                entity.getId(),
+                entity.getNome(),
+                entity.getCpf(),
+                entity.getDataNascimento(),
+                entity.getGenero() != null ? entity.getGenero().name() : null,
+
+                hospitalId,
+                hospitalNome,
+                entity.getHospitalOrigem(),
+
+                entity.getLeito(),
+                entity.getDiagnosticoPrincipal(),
+                entity.getHistoricoMedico(),
+
+                entity.getNomeResponsavel(),
+                entity.getTelefoneResponsavel(),
+                entity.getEmailResponsavel(),
+
+                entity.getStatus() != null ? entity.getStatus().name() : null,
+                entity.getStatusEntrevistaFamiliar() != null ? entity.getStatusEntrevistaFamiliar().name() : null,
+                entity.getObservacoesEntrevistaFamiliar(),
+                entity.getDataEntrevistaFamiliar(),
+
+                entity.getDataCriacao(),
+                entity.getDataAtualizacao()
+        );
     }
 }

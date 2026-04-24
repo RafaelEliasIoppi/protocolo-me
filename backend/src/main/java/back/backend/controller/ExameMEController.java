@@ -5,142 +5,152 @@ import back.backend.dto.ExameMEDTO;
 import back.backend.dto.ExameResumoDTO;
 import back.backend.model.ExameME;
 import back.backend.service.ExameMEService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/exames-me")
 @CrossOrigin(origins = "*")
 public class ExameMEController {
 
-    @Autowired
-    private ExameMEService exameService;
+    private final ExameMEService exameService;
+
+    public ExameMEController(ExameMEService exameService) {
+        this.exameService = exameService;
+    }
 
     // POST - Criar novo exame
     @PostMapping
-    public ResponseEntity<ExameMEDTO> criarExame(@RequestBody ExameME exame) {
+    public ResponseEntity<?> criarExame(@RequestBody ExameME exame) {
         try {
             ExameME novoExame = exameService.criarExame(exame);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ExameMEDTO.fromEntity(novoExame));
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ExameMEDTO.fromEntity(novoExame));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseDTO(e.getMessage(), 400));
         }
     }
 
     // GET - Listar exames de um protocolo
     @GetMapping("/protocolo/{protocoloId}")
     public ResponseEntity<List<ExameMEDTO>> listarExamePorProtocolo(@PathVariable Long protocoloId) {
-        try {
-            List<ExameME> exames = exameService.listarExamesPorProtocolo(protocoloId);
-            return ResponseEntity.ok(exames.stream().map(ExameMEDTO::fromEntity).collect(Collectors.toList()));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        List<ExameMEDTO> lista = exameService.listarExamesPorProtocolo(protocoloId)
+                .stream()
+                .map(ExameMEDTO::fromEntity)
+                .toList();
+
+        return ResponseEntity.ok(lista);
     }
 
     // GET - Listar exames clínicos
     @GetMapping("/protocolo/{protocoloId}/clinicos")
     public ResponseEntity<List<ExameMEDTO>> listarExamesClinico(@PathVariable Long protocoloId) {
-        try {
-            List<ExameME> exames = exameService.listarExamesClinico(protocoloId);
-            return ResponseEntity.ok(exames.stream().map(ExameMEDTO::fromEntity).collect(Collectors.toList()));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(
+                exameService.listarExamesClinico(protocoloId)
+                        .stream()
+                        .map(ExameMEDTO::fromEntity)
+                        .toList()
+        );
     }
 
     // GET - Listar exames complementares
     @GetMapping("/protocolo/{protocoloId}/complementares")
     public ResponseEntity<List<ExameMEDTO>> listarExamesComplementares(@PathVariable Long protocoloId) {
-        try {
-            List<ExameME> exames = exameService.listarExamesComplementares(protocoloId);
-            return ResponseEntity.ok(exames.stream().map(ExameMEDTO::fromEntity).collect(Collectors.toList()));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(
+                exameService.listarExamesComplementares(protocoloId)
+                        .stream()
+                        .map(ExameMEDTO::fromEntity)
+                        .toList()
+        );
     }
 
     // GET - Listar exames laboratoriais
     @GetMapping("/protocolo/{protocoloId}/laboratoriais")
     public ResponseEntity<List<ExameMEDTO>> listarExamesLaboratoriais(@PathVariable Long protocoloId) {
-        try {
-            List<ExameME> exames = exameService.listarExamesLaboratoriais(protocoloId);
-            return ResponseEntity.ok(exames.stream().map(ExameMEDTO::fromEntity).collect(Collectors.toList()));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(
+                exameService.listarExamesLaboratoriais(protocoloId)
+                        .stream()
+                        .map(ExameMEDTO::fromEntity)
+                        .toList()
+        );
     }
 
     // GET - Buscar exame por ID
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
-        Optional<ExameME> exame = exameService.buscarPorId(id);
-        return exame.map(value -> ResponseEntity.ok(ExameMEDTO.fromEntity(value)))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return exameService.buscarPorId(id)
+                .map(e -> ResponseEntity.ok(ExameMEDTO.fromEntity(e)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ErrorResponseDTO("Exame não encontrado", 404)));
     }
 
     // PUT - Atualizar exame
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarExame(@PathVariable Long id, @RequestBody ExameME exame) {
         try {
-            ExameME exameAtualizado = exameService.atualizarExame(id, exame);
-            return ResponseEntity.ok(ExameMEDTO.fromEntity(exameAtualizado));
+            return ResponseEntity.ok(
+                    ExameMEDTO.fromEntity(exameService.atualizarExame(id, exame))
+            );
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDTO(e.getMessage(), 404));
         }
     }
 
-    // POST - Registrar resultado do exame
+    // POST - Registrar resultado
     @PostMapping("/{id}/resultado")
     public ResponseEntity<?> registrarResultado(
             @PathVariable Long id,
             @RequestParam String resultado,
             @RequestParam(required = false) Boolean resultado_positivo,
             @RequestParam(required = false) String responsavel) {
+
         try {
-            ExameME exame = exameService.registrarResultado(id, resultado, resultado_positivo, responsavel);
-            return ResponseEntity.ok(ExameMEDTO.fromEntity(exame));
+            return ResponseEntity.ok(
+                    ExameMEDTO.fromEntity(
+                            exameService.registrarResultado(id, resultado, resultado_positivo, responsavel)
+                    )
+            );
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDTO(e.getMessage(), 404));
         }
     }
 
-    // GET - Obter resumo dos exames
+    // GET - Resumo
     @GetMapping("/protocolo/{protocoloId}/resumo")
-    public ResponseEntity<ExameResumoDTO> obterResumo(@PathVariable Long protocoloId) {
+    public ResponseEntity<?> obterResumo(@PathVariable Long protocoloId) {
         try {
-            ExameMEService.ExameResumo resumo = exameService.obterResumoExames(protocoloId);
-            return ResponseEntity.ok(ExameResumoDTO.fromService(resumo));
+            return ResponseEntity.ok(
+                    ExameResumoDTO.fromService(
+                            exameService.obterResumoExames(protocoloId)
+                    )
+            );
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDTO(e.getMessage(), 404));
         }
     }
 
-    // DELETE - Deletar exame
+    // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarExame(@PathVariable Long id) {
+    public ResponseEntity<?> deletarExame(@PathVariable Long id) {
         try {
             exameService.deletarExame(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDTO(e.getMessage(), 404));
         }
     }
 
-    // POST - Criar exame com atualização automática de status (incremental)
+    // POST incremental
     @PostMapping("/incrementar")
     public ResponseEntity<?> criarExameIncremental(@RequestBody ExameME exame) {
-        try {
-            ExameME novoExame = exameService.criarExame(exame);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ExameMEDTO.fromEntity(novoExame));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponseDTO("Erro ao criar exame: " + e.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        }
+        return criarExame(exame);
     }
 }

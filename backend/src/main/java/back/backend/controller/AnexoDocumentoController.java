@@ -3,10 +3,12 @@ package back.backend.controller;
 import back.backend.dto.AnexoDocumentoDTO;
 import back.backend.model.AnexoDocumento;
 import back.backend.service.AnexoDocumentoService;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,6 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/anexos")
+@CrossOrigin(origins = "*")
 public class AnexoDocumentoController {
 
     private final AnexoDocumentoService anexoService;
@@ -32,7 +35,9 @@ public class AnexoDocumentoController {
             @RequestParam(required = false) String descricao,
             @RequestParam(required = false) String uploadPor) throws IOException {
 
-        AnexoDocumento anexo = anexoService.uploadAnexoExame(exameMEId, arquivo, descricao, uploadPor);
+        AnexoDocumento anexo = anexoService.uploadAnexoExame(
+                exameMEId, arquivo, descricao, uploadPor
+        );
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(AnexoDocumentoDTO.fromEntity(anexo));
@@ -47,7 +52,9 @@ public class AnexoDocumentoController {
             @RequestParam(required = false) String descricao,
             @RequestParam(required = false) String uploadPor) throws IOException {
 
-        AnexoDocumento anexo = anexoService.uploadAnexoEntrevista(protocoloMEId, arquivo, descricao, uploadPor);
+        AnexoDocumento anexo = anexoService.uploadAnexoEntrevista(
+                protocoloMEId, arquivo, descricao, uploadPor
+        );
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(AnexoDocumentoDTO.fromEntity(anexo));
@@ -95,7 +102,6 @@ public class AnexoDocumentoController {
     public ResponseEntity<byte[]> download(@PathVariable Long id) throws IOException {
 
         AnexoDocumento anexo = anexoService.obterPorId(id);
-
         byte[] conteudo = anexoService.downloadArquivo(id);
 
         return ResponseEntity.ok()

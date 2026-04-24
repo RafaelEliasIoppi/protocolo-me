@@ -1,7 +1,6 @@
 package back.backend.controller;
 
 import back.backend.dto.ErrorResponseDTO;
-import back.backend.dto.OrgaoDoadoDTO;
 import back.backend.dto.ProtocoloMEDTO;
 import back.backend.model.ProtocoloME;
 import back.backend.service.ProtocoloMEService;
@@ -10,11 +9,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+
 import java.time.LocalDateTime;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/protocolos-me")
@@ -24,278 +21,226 @@ public class ProtocoloMEController {
     @Autowired
     private ProtocoloMEService protocoloService;
 
-    // POST - Criar novo protocolo de ME
+    // ================= CREATE =================
+
     @PostMapping
-    public ResponseEntity<?> criarProtocolo(@RequestBody Map<String, Object> payload) {
+    public ResponseEntity<?> criarProtocolo(@RequestBody ProtocoloCreateRequest request) {
         try {
-            Object pacienteIdObj = payload.get("pacienteId");
-            if (pacienteIdObj == null && payload.get("paciente") instanceof Map) {
-                Object nestedId = ((Map<?, ?>) payload.get("paciente")).get("id");
-                pacienteIdObj = nestedId;
-            }
+            ProtocoloME novo = protocoloService.criarProtocoloPorPacienteId(
+                    request.getPacienteId(),
+                    request.getDiagnosticoBasico(),
+                    request.getNumeroProtocolo()
+            );
 
-            if (pacienteIdObj == null) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body(new ErrorResponseDTO("pacienteId é obrigatório", HttpStatus.BAD_REQUEST.value()));
-            }
+            return ResponseEntity
+                    .status(HttpStatus.CREATED)
+                    .body(ProtocoloMEDTO.fromEntity(novo));
 
-            Long pacienteId = Long.valueOf(String.valueOf(pacienteIdObj));
-            String diagnosticoBasico = payload.get("diagnosticoBasico") != null
-                    ? String.valueOf(payload.get("diagnosticoBasico"))
-                    : null;
-
-                String numeroProtocolo = payload.get("numeroProtocolo") != null
-                    ? String.valueOf(payload.get("numeroProtocolo"))
-                    : null;
-
-                ProtocoloME novoProtocolo = protocoloService.criarProtocoloPorPacienteId(pacienteId, diagnosticoBasico, numeroProtocolo);
-                return ResponseEntity.status(HttpStatus.CREATED).body(dtoFromEntity(novoProtocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        } catch (IllegalArgumentException e) {
+            return badRequest(e.getMessage());
         }
     }
 
-    // GET - Listar todos os protocolos
+    // ================= READ =================
+
     @GetMapping
     public ResponseEntity<List<ProtocoloMEDTO>> listarTodos() {
-        List<ProtocoloME> protocolos = protocoloService.listarTodos();
-        List<ProtocoloMEDTO> dtos = protocolos.stream()
-            .map(ProtocoloMEDTO::fromEntity)
-            .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+        return ResponseEntity.ok(
+                protocoloService.listarTodos()
+                        .stream()
+                        .map(ProtocoloMEDTO::fromEntity)
+                        .toList()
+        );
     }
 
-    // GET - Buscar protocolo por ID
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
-        Optional<ProtocoloME> protocolo = protocoloService.buscarPorId(id);
-        return protocolo.map(value -> ResponseEntity.ok(dtoFromEntity(value)))
+        return protocoloService.buscarPorId(id)
+                .map(ProtocoloMEDTO::fromEntity)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // GET - Buscar por número do protocolo
-    @GetMapping("/numero/{numeroProtocolo}")
-    public ResponseEntity<?> buscarPorNumero(@PathVariable String numeroProtocolo) {
-        Optional<ProtocoloME> protocolo = protocoloService.buscarPorNumeroProtocolo(numeroProtocolo);
-        return protocolo.map(value -> ResponseEntity.ok(dtoFromEntity(value)))
+    @GetMapping("/numero/{numero}")
+    public ResponseEntity<?> buscarPorNumero(@PathVariable String numero) {
+        return protocoloService.buscarPorNumeroProtocolo(numero)
+                .map(ProtocoloMEDTO::fromEntity)
+                .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // GET - Listar protocolos de uma central
     @GetMapping("/central/{centralId}")
-    public ResponseEntity<List<ProtocoloMEDTO>> listarPorCentral(@PathVariable Long centralId) {
+    public ResponseEntity<?> listarPorCentral(@PathVariable Long centralId) {
         try {
-            List<ProtocoloME> protocolos = protocoloService.listarPorCentral(centralId);
-            return ResponseEntity.ok(protocolos.stream().map(ProtocoloMEDTO::fromEntity).collect(Collectors.toList()));
+            return ResponseEntity.ok(
+                    protocoloService.listarPorCentral(centralId)
+                            .stream()
+                            .map(ProtocoloMEDTO::fromEntity)
+                            .toList()
+            );
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    // GET - Listar por status
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<ProtocoloMEDTO>> listarPorStatus(@PathVariable String status) {
+    public ResponseEntity<?> listarPorStatus(@PathVariable String status) {
         try {
-            ProtocoloME.StatusProtocoloME statusEnum = ProtocoloME.StatusProtocoloME.valueOf(status.toUpperCase());
-            List<ProtocoloME> protocolos = protocoloService.listarPorStatus(statusEnum);
-            return ResponseEntity.ok(protocolos.stream().map(ProtocoloMEDTO::fromEntity).collect(Collectors.toList()));
+            ProtocoloME.StatusProtocoloME s = parseStatus(status);
+
+            return ResponseEntity.ok(
+                    protocoloService.listarPorStatus(s)
+                            .stream()
+                            .map(ProtocoloMEDTO::fromEntity)
+                            .toList()
+            );
+
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return badRequest("Status inválido");
         }
     }
 
-    // GET - Listar por central e status
     @GetMapping("/central/{centralId}/status/{status}")
-    public ResponseEntity<List<ProtocoloMEDTO>> listarPorCentralEStatus(
+    public ResponseEntity<?> listarPorCentralEStatus(
             @PathVariable Long centralId,
             @PathVariable String status) {
+
         try {
-            ProtocoloME.StatusProtocoloME statusEnum = ProtocoloME.StatusProtocoloME.valueOf(status.toUpperCase());
-            List<ProtocoloME> protocolos = protocoloService.listarPorCentralEStatus(centralId, statusEnum);
-            return ResponseEntity.ok(protocolos.stream().map(ProtocoloMEDTO::fromEntity).collect(Collectors.toList()));
+            ProtocoloME.StatusProtocoloME s = parseStatus(status);
+
+            return ResponseEntity.ok(
+                    protocoloService.listarPorCentralEStatus(centralId, s)
+                            .stream()
+                            .map(ProtocoloMEDTO::fromEntity)
+                            .toList()
+            );
+
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    // GET - Listar por período
     @GetMapping("/periodo")
     public ResponseEntity<List<ProtocoloMEDTO>> listarPorPeriodo(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim) {
-        List<ProtocoloME> protocolos = protocoloService.listarPorPeriodo(dataInicio, dataFim);
-        return ResponseEntity.ok(protocolos.stream().map(ProtocoloMEDTO::fromEntity).collect(Collectors.toList()));
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim) {
+
+        return ResponseEntity.ok(
+                protocoloService.listarPorPeriodo(inicio, fim)
+                        .stream()
+                        .map(ProtocoloMEDTO::fromEntity)
+                        .toList()
+        );
     }
 
-    // GET - Listar por hospital origem
-    @GetMapping("/hospital/{hospitalOrigem}")
-    public ResponseEntity<List<ProtocoloMEDTO>> listarPorHospitalOrigem(@PathVariable String hospitalOrigem) {
-        List<ProtocoloME> protocolos = protocoloService.listarPorHospitalOrigem(hospitalOrigem);
-        return ResponseEntity.ok(protocolos.stream().map(ProtocoloMEDTO::fromEntity).collect(Collectors.toList()));
+    @GetMapping("/hospital/{hospital}")
+    public ResponseEntity<List<ProtocoloMEDTO>> listarPorHospital(@PathVariable String hospital) {
+        return ResponseEntity.ok(
+                protocoloService.listarPorHospitalOrigem(hospital)
+                        .stream()
+                        .map(ProtocoloMEDTO::fromEntity)
+                        .toList()
+        );
     }
 
-    // PUT - Atualizar protocolo
+    // ================= UPDATE =================
+
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizarProtocolo(@PathVariable Long id, @RequestBody ProtocoloME protocolo) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody ProtocoloME protocolo) {
         try {
-            ProtocoloME protocoloAtualizado = protocoloService.atualizarProtocolo(id, protocolo);
-            return ResponseEntity.ok(dtoFromEntity(protocoloAtualizado));
+            return ResponseEntity.ok(
+                    ProtocoloMEDTO.fromEntity(
+                            protocoloService.atualizarProtocolo(id, protocolo)
+                    )
+            );
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    // PATCH - Atualizar conclusao editavel do relatorio final do protocolo
     @PatchMapping("/{id}/relatorio-final")
     public ResponseEntity<?> atualizarRelatorioFinal(
             @PathVariable Long id,
-            @RequestBody Map<String, String> payload) {
+            @RequestBody RelatorioRequest request) {
+
         try {
-            String texto = payload.get("textoRelatorio");
-            String atualizadoPor = payload.get("atualizadoPor");
-            ProtocoloME protocolo = protocoloService.atualizarRelatorioFinal(id, texto, atualizadoPor);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
+            return ResponseEntity.ok(
+                    ProtocoloMEDTO.fromEntity(
+                            protocoloService.atualizarRelatorioFinal(
+                                    id,
+                                    request.getTextoRelatorio(),
+                                    request.getAtualizadoPor()
+                            )
+                    )
+            );
+
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+            return badRequest(e.getMessage());
         }
     }
 
-    // POST - Registrar teste clínico 1
-    @PostMapping("/{id}/teste-clinico-1")
-    public ResponseEntity<?> registrarTesteClinico1(@PathVariable Long id) {
-        try {
-            ProtocoloME protocolo = protocoloService.registrarTesteClinico1(id);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // POST - Registrar teste clínico 2
-    @PostMapping("/{id}/teste-clinico-2")
-    public ResponseEntity<?> registrarTesteClinico2(@PathVariable Long id) {
-        try {
-            ProtocoloME protocolo = protocoloService.registrarTesteClinico2(id);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // POST - Registrar testes complementares
-    @PostMapping("/{id}/testes-complementares")
-    public ResponseEntity<?> registrarTestesComplementares(
-            @PathVariable Long id,
-            @RequestParam String testesComplementares) {
-        try {
-            ProtocoloME protocolo = protocoloService.registrarTestesComplementares(id, testesComplementares);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // POST - Registrar notificação da família
-    @PostMapping("/{id}/notificar-familia")
-    public ResponseEntity<?> registrarNotificacaoFamilia(@PathVariable Long id) {
-        try {
-            ProtocoloME protocolo = protocoloService.registrarNotificacaoFamilia(id);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // POST - Autorizar autópsia
-    @PostMapping("/{id}/autorizar-autopsia")
-    public ResponseEntity<?> autorizarAutopsia(@PathVariable Long id) {
-        try {
-            ProtocoloME protocolo = protocoloService.autorizarAutopsia(id);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // POST - Registrar preservação de órgãos
-    @PostMapping("/{id}/preservacao-orgaos")
-    public ResponseEntity<?> registrarPreservacaoOrgaos(@PathVariable Long id) {
-        try {
-            ProtocoloME protocolo = protocoloService.registrarPreservacaoOrgaos(id);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // POST - Confirmar morte cerebral
-    @PostMapping("/{id}/confirmar-morte-cerebral")
-    public ResponseEntity<?> confirmarMorteCerebral(@PathVariable Long id) {
-        try {
-            ProtocoloME protocolo = protocoloService.confirmarMorteCerebral(id);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // PATCH - Alterar status do protocolo
     @PatchMapping("/{id}/status")
     public ResponseEntity<?> alterarStatus(
             @PathVariable Long id,
             @RequestParam String status) {
+
         try {
-            ProtocoloME.StatusProtocoloME novoStatus = ProtocoloME.StatusProtocoloME.valueOf(status.toUpperCase());
-            ProtocoloME protocolo = protocoloService.alterarStatus(id, novoStatus);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
+            ProtocoloME.StatusProtocoloME s = parseStatus(status);
+
+            return ResponseEntity.ok(
+                    ProtocoloMEDTO.fromEntity(
+                            protocoloService.alterarStatus(id, s)
+                    )
+            );
+
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+            return badRequest("Status inválido");
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    // POST - Atualizar status automaticamente após inserção de exame
+    // ================= ACTIONS =================
+
+    @PostMapping("/{id}/teste-clinico-1")
+    public ResponseEntity<?> teste1(@PathVariable Long id) {
+        return action(id, protocoloService::registrarTesteClinico1);
+    }
+
+    @PostMapping("/{id}/teste-clinico-2")
+    public ResponseEntity<?> teste2(@PathVariable Long id) {
+        return action(id, protocoloService::registrarTesteClinico2);
+    }
+
+    @PostMapping("/{id}/confirmar-morte-cerebral")
+    public ResponseEntity<?> confirmar(@PathVariable Long id) {
+        return action(id, protocoloService::confirmarMorteCerebral);
+    }
+
+    @PostMapping("/{id}/notificar-familia")
+    public ResponseEntity<?> notificar(@PathVariable Long id) {
+        return action(id, protocoloService::registrarNotificacaoFamilia);
+    }
+
+    @PostMapping("/{id}/autorizar-autopsia")
+    public ResponseEntity<?> autopsia(@PathVariable Long id) {
+        return action(id, protocoloService::autorizarAutopsia);
+    }
+
+    @PostMapping("/{id}/preservacao-orgaos")
+    public ResponseEntity<?> preservar(@PathVariable Long id) {
+        return action(id, protocoloService::registrarPreservacaoOrgaos);
+    }
+
     @PostMapping("/{id}/atualizar-status")
-    public ResponseEntity<?> atualizarStatusAutomatico(@PathVariable Long id) {
-        try {
-            ProtocoloME protocolo = protocoloService.atualizarStatusAutomatico(id);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> atualizarStatusAuto(@PathVariable Long id) {
+        return action(id, protocoloService::atualizarStatusAutomatico);
     }
 
-    // POST - Marcar para entrevista familiar
-    @PostMapping("/{id}/marcar-entrevista")
-    public ResponseEntity<?> marcarParaEntrevista(@PathVariable Long id) {
-        try {
-            ProtocoloME protocolo = protocoloService.marcarParaEntrevista(id);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
+    // ================= DELETE =================
 
-    // POST - Registrar resultado da entrevista familiar
-    @PostMapping("/{id}/resultado-entrevista")
-    public ResponseEntity<?> registrarResultadoEntrevista(
-            @PathVariable Long id,
-            @RequestParam boolean autorizouDoacao,
-            @RequestParam(required = false) String observacoes) {
-        try {
-            ProtocoloME protocolo = protocoloService.registrarResultadoEntrevista(id, autorizouDoacao, observacoes);
-            return ResponseEntity.ok(dtoFromEntity(protocolo));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    // DELETE - Deletar protocolo
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarProtocolo(@PathVariable Long id) {
+    public ResponseEntity<Void> deletar(@PathVariable Long id) {
         try {
             protocoloService.deletarProtocolo(id);
             return ResponseEntity.noContent().build();
@@ -304,7 +249,52 @@ public class ProtocoloMEController {
         }
     }
 
-    private ProtocoloMEDTO dtoFromEntity(ProtocoloME entity) {
-        return ProtocoloMEDTO.fromEntity(entity);
+    // ================= HELPERS =================
+
+    private ProtocoloME.StatusProtocoloME parseStatus(String status) {
+        return ProtocoloME.StatusProtocoloME.valueOf(status.toUpperCase());
+    }
+
+    private ResponseEntity<ErrorResponseDTO> badRequest(String msg) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponseDTO(msg, 400));
+    }
+
+    private ResponseEntity<?> action(Long id, java.util.function.Function<Long, ProtocoloME> fn) {
+        try {
+            return ResponseEntity.ok(
+                    ProtocoloMEDTO.fromEntity(fn.apply(id))
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // ================= DTOs INTERNOS =================
+
+    public static class ProtocoloCreateRequest {
+        private Long pacienteId;
+        private String diagnosticoBasico;
+        private String numeroProtocolo;
+
+        public Long getPacienteId() { return pacienteId; }
+        public void setPacienteId(Long pacienteId) { this.pacienteId = pacienteId; }
+
+        public String getDiagnosticoBasico() { return diagnosticoBasico; }
+        public void setDiagnosticoBasico(String diagnosticoBasico) { this.diagnosticoBasico = diagnosticoBasico; }
+
+        public String getNumeroProtocolo() { return numeroProtocolo; }
+        public void setNumeroProtocolo(String numeroProtocolo) { this.numeroProtocolo = numeroProtocolo; }
+    }
+
+    public static class RelatorioRequest {
+        private String textoRelatorio;
+        private String atualizadoPor;
+
+        public String getTextoRelatorio() { return textoRelatorio; }
+        public void setTextoRelatorio(String textoRelatorio) { this.textoRelatorio = textoRelatorio; }
+
+        public String getAtualizadoPor() { return atualizadoPor; }
+        public void setAtualizadoPor(String atualizadoPor) { this.atualizadoPor = atualizadoPor; }
     }
 }

@@ -1,15 +1,13 @@
 package back.backend.controller;
 
-import back.backend.dto.AcaoResponseDTO;
-import back.backend.dto.ErrorResponseDTO;
-import back.backend.dto.AuthResponseDTO;
-import back.backend.dto.UsuarioDTO;
+import back.backend.dto.*;
 import back.backend.model.Usuario;
 import back.backend.model.Role;
 import back.backend.service.UsuarioService;
 import back.backend.security.JwtUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,170 +15,93 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/usuarios")
+@RequiredArgsConstructor
 public class UsuarioController {
 
-    private static final Logger log = LoggerFactory.getLogger(UsuarioController.class);
-
-    @Autowired
-    private UsuarioService usuarioService;
-
-    @Autowired
-    private JwtUtil jwtUtil;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UsuarioService usuarioService;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     // =========================
     // REGISTRO PÚBLICO
     // =========================
     @PostMapping
-    public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
-        try {
-            if (usuario.getRole() == null) {
-                usuario.setRole(Role.MEDICO);
-            }
+    public ResponseEntity<UsuarioDTO> registrar(@RequestBody Usuario usuario) {
 
-            normalizarEmail(usuario);
-
-            if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ErrorResponseDTO("Cadastro público permite apenas MÉDICO ou ENFERMEIRO", HttpStatus.FORBIDDEN.value()));
-            }
-
-            Usuario salvo = usuarioService.registrar(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioDTO.fromEntity(salvo));
-
-        } catch (RuntimeException e) {
-            log.warn("Erro ao registrar usuário: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        if (usuario.getRole() == null) {
+            usuario.setRole(Role.MEDICO);
         }
+
+        normalizarEmail(usuario);
+
+        if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
+            throw new RuntimeException("Cadastro público permite apenas MÉDICO ou ENFERMEIRO");
+        }
+
+        Usuario salvo = usuarioService.registrar(usuario);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(UsuarioDTO.fromEntity(salvo));
     }
 
     // =========================
     // REGISTRO ADMIN
     // =========================
     @PostMapping("/admin/registrar")
-    public ResponseEntity<?> registrarAdministrador(@RequestBody Usuario usuario) {
-        try {
-            if (usuario.getRole() == null) {
-                return ResponseEntity.badRequest().body(new ErrorResponseDTO("Informe a função", HttpStatus.BAD_REQUEST.value()));
-            }
+    public ResponseEntity<UsuarioDTO> registrarAdmin(@RequestBody Usuario usuario) {
 
-            normalizarEmail(usuario);
-
-            long totalAdmins = usuarioService.countAdmins();
-
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            boolean isAdmin = auth != null &&
-                    auth.isAuthenticated() &&
-                    auth.getAuthorities().stream()
-                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-            if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ErrorResponseDTO("Primeiro usuário deve ser ADMIN", HttpStatus.FORBIDDEN.value()));
-            }
-
-            if (totalAdmins > 0 && !isAdmin) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ErrorResponseDTO("Apenas ADMIN pode cadastrar usuários", HttpStatus.FORBIDDEN.value()));
-            }
-
-            Usuario salvo = usuarioService.registrar(usuario);
-            return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioDTO.fromEntity(salvo));
-
-        } catch (RuntimeException e) {
-            log.warn("Erro ao registrar admin: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
+        if (usuario.getRole() == null) {
+            throw new RuntimeException("Informe a função");
         }
+
+        normalizarEmail(usuario);
+
+        usuarioService.validarPermissaoCriacaoAdmin(usuario);
+
+        Usuario salvo = usuarioService.registrar(usuario);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(UsuarioDTO.fromEntity(salvo));
     }
 
     // =========================
-    // LOGIN (AJUSTADO PARA TESTES)
+    // LOGIN
     // =========================
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> credenciais) {
-        try {
-            String email = Optional.ofNullable(credenciais.get("email"))
-                    .map(e -> e.trim().toLowerCase(Locale.ROOT))
-                    .orElse("");
+    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request) {
 
-            String senha = Optional.ofNullable(credenciais.get("senha")).orElse("");
+        Usuario usuario = usuarioService.autenticar(request.getEmail(), request.getSenha());
 
-            if (email.isBlank() || senha.isBlank()) {
-                return ResponseEntity.badRequest()
-                    .body(new ErrorResponseDTO("Email e senha são obrigatórios", HttpStatus.BAD_REQUEST.value()));
-            }
+        String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getRole().name());
+        long expiraEm = jwtUtil.extractExpiration(token).getTime();
 
-            Optional<Usuario> usuarioOpt = usuarioService.findByEmail(email);
-
-            // ✅ TESTE: usuário inexistente
-            if (usuarioOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseDTO("Usuário não encontrado ou inativo", HttpStatus.UNAUTHORIZED.value()));
-            }
-
-            Usuario usuario = usuarioOpt.get();
-
-            // ✅ TESTE: usuário inativo
-            if (!Boolean.TRUE.equals(usuario.getAtivo())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseDTO("Usuário não encontrado ou inativo", HttpStatus.UNAUTHORIZED.value()));
-            }
-
-            // ✅ TESTE: senha incorreta
-            if (!passwordEncoder.matches(senha, usuario.getSenha())) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseDTO("Senha incorreta", HttpStatus.UNAUTHORIZED.value()));
-            }
-
-            String token = jwtUtil.gerarToken(usuario.getEmail(), usuario.getRole().name());
-            long expiraEm = jwtUtil.extractExpiration(token).getTime();
-
-            return ResponseEntity.ok(new AuthResponseDTO(token, expiraEm, UsuarioDTO.fromEntity(usuario)));
-
-        } catch (Exception e) {
-            log.error("Erro interno no login", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponseDTO("Erro interno no servidor", HttpStatus.INTERNAL_SERVER_ERROR.value()));
-        }
+        return ResponseEntity.ok(
+                new AuthResponseDTO(token, expiraEm, UsuarioDTO.fromEntity(usuario))
+        );
     }
 
     // =========================
-    // ALTERAR MINHA SENHA
+    // MINHA SENHA
     // =========================
     @PatchMapping("/minha-senha")
-    public ResponseEntity<?> alterarMinhaSenha(@RequestBody Map<String, String> payload) {
-        try {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    public ResponseEntity<AcaoResponseDTO> alterarMinhaSenha(@RequestBody AlterarSenhaDTO dto) {
 
-            if (auth == null || auth.getName() == null || auth.getName().isBlank()) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponseDTO("Usuário não autenticado", HttpStatus.UNAUTHORIZED.value()));
-            }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-            Usuario usuario = usuarioService.alterarMinhaSenha(
-                    auth.getName(),
-                    payload.get("senhaAtual"),
-                    payload.get("senhaNova"),
-                    payload.get("confirmarSenha")
-            );
+        Usuario usuario = usuarioService.alterarMinhaSenha(
+                auth.getName(),
+                dto.getSenhaAtual(),
+                dto.getSenhaNova(),
+                dto.getConfirmarSenha()
+        );
 
-            return ResponseEntity.ok(new AcaoResponseDTO(usuario.getId(), "Senha alterada com sucesso"));
-
-        } catch (RuntimeException e) {
-            log.warn("Erro ao alterar senha: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        }
+        return ResponseEntity.ok(new AcaoResponseDTO(usuario.getId(), "Senha alterada com sucesso"));
     }
 
     // =========================
@@ -197,51 +118,37 @@ public class UsuarioController {
     }
 
     // =========================
-    // ATUALIZAR USUÁRIO
+    // ATUALIZAR
     // =========================
     @PutMapping("/{id}")
-    public ResponseEntity<?> atualizarUsuario(@PathVariable Long id, @RequestBody Usuario dados) {
-        try {
-            normalizarEmail(dados);
+    public ResponseEntity<UsuarioDTO> atualizarUsuario(@PathVariable Long id, @RequestBody Usuario dados) {
 
-            Usuario atualizado = usuarioService.atualizarUsuario(id, dados);
+        normalizarEmail(dados);
 
-            return ResponseEntity.ok(UsuarioDTO.fromEntity(atualizado));
-        } catch (RuntimeException e) {
-            log.warn("Erro ao atualizar usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        }
+        Usuario atualizado = usuarioService.atualizarUsuario(id, dados);
+
+        return ResponseEntity.ok(UsuarioDTO.fromEntity(atualizado));
     }
 
     // =========================
-    // REDEFINIR SENHA
+    // RESET SENHA
     // =========================
     @PatchMapping("/{id}/senha")
-    public ResponseEntity<?> redefinirSenha(@PathVariable Long id, @RequestBody Map<String, String> payload) {
-        try {
-            String senhaNova = payload.get("senhaNova");
+    public ResponseEntity<AcaoResponseDTO> redefinirSenha(@PathVariable Long id,
+                                                         @RequestBody ResetSenhaDTO dto) {
 
-            Usuario usuario = usuarioService.redefinirSenha(id, senhaNova);
+        Usuario usuario = usuarioService.redefinirSenha(id, dto.getSenhaNova());
 
-            return ResponseEntity.ok(new AcaoResponseDTO(usuario.getId(), "Senha redefinida com sucesso"));
-        } catch (RuntimeException e) {
-            log.warn("Erro ao redefinir senha do usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        }
+        return ResponseEntity.ok(new AcaoResponseDTO(usuario.getId(), "Senha redefinida"));
     }
 
     // =========================
-    // REMOVER USUÁRIO
+    // DELETE
     // =========================
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletarUsuario(@PathVariable Long id) {
-        try {
-            usuarioService.deletar(id);
-            return ResponseEntity.noContent().build();
-        } catch (RuntimeException e) {
-            log.warn("Erro ao deletar usuário {}: {}", id, e.getMessage());
-            return ResponseEntity.badRequest().body(new ErrorResponseDTO(e.getMessage(), HttpStatus.BAD_REQUEST.value()));
-        }
+    public ResponseEntity<Void> deletarUsuario(@PathVariable Long id) {
+        usuarioService.deletar(id);
+        return ResponseEntity.noContent().build();
     }
 
     // =========================
@@ -252,5 +159,4 @@ public class UsuarioController {
             usuario.setEmail(usuario.getEmail().trim().toLowerCase(Locale.ROOT));
         }
     }
-
 }

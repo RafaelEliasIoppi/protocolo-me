@@ -1,3 +1,15 @@
+package back.backend.service;
+
+import back.backend.model.OrgaoDoado;
+import back.backend.model.ProtocoloME;
+import back.backend.repository.OrgaoDoadoRepository;
+import back.backend.repository.ProtocoloMERepository;
+import org.springframework.stereotype.Service;
+
+import java.text.Normalizer;
+import java.time.LocalDateTime;
+import java.util.*;
+
 @Service
 public class OrgaoDoadoService {
 
@@ -36,14 +48,11 @@ public class OrgaoDoadoService {
             Map.entry("valvulas cardiacas", "Válvulas Cardíacas")
     );
 
-    // ---------------- CREATE ----------------
-
+    // CREATE
     public OrgaoDoado criar(OrgaoDoado orgaoDoado) {
 
         validarProtocolo(orgaoDoado);
-
         validarNome(orgaoDoado);
-
         aplicarStatusPadrao(orgaoDoado);
 
         orgaoDoado.setCpfReceptor(normalizarCpf(orgaoDoado.getCpfReceptor()));
@@ -51,8 +60,7 @@ public class OrgaoDoadoService {
         return orgaoDoadoRepository.save(orgaoDoado);
     }
 
-    // ---------------- UPDATE ----------------
-
+    // UPDATE
     public OrgaoDoado atualizar(Long id, OrgaoDoado atualizado) {
 
         OrgaoDoado entity = buscarEntity(id);
@@ -71,8 +79,7 @@ public class OrgaoDoadoService {
         return orgaoDoadoRepository.save(entity);
     }
 
-    // ---------------- BUSINESS METHODS ----------------
-
+    // IMPLANTAR
     public OrgaoDoado registrarImplantacao(Long id, String hospital, String paciente) {
 
         OrgaoDoado entity = buscarEntity(id);
@@ -85,6 +92,7 @@ public class OrgaoDoadoService {
         return orgaoDoadoRepository.save(entity);
     }
 
+    // DESCARTAR
     public OrgaoDoado registrarDescarte(Long id, String motivo) {
 
         OrgaoDoado entity = buscarEntity(id);
@@ -96,10 +104,9 @@ public class OrgaoDoadoService {
         return orgaoDoadoRepository.save(entity);
     }
 
-    // ---------------- QUERY ----------------
-
-    public Optional<OrgaoDoado> buscarPorId(Long id) {
-        return orgaoDoadoRepository.findById(id);
+    // QUERY
+    public OrgaoDoado buscarPorId(Long id) {
+        return buscarEntity(id);
     }
 
     public List<OrgaoDoado> listarPorProtocolo(Long protocoloId) {
@@ -113,8 +120,7 @@ public class OrgaoDoadoService {
         orgaoDoadoRepository.deleteById(id);
     }
 
-    // ---------------- STATS ----------------
-
+    // STATS
     public OrgaoStatisticas obterEstatisticas(Long protocoloId) {
 
         List<OrgaoDoado> lista = listarPorProtocolo(protocoloId);
@@ -135,7 +141,7 @@ public class OrgaoDoadoService {
         return new OrgaoStatisticas(total, implantados, descartados, aguardando);
     }
 
-    // ---------------- PRIVATE HELPERS ----------------
+    // ================= HELPERS =================
 
     private OrgaoDoado buscarEntity(Long id) {
         return orgaoDoadoRepository.findById(id)
@@ -143,8 +149,9 @@ public class OrgaoDoadoService {
     }
 
     private void validarProtocolo(OrgaoDoado orgao) {
+
         if (orgao.getProtocoloME() == null || orgao.getProtocoloME().getId() == null) {
-            throw new RuntimeException("Protocolo de ME é obrigatório");
+            throw new IllegalArgumentException("Protocolo de ME é obrigatório");
         }
 
         ProtocoloME protocolo = protocoloMERepository.findById(orgao.getProtocoloME().getId())
@@ -154,8 +161,9 @@ public class OrgaoDoadoService {
     }
 
     private void validarNome(OrgaoDoado orgao) {
+
         if (orgao.getNomeOrgao() == null || orgao.getNomeOrgao().isBlank()) {
-            throw new RuntimeException("Nome do órgão é obrigatório");
+            throw new IllegalArgumentException("Nome do órgão é obrigatório");
         }
 
         orgao.setNomeOrgao(validarENormalizarNomeOrgao(orgao.getNomeOrgao()));
@@ -168,6 +176,7 @@ public class OrgaoDoadoService {
     }
 
     private void aplicarDatasStatus(OrgaoDoado orgao) {
+
         if (orgao.getStatus() == OrgaoDoado.StatusOrgaoDoado.IMPLANTADO
                 && orgao.getDataImplantacao() == null) {
             orgao.setDataImplantacao(LocalDateTime.now());
@@ -180,6 +189,7 @@ public class OrgaoDoadoService {
     }
 
     private void copiarCamposSimples(OrgaoDoado destino, OrgaoDoado origem) {
+
         if (origem.getMotivo() != null) destino.setMotivo(origem.getMotivo());
         if (origem.getHospitalReceptor() != null) destino.setHospitalReceptor(origem.getHospitalReceptor());
         if (origem.getPacienteReceptor() != null) destino.setPacienteReceptor(origem.getPacienteReceptor());
@@ -190,6 +200,7 @@ public class OrgaoDoadoService {
     }
 
     private String validarENormalizarNomeOrgao(String nome) {
+
         String chave = normalizarChave(nome);
         String canonico = ALIAS_ORGAOS.get(chave);
 
@@ -208,6 +219,7 @@ public class OrgaoDoadoService {
     }
 
     private String normalizarCpf(String cpf) {
+
         if (cpf == null) return null;
 
         String n = cpf.replaceAll("\\D", "");
@@ -219,8 +231,7 @@ public class OrgaoDoadoService {
         return n.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
     }
 
-    // ---------------- INNER CLASS ----------------
-
+    // DTO INTERNO
     public static class OrgaoStatisticas {
         public final long total;
         public final long implantados;

@@ -1,238 +1,156 @@
-package back.backend.service;
+package back.backend.controller;
 
+import back.backend.dto.ErrorResponseDTO;
+import back.backend.dto.ExameMEDTO;
+import back.backend.dto.ExameResumoDTO;
 import back.backend.model.ExameME;
-import back.backend.model.ProtocoloME;
-import back.backend.repository.ExameMERepository;
-import back.backend.repository.ProtocoloMERepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
+import back.backend.service.ExameMEService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Optional;
 
-@Service
-public class ExameMEService {
+@RestController
+@RequestMapping("/api/exames-me")
+@CrossOrigin(origins = "*")
+public class ExameMEController {
 
-    @Autowired
-    private ExameMERepository exameRepository;
+    private final ExameMEService exameService;
 
-    @Autowired
-    private ProtocoloMERepository protocoloRepository;
+    public ExameMEController(ExameMEService exameService) {
+        this.exameService = exameService;
+    }
 
-    @Autowired(required = false)
-    private ProtocoloMEService protocoloMEService;
-
-    private boolean exameRealizado(ExameME exame) {
-        if (exame == null) {
-            return false;
+    // POST - Criar novo exame
+    @PostMapping
+    public ResponseEntity<?> criarExame(@RequestBody ExameME exame) {
+        try {
+            ExameME novoExame = exameService.criarExame(exame);
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ExameMEDTO.fromEntity(novoExame));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseDTO(e.getMessage(), 400));
         }
-
-        boolean temResultadoTexto = exame.getResultado() != null && !exame.getResultado().trim().isEmpty();
-        boolean temResultadoBooleano = exame.getResultado_positivo() != null;
-        boolean temDataRealizacao = exame.getDataRealizacao() != null;
-
-        return temResultadoTexto || temResultadoBooleano || temDataRealizacao;
     }
 
-    // Criar exame
-    public ExameME criarExame(ExameME exame) {
-        if (exame.getProtocoloME() == null || exame.getProtocoloME().getId() == null) {
-            throw new RuntimeException("Protocolo é obrigatório para criar exame");
+    // GET - Listar exames de um protocolo
+    @GetMapping("/protocolo/{protocoloId}")
+    public ResponseEntity<List<ExameMEDTO>> listarExamePorProtocolo(@PathVariable Long protocoloId) {
+        List<ExameMEDTO> lista = exameService.listarExamesPorProtocolo(protocoloId)
+                .stream()
+                .map(ExameMEDTO::fromEntity)
+                .toList();
+
+        return ResponseEntity.ok(lista);
+    }
+
+    // GET - Listar exames clínicos
+    @GetMapping("/protocolo/{protocoloId}/clinicos")
+    public ResponseEntity<List<ExameMEDTO>> listarExamesClinico(@PathVariable Long protocoloId) {
+        return ResponseEntity.ok(
+                exameService.listarExamesClinico(protocoloId)
+                        .stream()
+                        .map(ExameMEDTO::fromEntity)
+                        .toList()
+        );
+    }
+
+    // GET - Listar exames complementares
+    @GetMapping("/protocolo/{protocoloId}/complementares")
+    public ResponseEntity<List<ExameMEDTO>> listarExamesComplementares(@PathVariable Long protocoloId) {
+        return ResponseEntity.ok(
+                exameService.listarExamesComplementares(protocoloId)
+                        .stream()
+                        .map(ExameMEDTO::fromEntity)
+                        .toList()
+        );
+    }
+
+    // GET - Listar exames laboratoriais
+    @GetMapping("/protocolo/{protocoloId}/laboratoriais")
+    public ResponseEntity<List<ExameMEDTO>> listarExamesLaboratoriais(@PathVariable Long protocoloId) {
+        return ResponseEntity.ok(
+                exameService.listarExamesLaboratoriais(protocoloId)
+                        .stream()
+                        .map(ExameMEDTO::fromEntity)
+                        .toList()
+        );
+    }
+
+    // GET - Buscar exame por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
+        return exameService.buscarPorId(id)
+                .map(e -> ResponseEntity.ok(ExameMEDTO.fromEntity(e)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new ErrorResponseDTO("Exame não encontrado", 404)));
+    }
+
+    // PUT - Atualizar exame
+    @PutMapping("/{id}")
+    public ResponseEntity<?> atualizarExame(@PathVariable Long id, @RequestBody ExameME exame) {
+        try {
+            return ResponseEntity.ok(
+                    ExameMEDTO.fromEntity(exameService.atualizarExame(id, exame))
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDTO(e.getMessage(), 404));
         }
+    }
 
-        if (exame.getTipoExame() == null) {
-            throw new RuntimeException("Tipo de exame é obrigatório");
+    // POST - Registrar resultado
+    @PostMapping("/{id}/resultado")
+    public ResponseEntity<?> registrarResultado(
+            @PathVariable Long id,
+            @RequestParam String resultado,
+            @RequestParam(required = false) Boolean resultado_positivo,
+            @RequestParam(required = false) String responsavel) {
+
+        try {
+            return ResponseEntity.ok(
+                    ExameMEDTO.fromEntity(
+                            exameService.registrarResultado(id, resultado, resultado_positivo, responsavel)
+                    )
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDTO(e.getMessage(), 404));
         }
+    }
 
-        ProtocoloME protocolo = protocoloRepository.findById(exame.getProtocoloME().getId())
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
-
-        boolean exameJaExiste = exameRepository.findFirstByProtocoloME_IdAndTipoExame(protocolo.getId(), exame.getTipoExame())
-            .isPresent();
-
-        if (exameJaExiste) {
-            throw new RuntimeException("Esse exame já existe para este protocolo e não pode ser criado novamente");
+    // GET - Resumo
+    @GetMapping("/protocolo/{protocoloId}/resumo")
+    public ResponseEntity<?> obterResumo(@PathVariable Long protocoloId) {
+        try {
+            return ResponseEntity.ok(
+                    ExameResumoDTO.fromService(
+                            exameService.obterResumoExames(protocoloId)
+                    )
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDTO(e.getMessage(), 404));
         }
+    }
 
-        // Exame criado sem resultado deve permanecer pendente.
-        // A data de realização é preenchida quando o resultado for registrado.
-        if (exame.getResultado() == null || exame.getResultado().trim().isEmpty()) {
-            exame.setDataRealizacao(null);
-        } else if (exame.getDataRealizacao() == null) {
-            exame.setDataRealizacao(LocalDateTime.now());
+    // DELETE
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deletarExame(@PathVariable Long id) {
+        try {
+            exameService.deletarExame(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponseDTO(e.getMessage(), 404));
         }
-
-        exame.setProtocoloME(protocolo);
-        ExameME exameSalvo = exameRepository.save(exame);
-        
-        // Atualizar o status do protocolo automaticamente
-        if (exameSalvo.getProtocoloME() != null && protocoloMEService != null) {
-            protocoloMEService.atualizarStatusAutomatico(exameSalvo.getProtocoloME().getId());
-        }
-        
-        return exameSalvo;
     }
 
-    // Listar exames de um protocolo
-    public List<ExameME> listarExamesPorProtocolo(Long protocoloId) {
-        ProtocoloME protocolo = protocoloRepository.findById(protocoloId)
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
-        return exameRepository.findByProtocoloMEOrderByDataRealizacaoDesc(protocolo);
-    }
-
-    // Listar exames por categoria
-    public List<ExameME> listarExamePorCategoria(Long protocoloId, ExameME.CategoriaExame categoria) {
-        ProtocoloME protocolo = protocoloRepository.findById(protocoloId)
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
-        return exameRepository.findByProtocoloMEAndCategoria(protocolo, categoria);
-    }
-
-    // Listar exames clínicos
-    public List<ExameME> listarExamesClinico(Long protocoloId) {
-        return listarExamePorCategoria(protocoloId, ExameME.CategoriaExame.CLINICO);
-    }
-
-    // Listar exames complementares
-    public List<ExameME> listarExamesComplementares(Long protocoloId) {
-        return listarExamePorCategoria(protocoloId, ExameME.CategoriaExame.COMPLEMENTAR);
-    }
-
-    // Listar exames laboratoriais
-    public List<ExameME> listarExamesLaboratoriais(Long protocoloId) {
-        return listarExamePorCategoria(protocoloId, ExameME.CategoriaExame.LABORATORIAL);
-    }
-
-    // Buscar exame por ID
-    public Optional<ExameME> buscarPorId(Long id) {
-        return exameRepository.findById(id);
-    }
-
-    // Atualizar exame
-    public ExameME atualizarExame(Long id, ExameME exameAtualizado) {
-        ExameME exame = exameRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Exame não encontrado"));
-
-        if (exameRealizado(exame)) {
-            throw new RuntimeException("Exame já realizado não pode ser alterado novamente");
-        }
-
-        exame.setResultado(exameAtualizado.getResultado());
-        exame.setResultado_positivo(exameAtualizado.getResultado_positivo());
-        exame.setResponsavel(exameAtualizado.getResponsavel());
-        exame.setObservacoes(exameAtualizado.getObservacoes());
-
-        return exameRepository.save(exame);
-    }
-
-    // Registrar resultado
-    public ExameME registrarResultado(Long id, String resultado, Boolean resultado_positivo, String responsavel) {
-        ExameME exame = exameRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Exame não encontrado"));
-
-        if (exameRealizado(exame)) {
-            throw new RuntimeException("Exame já realizado e aprovado não pode ser registrado novamente");
-        }
-
-        exame.setResultado(resultado);
-        exame.setResultado_positivo(resultado_positivo);
-        exame.setResponsavel(responsavel);
-        exame.setDataRealizacao(LocalDateTime.now());
-
-        ExameME exameSalvo = exameRepository.save(exame);
-        
-        // Atualizar o status do protocolo automaticamente
-        if (exameSalvo.getProtocoloME() != null && protocoloMEService != null) {
-            protocoloMEService.atualizarStatusAutomatico(exameSalvo.getProtocoloME().getId());
-        }
-
-        return exameSalvo;
-    }
-
-    // Deletar exame
-    public void deletarExame(Long id) {
-        if (!exameRepository.existsById(id)) {
-            throw new RuntimeException("Exame não encontrado");
-        }
-        exameRepository.deleteById(id);
-    }
-
-    // Obter resumo dos exames de um protocolo
-    public ExameResumo obterResumoExames(Long protocoloId) {
-        ProtocoloME protocolo = protocoloRepository.findById(protocoloId)
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
-
-        List<ExameME> exames = exameRepository.findByProtocoloME(protocolo);
-        
-        ExameResumo resumo = new ExameResumo();
-        int totalExames = exames.size();
-        int examesRealizados = (int) exames.stream().filter(this::exameRealizado).count();
-        int examesPendentes = totalExames - examesRealizados;
-
-        int examesClinicosTotal = (int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO).count();
-        int examesComplementaresTotal = (int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR).count();
-        int examesLaboratoriaisTotal = (int) exames.stream().filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL).count();
-
-        int examesClinicosRealizados = (int) exames.stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO && exameRealizado(e))
-            .count();
-        int examesComplementaresRealizados = (int) exames.stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && exameRealizado(e))
-            .count();
-        int examesLaboratoriaisRealizados = (int) exames.stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL && exameRealizado(e))
-            .count();
-
-        resumo.setTotalExames(totalExames);
-        resumo.setExamesRealizados(examesRealizados);
-        resumo.setExamesPendentes(examesPendentes);
-        resumo.setExames_Clinicos(examesClinicosRealizados);
-        resumo.setExamesClinicosTotal(examesClinicosTotal);
-        resumo.setExamesComplementares(examesComplementaresRealizados);
-        resumo.setExamesComplementaresTotal(examesComplementaresTotal);
-        resumo.setExamesLaboratoriais(examesLaboratoriaisRealizados);
-        resumo.setExamesLaboratoriaisTotal(examesLaboratoriaisTotal);
-
-        return resumo;
-    }
-
-    // Classes auxiliares
-    public static class ExameResumo {
-        private int totalExames;
-        private int examesRealizados;
-        private int examesPendentes;
-        private int exames_Clinicos;
-        private int examesClinicosTotal;
-        private int examesComplementares;
-        private int examesComplementaresTotal;
-        private int examesLaboratoriais;
-        private int examesLaboratoriaisTotal;
-
-        // Getters e Setters
-        public int getTotalExames() { return totalExames; }
-        public void setTotalExames(int totalExames) { this.totalExames = totalExames; }
-
-        public int getExamesRealizados() { return examesRealizados; }
-        public void setExamesRealizados(int examesRealizados) { this.examesRealizados = examesRealizados; }
-
-        public int getExamesPendentes() { return examesPendentes; }
-        public void setExamesPendentes(int examesPendentes) { this.examesPendentes = examesPendentes; }
-
-        public int getExames_Clinicos() { return exames_Clinicos; }
-        public void setExames_Clinicos(int exames_Clinicos) { this.exames_Clinicos = exames_Clinicos; }
-
-        public int getExamesClinicosTotal() { return examesClinicosTotal; }
-        public void setExamesClinicosTotal(int examesClinicosTotal) { this.examesClinicosTotal = examesClinicosTotal; }
-
-        public int getExamesComplementares() { return examesComplementares; }
-        public void setExamesComplementares(int examesComplementares) { this.examesComplementares = examesComplementares; }
-
-        public int getExamesComplementaresTotal() { return examesComplementaresTotal; }
-        public void setExamesComplementaresTotal(int examesComplementaresTotal) { this.examesComplementaresTotal = examesComplementaresTotal; }
-
-        public int getExamesLaboratoriais() { return examesLaboratoriais; }
-        public void setExamesLaboratoriais(int examesLaboratoriais) { this.examesLaboratoriais = examesLaboratoriais; }
-
-        public int getExamesLaboratoriaisTotal() { return examesLaboratoriaisTotal; }
-        public void setExamesLaboratoriaisTotal(int examesLaboratoriaisTotal) { this.examesLaboratoriaisTotal = examesLaboratoriaisTotal; }
+    // POST incremental
+    @PostMapping("/incrementar")
+    public ResponseEntity<?> criarExameIncremental(@RequestBody ExameME exame) {
+        return criarExame(exame);
     }
 }

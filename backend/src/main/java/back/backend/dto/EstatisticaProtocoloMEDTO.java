@@ -13,10 +13,12 @@ public class EstatisticaProtocoloMEDTO {
     private String nomeDoador;
     private Integer anoCompetencia;
     private Integer mesCompetencia;
-    private String periodicidade;
+    private String periodicidade = "ANUAL"; // default seguro
     private Map<String, String> campos = new HashMap<>();
     private String atualizadoPor;
     private LocalDateTime dataAtualizacao;
+
+    // ---------------- GETTERS / SETTERS ----------------
 
     public Long getId() {
         return id;
@@ -79,7 +81,11 @@ public class EstatisticaProtocoloMEDTO {
     }
 
     public void setPeriodicidade(String periodicidade) {
-        this.periodicidade = periodicidade;
+        if (periodicidade == null || periodicidade.isBlank()) {
+            this.periodicidade = "ANUAL";
+        } else {
+            this.periodicidade = periodicidade.toUpperCase();
+        }
     }
 
     public Map<String, String> getCampos() {
@@ -87,7 +93,7 @@ public class EstatisticaProtocoloMEDTO {
     }
 
     public void setCampos(Map<String, String> campos) {
-        this.campos = campos;
+        this.campos = (campos != null) ? campos : new HashMap<>();
     }
 
     public String getAtualizadoPor() {

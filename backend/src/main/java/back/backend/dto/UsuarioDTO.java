@@ -1,15 +1,15 @@
 package back.backend.dto;
 
 import back.backend.model.Usuario;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UsuarioDTO {
 
     private Long id;
@@ -21,44 +21,33 @@ public class UsuarioDTO {
     private String coren;
     private LocalDateTime dataCriacao;
     private LocalDateTime dataAtualizacao;
+
     private Long hospitalId;
     private String hospitalNome;
+
     private Long centralTransplantesId;
     private String centralTransplantesNome;
 
     public static UsuarioDTO fromEntity(Usuario usuario) {
-        if (usuario == null) {
-            return null;
-        }
+        if (usuario == null) return null;
 
-        Long hospitalId = null;
-        String hospitalNome = null;
-        if (usuario.getHospital() != null) {
-            hospitalId = usuario.getHospital().getId();
-            hospitalNome = usuario.getHospital().getNome();
-        }
+        return UsuarioDTO.builder()
+                .id(usuario.getId())
+                .email(usuario.getEmail())
+                .nome(usuario.getNome())
+                .role(usuario.getRole() != null ? usuario.getRole().name() : null)
+                .ativo(usuario.getAtivo())
+                .crm(usuario.getCrm())
+                .coren(usuario.getCoren())
+                .dataCriacao(usuario.getDataCriacao())
+                .dataAtualizacao(usuario.getDataAtualizacao())
 
-        Long centralId = null;
-        String centralNome = null;
-        if (usuario.getCentralTransplantes() != null) {
-            centralId = usuario.getCentralTransplantes().getId();
-            centralNome = usuario.getCentralTransplantes().getNome();
-        }
+                .hospitalId(usuario.getHospital() != null ? usuario.getHospital().getId() : null)
+                .hospitalNome(usuario.getHospital() != null ? usuario.getHospital().getNome() : null)
 
-        return new UsuarioDTO(
-            usuario.getId(),
-            usuario.getEmail(),
-            usuario.getNome(),
-            usuario.getRole() != null ? usuario.getRole().name() : null,
-            usuario.getAtivo(),
-            usuario.getCrm(),
-            usuario.getCoren(),
-            usuario.getDataCriacao(),
-            usuario.getDataAtualizacao(),
-            hospitalId,
-            hospitalNome,
-            centralId,
-            centralNome
-        );
+                .centralTransplantesId(usuario.getCentralTransplantes() != null ? usuario.getCentralTransplantes().getId() : null)
+                .centralTransplantesNome(usuario.getCentralTransplantes() != null ? usuario.getCentralTransplantes().getNome() : null)
+
+                .build();
     }
 }
