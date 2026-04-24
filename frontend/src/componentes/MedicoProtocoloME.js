@@ -3,6 +3,7 @@ import apiClient from "../services/apiClient";
 import ExameMEManager from "./ExameMEManager";
 import EntrevistaFamiliarManager from "./EntrevistaFamiliarManager";
 import { formatarCpf } from "../utils/cpf";
+import { getApiErrorMessage } from "../utils/apiError";
 import "../styles/MedicoProtocoloME.css";
 
 function MedicoProtocoloME() {
@@ -198,7 +199,7 @@ function MedicoProtocoloME() {
       
       setTimeout(() => setSucesso(""), 3000);
     } catch (e) {
-      setErro(e.response?.data?.mensagem || "Erro ao iniciar protocolo ME");
+      setErro(getApiErrorMessage(e, "Erro ao iniciar protocolo ME"));
     } finally {
       setCarregando(false);
     }

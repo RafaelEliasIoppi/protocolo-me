@@ -151,7 +151,8 @@ public class SecurityConfig {
     public AuthenticationEntryPoint unauthorizedHandler() {
         return (request, response, authException) -> {
             response.setStatus(401);
-            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"erro\":\"Não autenticado\"}");
         };
     }
@@ -160,7 +161,8 @@ public class SecurityConfig {
     public AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
             response.setStatus(403);
-            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"erro\":\"Acesso negado\"}");
         };
     }

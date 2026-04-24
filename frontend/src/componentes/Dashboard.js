@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import apiClient from "../services/apiClient";
 import pacienteService from "../services/pacienteService";
+import { getApiErrorMessage } from "../utils/apiError";
 import "../styles/Dashboard.css";
 
 function Dashboard({ onLogout, theme, setTheme, role }) {
@@ -15,7 +16,6 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
   const [alterandoSenha, setAlterandoSenha] = useState(false);
   const [mensagemSenha, setMensagemSenha] = useState("");
   const [erroSenha, setErroSenha] = useState("");
-
   useEffect(() => {
     let ativo = true;
 
@@ -150,7 +150,7 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
       setNovaSenha("");
       setConfirmarSenha("");
     } catch (error) {
-      setErroSenha(error.response?.data?.erro || "Erro ao alterar senha");
+      setErroSenha(getApiErrorMessage(error, "Erro ao alterar senha"));
     } finally {
       setAlterandoSenha(false);
     }

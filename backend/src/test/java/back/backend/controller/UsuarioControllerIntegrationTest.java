@@ -80,8 +80,9 @@ public class UsuarioControllerIntegrationTest {
         mockMvc.perform(post(API_USUARIOS)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(usuario1)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.erro").value("Email já cadastrado"));
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.mensagem").value("Email já cadastrado"))
+                .andExpect(jsonPath("$.codigo").value(409));
 
         System.out.println("✓ Validação de email duplicado passou");
     }
@@ -142,7 +143,8 @@ public class UsuarioControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(credenciais)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.erro").value("Senha incorreta"));
+                .andExpect(jsonPath("$.mensagem").value("Senha incorreta"))
+                .andExpect(jsonPath("$.codigo").value(401));
 
         System.out.println("✓ Rejeição de senha incorreta passou");
     }
@@ -157,7 +159,8 @@ public class UsuarioControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(credenciais)))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.erro").value("Usuário não encontrado ou inativo"));
+                .andExpect(jsonPath("$.mensagem").value("Usuário não encontrado ou inativo"))
+                .andExpect(jsonPath("$.codigo").value(401));
 
         System.out.println("✓ Rejeição de usuário não registrado passou");
     }

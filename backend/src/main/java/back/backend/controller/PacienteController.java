@@ -1,7 +1,9 @@
 package back.backend.controller;
 
 import back.backend.dto.PacienteRequestDTO;
+import back.backend.dto.PacienteRelatorioFinalDTO;
 import back.backend.dto.PacienteStatusRequestDTO;
+import back.backend.dto.PacienteEmProtocoloDTO;
 import back.backend.mapper.PacienteRequestMapper;
 import back.backend.dto.PacienteDTO;
 import back.backend.service.PacienteService;
@@ -12,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.validation.Valid;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/pacientes")
@@ -33,6 +34,11 @@ public class PacienteController {
     @GetMapping
     public ResponseEntity<List<PacienteDTO>> listarTodos() {
         return ResponseEntity.ok(pacienteService.listarTodos());
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<PacienteDTO>> buscarPorNome(@RequestParam("nome") String nome) {
+        return ResponseEntity.ok(pacienteService.buscarPorNome(nome));
     }
 
     @GetMapping("/{id:\\d+}")
@@ -88,5 +94,20 @@ public class PacienteController {
     @GetMapping("/estatisticas/resumo")
     public ResponseEntity<PacienteService.PacienteStatisticas> obterEstatisticas() {
         return ResponseEntity.ok(pacienteService.obterEstatisticas());
+    }
+
+    @GetMapping("/em-protocolo-me")
+    public ResponseEntity<List<PacienteEmProtocoloDTO>> listarEmProtocoloME() {
+        return ResponseEntity.ok(pacienteService.listarEmProtocoloME());
+    }
+
+    @GetMapping("/em-protocolo-me/hospital/{hospitalId}")
+    public ResponseEntity<List<PacienteEmProtocoloDTO>> listarEmProtocoloMEPorHospital(@PathVariable Long hospitalId) {
+        return ResponseEntity.ok(pacienteService.listarEmProtocoloMEPorHospital(hospitalId));
+    }
+
+    @GetMapping("/{id:\\d+}/relatorio-final")
+    public ResponseEntity<PacienteRelatorioFinalDTO> obterRelatorioFinal(@PathVariable Long id) {
+        return ResponseEntity.ok(pacienteService.obterRelatorioFinal(id));
     }
 }

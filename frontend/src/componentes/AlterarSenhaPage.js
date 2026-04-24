@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import apiClient from "../services/apiClient";
+import { getApiErrorMessage } from "../utils/apiError";
 import "../styles/Dashboard.css";
 
 function AlterarSenhaPage() {
@@ -41,7 +42,7 @@ function AlterarSenhaPage() {
       setNovaSenha("");
       setConfirmarSenha("");
     } catch (error) {
-      setErroSenha(error.response?.data?.erro || "Erro ao alterar senha");
+      setErroSenha(getApiErrorMessage(error, "Erro ao alterar senha"));
     } finally {
       setAlterandoSenha(false);
     }

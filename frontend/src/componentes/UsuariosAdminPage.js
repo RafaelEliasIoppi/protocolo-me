@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import autenticarService from "../services/autenticarService";
+import { getApiErrorMessage } from "../utils/apiError";
 
 const roleOpcoes = [
   { value: "ADMIN", label: "Administrador" },
@@ -49,7 +50,7 @@ function UsuariosAdminPage() {
       const lista = await autenticarService.listarUsuarios();
       setUsuarios(Array.isArray(lista) ? lista : []);
     } catch (error) {
-      setErro(error.response?.data?.erro || "Erro ao carregar usuários");
+      setErro(getApiErrorMessage(error, "Erro ao carregar usuários"));
     } finally {
       setCarregandoLista(false);
     }
@@ -111,7 +112,7 @@ function UsuariosAdminPage() {
 
       await carregarUsuarios();
     } catch (error) {
-      setErro(error.response?.data?.erro || "Erro ao cadastrar usuário");
+      setErro(getApiErrorMessage(error, "Erro ao cadastrar usuário"));
     } finally {
       setCarregando(false);
     }
@@ -167,11 +168,7 @@ function UsuariosAdminPage() {
       await carregarUsuarios();
 
     } catch (error) {
-      setErro(
-        error.response?.data?.erro ||
-        error.response?.data?.mensagem ||
-        "Erro ao atualizar usuário"
-      );
+      setErro(getApiErrorMessage(error, "Erro ao atualizar usuário"));
     } finally {
       setCarregando(false);
     }

@@ -2,7 +2,6 @@ package back.backend.controller;
 
 import back.backend.dto.*;
 import back.backend.dto.UsuarioRequestDTO;
-import back.backend.model.Role;
 import back.backend.mapper.UsuarioRequestMapper;
 import back.backend.service.UsuarioService;
 import back.backend.security.JwtUtil;
@@ -34,20 +33,8 @@ public class UsuarioController {
     @PostMapping
     public ResponseEntity<UsuarioDTO> registrar(@Valid @RequestBody UsuarioRequestDTO request) {
 
-        var usuario = usuarioRequestMapper.toEntity(request);
-
-        if (usuario.getRole() == null) {
-            usuario.setRole(Role.MEDICO);
-        }
-
-        if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
-            throw new RuntimeException("Cadastro público permite apenas MÉDICO ou ENFERMEIRO");
-        }
-
-        UsuarioDTO salvo = usuarioService.registrar(usuario);
-
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(salvo);
+                .body(usuarioService.registrarPublico(usuarioRequestMapper.toEntity(request)));
     }
 
     // =========================
@@ -56,18 +43,8 @@ public class UsuarioController {
     @PostMapping("/admin/registrar")
     public ResponseEntity<UsuarioDTO> registrarAdmin(@Valid @RequestBody UsuarioRequestDTO request) {
 
-        var usuario = usuarioRequestMapper.toEntity(request);
-
-        if (usuario.getRole() == null) {
-            throw new RuntimeException("Informe a função");
-        }
-
-        usuarioService.validarPermissaoCriacaoAdmin(usuario);
-
-        UsuarioDTO salvo = usuarioService.registrar(usuario);
-
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(salvo);
+                .body(usuarioService.registrarAdmin(usuarioRequestMapper.toEntity(request)));
     }
 
     // =========================

@@ -116,6 +116,22 @@ public class ProtocoloMEController {
         return ResponseEntity.ok(protocoloService.alterarStatus(id, request.getStatus()));
     }
 
+    @PostMapping("/{id}/marcar-entrevista")
+    public ResponseEntity<ProtocoloMEDTO> marcarEntrevista(@PathVariable Long id) {
+        return ResponseEntity.ok(protocoloService.marcarEntrevistaFamiliar(id));
+    }
+
+    @PostMapping("/{id}/resultado-entrevista")
+    public ResponseEntity<ProtocoloMEDTO> registrarResultadoEntrevista(
+            @PathVariable Long id,
+            @RequestParam boolean autorizouDoacao,
+            @RequestParam(required = false) String observacoes) {
+
+        return ResponseEntity.ok(
+                protocoloService.registrarResultadoEntrevista(id, autorizouDoacao, observacoes)
+        );
+    }
+
     // ================= ACTIONS =================
 
     @PostMapping("/{id}/teste-clinico-1")

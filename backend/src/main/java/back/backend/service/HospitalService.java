@@ -1,6 +1,7 @@
 package back.backend.service;
 
 import back.backend.dto.HospitalDTO;
+import back.backend.exception.ConflitoNegocioException;
 import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.mapper.HospitalMapper;
 import back.backend.model.Hospital;
@@ -27,7 +28,7 @@ public class HospitalService {
 
         hospitalRepository.findByCnpj(hospital.getCnpj())
                 .ifPresent(h -> {
-                    throw new IllegalStateException("CNPJ já cadastrado: " + hospital.getCnpj());
+                    throw new ConflitoNegocioException("CNPJ já cadastrado: " + hospital.getCnpj());
                 });
 
         return toDTO(hospitalRepository.save(hospital));

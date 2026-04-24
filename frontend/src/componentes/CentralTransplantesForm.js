@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { formatarTelefone } from '../utils/telefone';
+import { getApiErrorMessage } from '../utils/apiError';
 import '../styles/CentralTransplantesForm.css';
 
 const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
@@ -114,11 +115,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
 
       setTimeout(() => setSucesso(''), 3000);
     } catch (err) {
-      const mensagem =
-        err.response?.data?.mensagem ||
-        err.response?.data?.message ||
-        err.message ||
-        'Erro ao salvar central';
+      const mensagem = getApiErrorMessage(err, 'Erro ao salvar central');
       setErro(mensagem);
     } finally {
       setCarregando(false);

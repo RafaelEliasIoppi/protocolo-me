@@ -1,6 +1,7 @@
 package back.backend.service;
 
 import back.backend.dto.ProtocoloMEDTO;
+import back.backend.exception.ConflitoNegocioException;
 import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.mapper.ProtocoloMapper;
 import back.backend.model.*;
@@ -152,7 +153,7 @@ public class ProtocoloMEService {
 
         if (novo.getNumeroProtocolo() != null &&
                 protocoloRepository.existsByNumeroProtocoloAndIdNot(novo.getNumeroProtocolo(), id)) {
-            throw new IllegalStateException("Número de protocolo já existe");
+            throw new ConflitoNegocioException("Número de protocolo já existe");
         }
 
         p.setNumeroProtocolo(novo.getNumeroProtocolo());
@@ -223,6 +224,50 @@ public class ProtocoloMEService {
 
     public ProtocoloMEDTO alterarStatus(Long id, String status) {
         return alterarStatus(id, parseStatus(status));
+    }
+
+    public ProtocoloMEDTO marcarEntrevistaFamiliar(Long id) {
+        ProtocoloME protocolo = buscarOuFalhar(id);
+
+        if (protocolo.getStatus() != ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA) {
+            throw new ConflitoNegocioException("Protocolo deve estar com morte cerebral confirmada para iniciar entrevista");
+        }
+
+        protocolo.setStatus(ProtocoloME.StatusProtocoloME.ENTREVISTA_FAMILIAR);
+
+        if (protocolo.getPaciente() != null) {
+            Paciente paciente = protocolo.getPaciente();
+            paciente.setStatusEntrevistaFamiliar("EM_ANDAMENTO");
+            pacienteRepository.save(paciente);
+        }
+
+        return toDTO(salvar(protocolo));
+    }
+
+    public ProtocoloMEDTO registrarResultadoEntrevista(Long id, boolean autorizouDoacao, String observacoes) {
+        ProtocoloME protocolo = buscarOuFalhar(id);
+
+        protocolo.setFamiliaNotificada(true);
+        protocolo.setDataNotificacaoFamilia(LocalDateTime.now());
+        protocolo.setAutopsiaAutorizada(autorizouDoacao);
+
+        if (observacoes != null && !observacoes.isBlank()) {
+            protocolo.setObservacoes(observacoes);
+        }
+
+        protocolo.setStatus(autorizouDoacao
+                ? ProtocoloME.StatusProtocoloME.DOACAO_AUTORIZADA
+                : ProtocoloME.StatusProtocoloME.FAMILIA_RECUSOU);
+
+        if (protocolo.getPaciente() != null) {
+            Paciente paciente = protocolo.getPaciente();
+            paciente.setStatusEntrevistaFamiliar(autorizouDoacao ? "POSITIVA" : "NEGATIVA");
+            paciente.setObservacoesEntrevistaFamiliar(observacoes);
+            paciente.setDataEntrevistaFamiliar(LocalDateTime.now());
+            pacienteRepository.save(paciente);
+        }
+
+        return toDTO(salvar(protocolo));
     }
 
     public ProtocoloMEDTO atualizarStatusAutomatico(Long id) {

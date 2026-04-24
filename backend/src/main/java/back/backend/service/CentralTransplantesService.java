@@ -2,6 +2,7 @@ package back.backend.service;
 
 import back.backend.dto.CentralTransplantesDTO;
 import back.backend.dto.CentralTransplantesRequestDTO;
+import back.backend.exception.ConflitoNegocioException;
 import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.model.CentralTransplantes;
 import back.backend.model.Hospital;
@@ -203,11 +204,11 @@ public class CentralTransplantesService {
     private void validarDuplicidade(CentralTransplantes central) {
 
         if (centralRepository.findByNome(central.getNome()).isPresent()) {
-            throw new IllegalStateException("Nome já cadastrado");
+            throw new ConflitoNegocioException("Nome já cadastrado");
         }
 
         if (centralRepository.findByCnpj(central.getCnpj()).isPresent()) {
-            throw new IllegalStateException("CNPJ já cadastrado");
+            throw new ConflitoNegocioException("CNPJ já cadastrado");
         }
     }
 

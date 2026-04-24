@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import autenticarService from "../services/autenticarService";
+import { getApiErrorMessage } from "../utils/apiError";
 
 function Login({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);
@@ -91,9 +92,7 @@ function Login({ onLogin }) {
       }
 
     } catch (error) {
-      const erroBackend =
-        error.response?.data?.erro ||
-        error.response?.data?.mensagem;
+      const erroBackend = getApiErrorMessage(error);
 
       setErro(
         erroBackend === "Email já cadastrado"

@@ -1,6 +1,8 @@
 package back.backend.controller;
 
 import back.backend.dto.ErrorResponseDTO;
+import back.backend.exception.AutenticacaoException;
+import back.backend.exception.ConflitoNegocioException;
 import back.backend.exception.RecursoNaoEncontradoException;
 
 import org.slf4j.Logger;
@@ -9,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
@@ -75,15 +78,45 @@ public class GlobalExceptionHandler {
     }
 
     // =========================
+    // 401 - AUTHENTICATION
+    // =========================
+    @ExceptionHandler(AutenticacaoException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAutenticacao(AutenticacaoException ex) {
+
+        log.warn("Falha de autenticação: {}", ex.getMessage());
+
+        return buildResponse(
+                ex.getMessage(),
+                HttpStatus.UNAUTHORIZED,
+                null
+        );
+    }
+
+    // =========================
     // 400 - BUSINESS RULE
     // =========================
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler({ConflitoNegocioException.class, IllegalStateException.class})
     public ResponseEntity<ErrorResponseDTO> handleBusiness(RuntimeException ex) {
 
         log.error("Erro de regra de negócio", ex);
 
         return buildResponse(
                 ex.getMessage(),
+                HttpStatus.CONFLICT,
+                null
+        );
+    }
+
+    // =========================
+    // 400 - MALFORMED JSON
+    // =========================
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMalformedJson(HttpMessageNotReadableException ex) {
+
+        log.warn("Payload JSON inválido: {}", ex.getMessage());
+
+        return buildResponse(
+                "Payload inválido",
                 HttpStatus.BAD_REQUEST,
                 null
         );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import apiClient from "../services/apiClient";
 import GerenciadorAnexos from "./GerenciadorAnexos";
+import { getApiErrorMessage } from "../utils/apiError";
 import "../styles/EntrevistaFamiliarManager.css";
 
 function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
@@ -19,20 +20,6 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
   useEffect(() => {
     carregarProtocolo();
   }, [protocoloMEId]);
-
-  const obterMensagemErro = (erro, fallback) => {
-    const payload = erro?.response?.data;
-    if (typeof payload === "string" && payload.trim()) {
-      return payload;
-    }
-    if (payload?.mensagem) {
-      return payload.mensagem;
-    }
-    if (payload?.erro) {
-      return payload.erro;
-    }
-    return fallback;
-  };
 
   const carregarProtocolo = async () => {
     setCarregando(true);
@@ -53,7 +40,7 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
         observacoes: response.data.observacoes || ""
       });
     } catch (e) {
-      setErro(obterMensagemErro(e, "Erro ao carregar protocolo"));
+      setErro(getApiErrorMessage(e, "Erro ao carregar protocolo"));
     } finally {
       setCarregando(false);
     }
@@ -107,7 +94,7 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
         await onAtualizacao();
       }
     } catch (e) {
-      setErro(obterMensagemErro(e, "Erro ao marcar para entrevista"));
+      setErro(getApiErrorMessage(e, "Erro ao marcar para entrevista"));
     } finally {
       setSalvando(false);
     }
@@ -148,7 +135,7 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
         await onAtualizacao();
       }
     } catch (e) {
-      setErro(obterMensagemErro(e, "Erro ao salvar resultado"));
+      setErro(getApiErrorMessage(e, "Erro ao salvar resultado"));
     } finally {
       setSalvando(false);
     }

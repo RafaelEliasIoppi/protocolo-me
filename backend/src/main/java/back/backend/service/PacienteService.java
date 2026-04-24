@@ -1,6 +1,8 @@
 package back.backend.service;
 
 import back.backend.dto.PacienteDTO;
+import back.backend.dto.PacienteEmProtocoloDTO;
+import back.backend.dto.PacienteRelatorioFinalDTO;
 import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.mapper.PacienteMapper;
 import back.backend.model.*;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -114,6 +117,17 @@ public class PacienteService {
         return pacienteRepository.findAll().stream().map(this::toDTO).toList();
     }
 
+    public List<PacienteDTO> buscarPorNome(String nome) {
+        if (nome == null || nome.isBlank()) {
+            return listarTodos();
+        }
+
+        return pacienteRepository.findByNomeContainingIgnoreCase(nome.trim())
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
     public List<PacienteDTO> listarPorHospital(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() ->
@@ -148,6 +162,57 @@ public class PacienteService {
         } catch (Exception e) {
             throw new IllegalArgumentException("Status inválido");
         }
+    }
+
+    public List<PacienteEmProtocoloDTO> listarEmProtocoloME() {
+        return pacienteRepository.findPacientesEmProtocoloME().stream()
+                .map(this::toProtocoloViewDTO)
+                .toList();
+    }
+
+    public List<PacienteEmProtocoloDTO> listarEmProtocoloMEPorHospital(Long hospitalId) {
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado"));
+
+        return pacienteRepository.findPacientesEmProtocoloMEPorHospital(hospital).stream()
+                .map(this::toProtocoloViewDTO)
+                .toList();
+    }
+
+    public PacienteRelatorioFinalDTO obterRelatorioFinal(Long pacienteId) {
+        Paciente paciente = buscarPacienteEntityPorId(pacienteId);
+
+        List<ProtocoloME> protocolos = Optional.ofNullable(paciente.getProtocolosME())
+                .orElse(List.of())
+                .stream()
+                .sorted(Comparator.comparing(ProtocoloME::getDataNotificacao,
+                        Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+
+        PacienteRelatorioFinalDTO dto = new PacienteRelatorioFinalDTO();
+        dto.setPacienteId(paciente.getId());
+        dto.setNomePaciente(paciente.getNome());
+        dto.setCpf(paciente.getCpf());
+        dto.setHospital(paciente.getHospital() != null ? paciente.getHospital().getNome() : null);
+        dto.setStatusPaciente(paciente.getStatus() != null ? paciente.getStatus().name() : null);
+        dto.setStatusEntrevistaFamiliar(paciente.getStatusEntrevistaFamiliar());
+        dto.setTotalProtocolos(protocolos.size());
+
+        for (ProtocoloME protocolo : protocolos) {
+            dto.getProtocolos().add(toRelatorioResumo(protocolo));
+        }
+
+        if (!protocolos.isEmpty()) {
+            ProtocoloME principal = protocolos.get(0);
+            dto.setStatusFinalProtocolo(principal.getStatus() != null ? principal.getStatus().name() : null);
+            dto.setConclusaoFinal(
+                    principal.getRelatorioFinalEditavel() != null && !principal.getRelatorioFinalEditavel().isBlank()
+                            ? principal.getRelatorioFinalEditavel()
+                            : "Sem conclusão preenchida"
+            );
+        }
+
+        return dto;
     }
 
     // ================= DELETE =================
@@ -278,6 +343,99 @@ public class PacienteService {
 
     private PacienteDTO toDTO(Paciente paciente) {
         return pacienteMapper.toDTO(paciente);
+    }
+
+    private PacienteEmProtocoloDTO toProtocoloViewDTO(Paciente paciente) {
+        PacienteEmProtocoloDTO dto = new PacienteEmProtocoloDTO();
+        dto.setId(paciente.getId());
+        dto.setNome(paciente.getNome());
+        dto.setCpf(paciente.getCpf());
+        dto.setDataNascimento(paciente.getDataNascimento());
+        dto.setGenero(paciente.getGenero() != null ? paciente.getGenero().name() : null);
+        dto.setLeito(paciente.getLeito());
+        dto.setDataInternacao(paciente.getDataInternacao());
+        dto.setStatus(paciente.getStatus() != null ? paciente.getStatus().name() : null);
+        dto.setStatusEntrevistaFamiliar(paciente.getStatusEntrevistaFamiliar());
+        dto.setDiagnosticoPrincipal(paciente.getDiagnosticoPrincipal());
+
+        if (paciente.getHospital() != null) {
+            dto.setHospital(new PacienteEmProtocoloDTO.HospitalResumoDTO(
+                    paciente.getHospital().getId(),
+                    paciente.getHospital().getNome()
+            ));
+        }
+
+        List<PacienteEmProtocoloDTO.ProtocoloResumoDTO> protocolos = Optional.ofNullable(paciente.getProtocolosME())
+                .orElse(List.of())
+                .stream()
+                .map(this::toProtocoloResumo)
+                .toList();
+        dto.setProtocolosME(protocolos);
+
+        return dto;
+    }
+
+    private PacienteEmProtocoloDTO.ProtocoloResumoDTO toProtocoloResumo(ProtocoloME protocolo) {
+        PacienteEmProtocoloDTO.ProtocoloResumoDTO dto = new PacienteEmProtocoloDTO.ProtocoloResumoDTO();
+        dto.setId(protocolo.getId());
+        dto.setNumeroProtocolo(protocolo.getNumeroProtocolo());
+        dto.setStatus(protocolo.getStatus() != null ? protocolo.getStatus().name() : null);
+        dto.setHospitalOrigem(protocolo.getHospitalOrigem());
+        dto.setDiagnosticoBasico(protocolo.getDiagnosticoBasico());
+        dto.setCausaMorte(protocolo.getCausaMorte());
+        dto.setObservacoes(protocolo.getObservacoes());
+        dto.setMedicoResponsavel(protocolo.getMedicoResponsavel());
+        dto.setEnfermeiro(protocolo.getEnfermeiro());
+        dto.setOrgaosDisponiveis(protocolo.getOrgaosDisponiveis());
+        return dto;
+    }
+
+    private PacienteRelatorioFinalDTO.ProtocoloRelatorioResumoDTO toRelatorioResumo(ProtocoloME protocolo) {
+        PacienteRelatorioFinalDTO.ProtocoloRelatorioResumoDTO dto =
+                new PacienteRelatorioFinalDTO.ProtocoloRelatorioResumoDTO();
+
+        List<ExameME> exames = Optional.ofNullable(protocolo.getExames()).orElse(List.of());
+        int totalExames = exames.size();
+        int examesRealizados = (int) exames.stream()
+                .filter(e -> e.getDataRealizacao() != null || e.getResultado() != null)
+                .count();
+
+        dto.setProtocoloId(protocolo.getId());
+        dto.setNumeroProtocolo(protocolo.getNumeroProtocolo());
+        dto.setStatusProtocolo(protocolo.getStatus() != null ? protocolo.getStatus().name() : null);
+        dto.setDataNotificacao(formatDateTime(protocolo.getDataNotificacao()));
+        dto.setDataConfirmacaoME(formatDateTime(protocolo.getDataConfirmacaoME()));
+        dto.setTotalExames(totalExames);
+        dto.setExamesRealizados(examesRealizados);
+        dto.setExamesPendentes(Math.max(totalExames - examesRealizados, 0));
+        dto.setExamesClinicosRealizados(contarExamesRealizados(exames, ExameME.CategoriaExame.CLINICO));
+        dto.setExamesComplementaresRealizados(contarExamesRealizados(exames, ExameME.CategoriaExame.COMPLEMENTAR));
+        dto.setExamesLaboratoriaisRealizados(contarExamesRealizados(exames, ExameME.CategoriaExame.LABORATORIAL));
+        dto.setFamiliaNotificada(Boolean.TRUE.equals(protocolo.getFamiliaNotificada()));
+        dto.setAutopsiaAutorizada(Boolean.TRUE.equals(protocolo.getAutopsiaAutorizada()));
+        dto.setRelatorioFinalEditavel(protocolo.getRelatorioFinalEditavel());
+        dto.setAnexos(
+                anexoDocumentoRepository.findByProtocoloMEId(protocolo.getId())
+                        .stream()
+                        .map(AnexoDocumento::getNomeArquivo)
+                        .toList()
+        );
+
+        return dto;
+    }
+
+    private int contarExamesRealizados(List<ExameME> exames, ExameME.CategoriaExame categoria) {
+        return (int) exames.stream()
+                .filter(e -> e.getCategoria() == categoria)
+                .filter(e -> e.getDataRealizacao() != null || e.getResultado() != null)
+                .count();
+    }
+
+    private String formatDateTime(LocalDateTime data) {
+        if (data == null) {
+            return null;
+        }
+        return data.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
     }
 
     private String normalizarCpf(String cpf) {

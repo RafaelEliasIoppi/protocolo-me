@@ -1,11 +1,14 @@
 package back.backend.security;
 
+import io.jsonwebtoken.JwtException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.*;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 
 import org.springframework.stereotype.Component;
@@ -50,7 +53,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             try {
                 username = jwtUtil.extractUsername(jwt);
-            } catch (Exception e) {
+            } catch (JwtException | IllegalArgumentException e) {
                 log.debug("Token inválido ou expirado: {}", e.getMessage());
             }
         }
@@ -78,7 +81,9 @@ public class JwtFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
 
-            } catch (Exception e) {
+            } catch (UsernameNotFoundException | BadCredentialsException e) {
+                log.debug("Falha de autenticação pelo token: {}", e.getMessage());
+            } catch (JwtException | IllegalArgumentException e) {
                 log.debug("Erro ao autenticar usuário pelo token: {}", e.getMessage());
             }
         }

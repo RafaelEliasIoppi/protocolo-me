@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { formatarTelefone } from '../utils/telefone';
+import { getApiErrorMessage } from '../utils/apiError';
 import '../styles/CentralPacienteEditForm.css';
 
 const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
@@ -127,7 +128,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
       }
     } catch (error) {
       console.error('Erro ao atualizar paciente:', error);
-      const mensagemErro = error.response?.data?.erro || 'Erro ao atualizar paciente';
+      const mensagemErro = getApiErrorMessage(error, 'Erro ao atualizar paciente');
       setMensagem({ tipo: 'erro', texto: mensagemErro });
     } finally {
       setCarregando(false);

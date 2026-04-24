@@ -152,8 +152,7 @@ const ProtocoloMEManager = () => {
     try {
       const response = await apiClient.patch(
         `/api/protocolos-me/${protocoloId}/status`,
-        {},
-        { params: { status: novoStatus } }
+        { status: novoStatus }
       );
       atualizarProtocoloNaLista(protocoloId, response.data);
       setSucesso('Status atualizado!');

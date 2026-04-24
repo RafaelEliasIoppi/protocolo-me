@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { formatarTelefone } from '../utils/telefone';
+import { getApiErrorMessage } from '../utils/apiError';
 import '../styles/HospitalForm.css';
 
 const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
@@ -116,7 +117,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
 
       setTimeout(() => setSucesso(''), 3000);
     } catch (err) {
-      const mensagem = err.response?.data?.message || err.message || 'Erro ao salvar hospital';
+      const mensagem = getApiErrorMessage(err, 'Erro ao salvar hospital');
       setErro(mensagem);
     } finally {
       setCarregando(false);

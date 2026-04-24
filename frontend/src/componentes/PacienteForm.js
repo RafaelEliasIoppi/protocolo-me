@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import apiClient from '../services/apiClient';
 import { formatarCpf } from '../utils/cpf';
 import { formatarTelefone } from '../utils/telefone';
+import { getApiErrorMessage } from '../utils/apiError';
 import '../styles/PacienteForm.css';
 
 const PacienteForm = ({
@@ -205,7 +206,7 @@ const PacienteForm = ({
       carregarEstatisticas();
     } catch (error) {
       console.error('Erro ao salvar paciente:', error);
-      const mensagemErro = error.response?.data?.mensagem || 'Erro ao salvar paciente';
+      const mensagemErro = getApiErrorMessage(error, 'Erro ao salvar paciente');
       setMensagem({ tipo: 'erro', texto: mensagemErro });
     } finally {
       setCarregando(false);

@@ -1,6 +1,8 @@
 package back.backend.service;
 
 import back.backend.dto.UsuarioDTO;
+import back.backend.exception.AutenticacaoException;
+import back.backend.exception.ConflitoNegocioException;
 import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.mapper.UsuarioMapper;
 import back.backend.model.Role;
@@ -38,14 +40,14 @@ public class UsuarioService implements UserDetailsService {
         String emailNormalizado = normalizarEmail(email);
 
         Usuario usuario = usuarioRepository.findByEmail(emailNormalizado)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
+            .orElseThrow(() -> new AutenticacaoException("Usuário não encontrado ou inativo"));
 
         if (!Boolean.TRUE.equals(usuario.getAtivo())) {
-            throw new IllegalStateException("Usuário inativo");
+            throw new AutenticacaoException("Usuário não encontrado ou inativo");
         }
 
         if (!passwordEncoder.matches(senha, usuario.getSenha())) {
-            throw new IllegalArgumentException("Senha inválida");
+            throw new AutenticacaoException("Senha incorreta");
         }
 
         return toDTO(usuario);
@@ -62,11 +64,11 @@ public class UsuarioService implements UserDetailsService {
                 && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
-            throw new IllegalStateException("Primeiro usuário deve ser ADMIN");
+            throw new ConflitoNegocioException("Primeiro usuário deve ser ADMIN");
         }
 
         if (totalAdmins > 0 && !isAdmin) {
-            throw new IllegalStateException("Apenas ADMIN pode cadastrar usuários");
+            throw new ConflitoNegocioException("Apenas ADMIN pode cadastrar usuários");
         }
     }
 
@@ -90,7 +92,7 @@ public class UsuarioService implements UserDetailsService {
         String email = normalizarEmail(usuario.getEmail());
 
         if (usuarioRepository.findByEmail(email).isPresent()) {
-            throw new IllegalStateException("Email já cadastrado");
+            throw new ConflitoNegocioException("Email já cadastrado");
         }
 
         usuario.setEmail(email);
@@ -105,6 +107,27 @@ public class UsuarioService implements UserDetailsService {
         usuario.setDataAtualizacao(LocalDateTime.now());
 
         return toDTO(usuarioRepository.save(usuario));
+    }
+
+    public UsuarioDTO registrarPublico(Usuario usuario) {
+        if (usuario.getRole() == null) {
+            usuario.setRole(Role.MEDICO);
+        }
+
+        if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
+            throw new IllegalArgumentException("Cadastro público permite apenas MÉDICO ou ENFERMEIRO");
+        }
+
+        return registrar(usuario);
+    }
+
+    public UsuarioDTO registrarAdmin(Usuario usuario) {
+        if (usuario.getRole() == null) {
+            throw new IllegalArgumentException("Informe a função");
+        }
+
+        validarPermissaoCriacaoAdmin(usuario);
+        return registrar(usuario);
     }
 
     public UsuarioDTO atualizarUsuario(Long id, Usuario dados) {
