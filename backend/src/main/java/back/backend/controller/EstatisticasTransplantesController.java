@@ -4,6 +4,7 @@ import back.backend.dto.EstatisticaProtocoloMEDTO;
 import back.backend.service.EstatisticaProtocoloMEService;
 import back.backend.service.EstatisticasTransplantesService;
 
+import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -66,7 +67,7 @@ public class EstatisticasTransplantesController {
     @PutMapping("/protocolo-me/{protocoloId}")
     public ResponseEntity<EstatisticaProtocoloMEDTO> salvarEstatisticaPorProtocolo(
             @PathVariable Long protocoloId,
-            @RequestBody EstatisticaProtocoloMEDTO payload) {
+            @Valid @RequestBody EstatisticaProtocoloMEDTO payload) {
 
         return ResponseEntity.ok(
                 estatisticaProtocoloMEService.salvarOuAtualizar(protocoloId, payload)

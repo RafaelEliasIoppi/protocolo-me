@@ -74,7 +74,7 @@ public class UsuarioController {
     // LOGIN
     // =========================
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDTO> login(@RequestBody LoginRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody LoginRequestDTO request) {
 
         UsuarioDTO usuario = usuarioService.autenticar(request.getEmail(), request.getSenha());
 
@@ -90,7 +90,7 @@ public class UsuarioController {
     // MINHA SENHA
     // =========================
     @PatchMapping("/minha-senha")
-    public ResponseEntity<AcaoResponseDTO> alterarMinhaSenha(@RequestBody AlterarSenhaDTO dto) {
+    public ResponseEntity<AcaoResponseDTO> alterarMinhaSenha(@Valid @RequestBody AlterarSenhaDTO dto) {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -130,7 +130,7 @@ public class UsuarioController {
     // =========================
     @PatchMapping("/{id}/senha")
     public ResponseEntity<AcaoResponseDTO> redefinirSenha(@PathVariable Long id,
-                                                         @RequestBody ResetSenhaDTO dto) {
+                                                         @Valid @RequestBody ResetSenhaDTO dto) {
 
         UsuarioDTO usuario = usuarioService.redefinirSenha(id, dto.getSenhaNova());
 

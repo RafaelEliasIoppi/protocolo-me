@@ -129,6 +129,10 @@ public class CentralTransplantesService {
         return centralRepository.findByStatusOperacional(status).stream().map(this::toDTO).toList();
     }
 
+    public List<CentralTransplantesDTO> listarPorStatus(String status) {
+        return listarPorStatus(parseStatus(status));
+    }
+
     public void deletarCentral(Long id) {
         if (!centralRepository.existsById(id)) {
             throw new RecursoNaoEncontradoException("Central não encontrada");
@@ -142,6 +146,10 @@ public class CentralTransplantesService {
         CentralTransplantes c = getCentral(id);
         c.setStatusOperacional(status);
         return toDTO(centralRepository.save(c));
+    }
+
+    public CentralTransplantesDTO alterarStatus(Long id, String status) {
+        return alterarStatus(id, parseStatus(status));
     }
 
     public CentralTransplantesDTO vincularHospital(Long centralId, Long hospitalId) {
@@ -186,6 +194,10 @@ public class CentralTransplantesService {
 
     private CentralTransplantesDTO toDTO(CentralTransplantes entity) {
         return centralTransplantesMapper.toDTO(entity);
+    }
+
+    private CentralTransplantes.StatusCentral parseStatus(String status) {
+        return CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
     }
 
     private void validarDuplicidade(CentralTransplantes central) {

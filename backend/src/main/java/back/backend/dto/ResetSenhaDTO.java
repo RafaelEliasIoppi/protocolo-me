@@ -1,7 +1,10 @@
 package back.backend.dto;
 
+import javax.validation.constraints.NotBlank;
+
 public class ResetSenhaDTO {
 
+    @NotBlank(message = "Senha nova obrigatória")
     private String senhaNova;
 
     public ResetSenhaDTO() {

@@ -57,25 +57,20 @@ public class ProtocoloMEController {
     }
 
     @GetMapping("/central/{centralId}")
-    public ResponseEntity<?> listarPorCentral(@PathVariable Long centralId) {
+    public ResponseEntity<List<ProtocoloMEDTO>> listarPorCentral(@PathVariable Long centralId) {
         return ResponseEntity.ok(protocoloService.listarPorCentral(centralId));
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<?> listarPorStatus(@PathVariable String status) {
-        ProtocoloME.StatusProtocoloME s = parseStatus(status);
-
-        return ResponseEntity.ok(protocoloService.listarPorStatus(s));
+    public ResponseEntity<List<ProtocoloMEDTO>> listarPorStatus(@PathVariable String status) {
+        return ResponseEntity.ok(protocoloService.listarPorStatus(status));
     }
 
     @GetMapping("/central/{centralId}/status/{status}")
-    public ResponseEntity<?> listarPorCentralEStatus(
+    public ResponseEntity<List<ProtocoloMEDTO>> listarPorCentralEStatus(
             @PathVariable Long centralId,
             @PathVariable String status) {
-
-        ProtocoloME.StatusProtocoloME s = parseStatus(status);
-
-        return ResponseEntity.ok(protocoloService.listarPorCentralEStatus(centralId, s));
+        return ResponseEntity.ok(protocoloService.listarPorCentralEStatus(centralId, status));
     }
 
     @GetMapping("/periodo")
@@ -94,7 +89,7 @@ public class ProtocoloMEController {
     // ================= UPDATE =================
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProtocoloMEDTO> atualizar(@PathVariable Long id, @RequestBody ProtocoloUpdateRequestDTO request) {
+    public ResponseEntity<ProtocoloMEDTO> atualizar(@PathVariable Long id, @Valid @RequestBody ProtocoloUpdateRequestDTO request) {
         ProtocoloME protocolo = protocoloRequestMapper.toEntity(request);
         return ResponseEntity.ok(protocoloService.atualizarProtocolo(id, protocolo));
     }
@@ -102,7 +97,7 @@ public class ProtocoloMEController {
     @PatchMapping("/{id}/relatorio-final")
     public ResponseEntity<ProtocoloMEDTO> atualizarRelatorioFinal(
             @PathVariable Long id,
-            @RequestBody ProtocoloRelatorioRequestDTO request) {
+            @Valid @RequestBody ProtocoloRelatorioRequestDTO request) {
 
         return ResponseEntity.ok(
             protocoloService.atualizarRelatorioFinal(
@@ -116,11 +111,9 @@ public class ProtocoloMEController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<ProtocoloMEDTO> alterarStatus(
             @PathVariable Long id,
-            @RequestBody ProtocoloStatusRequestDTO request) {
+            @Valid @RequestBody ProtocoloStatusRequestDTO request) {
 
-        ProtocoloME.StatusProtocoloME s = parseStatus(request.getStatus());
-
-        return ResponseEntity.ok(protocoloService.alterarStatus(id, s));
+        return ResponseEntity.ok(protocoloService.alterarStatus(id, request.getStatus()));
     }
 
     // ================= ACTIONS =================
@@ -166,12 +159,6 @@ public class ProtocoloMEController {
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         protocoloService.deletarProtocolo(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // ================= HELPERS =================
-
-    private ProtocoloME.StatusProtocoloME parseStatus(String status) {
-        return ProtocoloME.StatusProtocoloME.valueOf(status.toUpperCase());
     }
 
     private ResponseEntity<ProtocoloMEDTO> action(Long id, java.util.function.Function<Long, ProtocoloMEDTO> fn) {

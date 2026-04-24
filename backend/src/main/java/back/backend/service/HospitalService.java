@@ -60,6 +60,10 @@ public class HospitalService {
         return hospitalRepository.findByStatus(status).stream().map(this::toDTO).toList();
     }
 
+    public List<HospitalDTO> listarPorStatus(String status) {
+        return listarPorStatus(parseStatus(status));
+    }
+
     public List<HospitalDTO> listarPorCidade(String cidade) {
         return hospitalRepository.findByCidade(cidade).stream().map(this::toDTO).toList();
     }
@@ -96,6 +100,10 @@ public class HospitalService {
         return toDTO(hospitalRepository.save(hospital));
     }
 
+    public HospitalDTO alterarStatus(Long id, String status) {
+        return alterarStatus(id, parseStatus(status));
+    }
+
     // DELETE
     public void deletarHospital(Long id) {
 
@@ -108,5 +116,9 @@ public class HospitalService {
 
     private HospitalDTO toDTO(Hospital hospital) {
         return hospitalMapper.toDTO(hospital);
+    }
+
+    private Hospital.StatusHospital parseStatus(String status) {
+        return Hospital.StatusHospital.valueOf(status.toUpperCase());
     }
 }

@@ -71,11 +71,7 @@ public class CentralTransplantesController {
 
     @GetMapping("/status/{status}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorStatus(@PathVariable String status) {
-        CentralTransplantes.StatusCentral statusEnum = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
-
-        return ResponseEntity.ok(
-                centralService.listarPorStatus(statusEnum)
-        );
+        return ResponseEntity.ok(centralService.listarPorStatus(status));
     }
 
     // ---------------- UPDATE ----------------
@@ -94,10 +90,7 @@ public class CentralTransplantesController {
     public ResponseEntity<CentralTransplantesDTO> alterarStatus(
             @PathVariable Long id,
             @RequestParam String status) {
-
-        CentralTransplantes.StatusCentral novoStatus = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
-
-        return ResponseEntity.ok(centralService.alterarStatus(id, novoStatus));
+        return ResponseEntity.ok(centralService.alterarStatus(id, status));
     }
 
     // ---------------- RELATIONSHIPS ----------------
@@ -129,9 +122,7 @@ public class CentralTransplantesController {
     // ---------------- STATS ----------------
 
     @GetMapping("/estatisticas/doadores-receptores")
-    public ResponseEntity<?> estatisticas() {
-        return ResponseEntity.ok(
-                centralService.obterEstatisticasDoacaoTransplante()
-        );
+    public ResponseEntity<CentralTransplantesService.EstatisticasCentralDoacaoTransplante> estatisticas() {
+        return ResponseEntity.ok(centralService.obterEstatisticasDoacaoTransplante());
     }
 }

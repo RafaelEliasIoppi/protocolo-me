@@ -121,11 +121,19 @@ public class ProtocoloMEService {
         return protocoloRepository.findByStatus(status).stream().map(this::toDTO).toList();
     }
 
+    public List<ProtocoloMEDTO> listarPorStatus(String status) {
+        return listarPorStatus(parseStatus(status));
+    }
+
     public List<ProtocoloMEDTO> listarPorCentralEStatus(Long id, ProtocoloME.StatusProtocoloME status) {
         CentralTransplantes c = centralRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
 
         return protocoloRepository.findByCentralTransplantesAndStatus(c, status).stream().map(this::toDTO).toList();
+    }
+
+    public List<ProtocoloMEDTO> listarPorCentralEStatus(Long id, String status) {
+        return listarPorCentralEStatus(id, parseStatus(status));
     }
 
     public List<ProtocoloMEDTO> listarPorPeriodo(LocalDateTime ini, LocalDateTime fim) {
@@ -213,6 +221,10 @@ public class ProtocoloMEService {
         return executar(id, p -> p.setStatus(status));
     }
 
+    public ProtocoloMEDTO alterarStatus(Long id, String status) {
+        return alterarStatus(id, parseStatus(status));
+    }
+
     public ProtocoloMEDTO atualizarStatusAutomatico(Long id) {
         ProtocoloME protocolo = buscarOuFalhar(id);
 
@@ -233,6 +245,10 @@ public class ProtocoloMEService {
         ProtocoloME p = buscarOuFalhar(id);
         acao.accept(p);
         return toDTO(salvar(p));
+    }
+
+    private ProtocoloME.StatusProtocoloME parseStatus(String status) {
+        return ProtocoloME.StatusProtocoloME.valueOf(status.toUpperCase());
     }
 
     private void sincronizarStatusPaciente(ProtocoloME protocolo) {

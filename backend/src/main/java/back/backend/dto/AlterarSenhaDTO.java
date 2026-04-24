@@ -1,9 +1,16 @@
 package back.backend.dto;
 
+import javax.validation.constraints.NotBlank;
+
 public class AlterarSenhaDTO {
 
+    @NotBlank(message = "Senha atual obrigatória")
     private String senhaAtual;
+
+    @NotBlank(message = "Senha nova obrigatória")
     private String senhaNova;
+
+    @NotBlank(message = "Confirmação de senha obrigatória")
     private String confirmarSenha;
 
     public AlterarSenhaDTO() {

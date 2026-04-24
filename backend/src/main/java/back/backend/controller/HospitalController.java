@@ -55,9 +55,7 @@ public class HospitalController {
     // GET BY STATUS
     @GetMapping("/status/{status}")
     public ResponseEntity<List<HospitalDTO>> listarPorStatus(@PathVariable String status) {
-        Hospital.StatusHospital statusEnum = Hospital.StatusHospital.valueOf(status.toUpperCase());
-
-        return ResponseEntity.ok(hospitalService.listarPorStatus(statusEnum));
+        return ResponseEntity.ok(hospitalService.listarPorStatus(status));
     }
 
     // GET BY CIDADE
@@ -84,14 +82,12 @@ public class HospitalController {
     public ResponseEntity<HospitalDTO> alterarStatus(
             @PathVariable Long id,
             @RequestParam String status) {
-        Hospital.StatusHospital novoStatus = Hospital.StatusHospital.valueOf(status.toUpperCase());
-
-        return ResponseEntity.ok(hospitalService.alterarStatus(id, novoStatus));
+        return ResponseEntity.ok(hospitalService.alterarStatus(id, status));
     }
 
     // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deletarHospital(@PathVariable Long id) {
+    public ResponseEntity<Void> deletarHospital(@PathVariable Long id) {
         hospitalService.deletarHospital(id);
         return ResponseEntity.noContent().build();
     }

@@ -56,7 +56,7 @@ public class PacienteController {
     }
 
     @GetMapping("/hospital/{hospitalId}/status/{status}")
-    public ResponseEntity<?> listarPorHospitalEStatus(
+    public ResponseEntity<List<PacienteDTO>> listarPorHospitalEStatus(
             @PathVariable Long hospitalId,
             @PathVariable String status) {
 
