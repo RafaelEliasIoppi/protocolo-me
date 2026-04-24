@@ -58,6 +58,8 @@ function UsuariosAdminPage() {
 
   useEffect(() => {
     carregarUsuarios();
+    setFormData(estadoInicialFormulario);
+    limparMensagens();
   }, []);
 
   // =========================
@@ -109,6 +111,7 @@ function UsuariosAdminPage() {
 
       setSucesso("Usuário cadastrado com sucesso!");
       setFormData(estadoInicialFormulario);
+      setNovaSenha("");
 
       await carregarUsuarios();
     } catch (error) {
