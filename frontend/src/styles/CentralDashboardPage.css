@@ -92,6 +92,69 @@
   padding-bottom: 0.4rem;
 }
 
+.telao-opcoes-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1rem;
+  align-items: end;
+  background: #ffffff;
+  border: 1px solid #dbe7f3;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.telao-opcao-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+  gap: 0.35rem;
+}
+
+.telao-opcao-item label {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #334155;
+  font-weight: 700;
+}
+
+.telao-opcao-item select {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  background: #f8fafc;
+  font-size: 0.92rem;
+  color: #0f172a;
+}
+
+.telao-opcao-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid #dbe7f3;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.telao-opcao-checkbox input {
+  width: 16px;
+  height: 16px;
+}
+
+.telao-reset-button {
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+.telao-reset-button:hover {
+  background: #cbd5e1;
+}
+
 .central-dashboard .secondary-button {
   background-color: rgba(255, 255, 255, 0.15);
   border: 2px solid rgba(255, 255, 255, 0.4);
@@ -147,6 +210,11 @@
 .painel-header .central-note-readonly {
   color: #0e7490;
   font-weight: 600;
+}
+
+.painel-header .telao-page-indicator {
+  color: #0f172a;
+  font-weight: 700;
 }
 
 /* Tabela */
@@ -623,6 +691,10 @@
   color: #67e8f9;
 }
 
+[data-theme="dark"] .central-dashboard .painel-header .telao-page-indicator {
+  color: #fef08a;
+}
+
 [data-theme="dark"] .central-dashboard .pacientes-tabela-wrapper {
   border-color: rgba(148, 163, 184, 0.28);
 }
@@ -670,8 +742,17 @@
   border-color: rgba(148, 163, 184, 0.3);
 }
 
+[data-theme="dark"] .central-dashboard .telao-opcoes-panel {
+  background: #0f3460;
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
 [data-theme="dark"] .central-dashboard .telao-filtro-item label,
 [data-theme="dark"] .central-dashboard .telao-filtro-meta {
+  color: #dbeafe;
+}
+
+[data-theme="dark"] .central-dashboard .telao-opcao-item label {
   color: #dbeafe;
 }
 
@@ -679,6 +760,23 @@
   background: #123a63;
   color: #e2e8f0;
   border-color: rgba(148, 163, 184, 0.35);
+}
+
+[data-theme="dark"] .central-dashboard .telao-opcao-item select,
+[data-theme="dark"] .central-dashboard .telao-opcao-checkbox {
+  background: #123a63;
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+[data-theme="dark"] .central-dashboard .telao-reset-button {
+  background: #0b2947;
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+[data-theme="dark"] .central-dashboard .telao-reset-button:hover {
+  background: #123a63;
 }
 
 [data-theme="dark"] .central-dashboard .telao-filtro-item select:focus {
@@ -746,7 +844,9 @@
 }
 
 .central-dashboard.telao-mode {
-  padding: 0.6rem 1rem;
+  width: 100%;
+  min-height: 100vh;
+  padding: 0.35rem 0.6rem;
 }
 
 .central-dashboard.telao-mode .dashboard-header {
@@ -763,7 +863,7 @@
 }
 
 .central-dashboard.telao-mode .pacientes-painel {
-  padding: 1.2rem;
+  padding: 0.9rem;
 }
 
 .central-dashboard.telao-mode .painel-header h2 {
@@ -772,11 +872,134 @@
 
 .central-dashboard.telao-mode .tabela-pacientes {
   font-size: 0.98rem;
+  min-width: 0;
+  width: 100%;
+  table-layout: fixed;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes th,
 .central-dashboard.telao-mode .tabela-pacientes td {
-  padding: 0.95rem 0.85rem;
+  padding: 0.7rem 0.55rem;
+}
+
+.central-dashboard.telao-mode .pacientes-tabela-wrapper {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes .col-nome {
+  width: 14%;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes .col-cpf {
+  width: 10%;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes .col-hospital {
+  width: 14%;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes .col-cidade {
+  width: 8%;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes .col-data {
+  width: 10%;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes .col-exames {
+  width: 7%;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes .col-status-exames {
+  width: 12%;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes .col-faltantes {
+  width: 15%;
+}
+
+.central-dashboard.telao-mode .tabela-pacientes .col-status {
+  width: 10%;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen {
+  padding: 0.2rem 0.3rem;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .dashboard-header,
+.central-dashboard.telao-mode.tv-fullscreen .telao-filtros-panel {
+  display: none;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .pacientes-painel {
+  padding: 0.35rem;
+  border-radius: 0;
+  min-height: calc(100vh - 0.4rem);
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .painel-header {
+  margin-bottom: 0.45rem;
+  padding-bottom: 0.35rem;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .painel-header h2 {
+  font-size: 1.15rem;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .painel-header .note {
+  font-size: 0.76rem;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .pacientes-tabela-wrapper {
+  border-radius: 0;
+  border: none;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .pacientes-tabela-wrapper::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .tabela-pacientes {
+  font-size: 0.9rem;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .tabela-pacientes th,
+.central-dashboard.telao-mode.tv-fullscreen .tabela-pacientes td {
+  padding: 0.46rem 0.4rem;
+}
+
+.central-dashboard.telao-mode.tv-fullscreen .lista-faltantes {
+  padding-left: 0.8rem;
+}
+
+.exit-fullscreen-fab {
+  position: fixed;
+  top: 0.4rem;
+  right: 0.5rem;
+  z-index: 1200;
+  border: 1px solid rgba(15, 23, 42, 0.22);
+  background: rgba(255, 255, 255, 0.88);
+  color: #0f172a;
+  border-radius: 999px;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+}
+
+.exit-fullscreen-fab:hover {
+  background: #ffffff;
+}
+
+[data-theme="dark"] .exit-fullscreen-fab {
+  background: rgba(15, 52, 96, 0.88);
+  color: #e2e8f0;
+  border-color: rgba(148, 163, 184, 0.45);
 }
 
 @media (max-width: 768px) {
@@ -825,6 +1048,16 @@
 
   .telao-filtro-item {
     min-width: 100%;
+  }
+
+  .telao-opcoes-panel {
+    padding: 0.8rem;
+  }
+
+  .telao-opcao-item,
+  .telao-opcao-checkbox,
+  .telao-reset-button {
+    width: 100%;
   }
 
   .telao-filtro-meta {

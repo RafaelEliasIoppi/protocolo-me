@@ -5,6 +5,41 @@ import { formatarCpf } from "../utils/cpf";
 import "../styles/CentralDashboardPage.css";
 
 const CHAVE_CONFIG_ESTATISTICA_CENTRAL = "central_dashboard_estatisticas_campos";
+const CHAVE_CONFIG_TELAO = "central_dashboard_telao_config";
+
+const obterConfiguracaoTelaoPadrao = () => ({
+  itensPorPagina: 20,
+  intervaloRotacaoSegundos: 10,
+  rotacaoAutomatica: true,
+  somentePendencias: false
+});
+
+const carregarConfiguracaoTelao = () => {
+  const padrao = obterConfiguracaoTelaoPadrao();
+
+  try {
+    const conteudo = localStorage.getItem(CHAVE_CONFIG_TELAO);
+    if (!conteudo) {
+      return padrao;
+    }
+
+    const config = JSON.parse(conteudo);
+    if (!config || typeof config !== "object") {
+      return padrao;
+    }
+
+    return {
+      itensPorPagina: Number.isInteger(config.itensPorPagina) ? config.itensPorPagina : padrao.itensPorPagina,
+      intervaloRotacaoSegundos: Number.isInteger(config.intervaloRotacaoSegundos)
+        ? config.intervaloRotacaoSegundos
+        : padrao.intervaloRotacaoSegundos,
+      rotacaoAutomatica: typeof config.rotacaoAutomatica === "boolean" ? config.rotacaoAutomatica : padrao.rotacaoAutomatica,
+      somentePendencias: typeof config.somentePendencias === "boolean" ? config.somentePendencias : padrao.somentePendencias,
+    };
+  } catch (_) {
+    return padrao;
+  }
+};
 
 const obterConfiguracaoCamposPadrao = () => ({
   doadoresEmAvaliacao: true,
@@ -72,11 +107,16 @@ function CentralDashboardPage({ telaoMode = false }) {
   const [mostrarEditarPaciente, setMostrarEditarPaciente] = useState(false);
   const [pacienteParaEditar, setPacienteParaEditar] = useState(null);
   const [relatorioTextoPorProtocolo, setRelatorioTextoPorProtocolo] = useState({});
+  const [mostrarOpcoesTelao, setMostrarOpcoesTelao] = useState(false);
   const [filtroHospitalTelao, setFiltroHospitalTelao] = useState("TODOS");
   const [filtroStatusTelao, setFiltroStatusTelao] = useState("TODOS");
+  const [paginaAtualTelao, setPaginaAtualTelao] = useState(0);
   const [estaTelaCheia, setEstaTelaCheia] = useState(Boolean(document.fullscreenElement));
   const [erroTelaCheia, setErroTelaCheia] = useState("");
+  const [configTelao, setConfigTelao] = useState(() => carregarConfiguracaoTelao());
   const modoTelao = telaoMode || new URLSearchParams(window.location.search).get("telao") === "1";
+  const itensPorPaginaTelao = configTelao.itensPorPagina;
+  const intervaloRotacaoTelaoMs = configTelao.intervaloRotacaoSegundos * 1000;
 
   const opcoesPrincipaisEstatistica = [
     { chave: "doadoresEmAvaliacao", label: "Doadores em avaliação" },
@@ -203,6 +243,10 @@ function CentralDashboardPage({ telaoMode = false }) {
   useEffect(() => {
     localStorage.setItem(CHAVE_CONFIG_ESTATISTICA_CENTRAL, JSON.stringify(camposVisiveis));
   }, [camposVisiveis]);
+
+  useEffect(() => {
+    localStorage.setItem(CHAVE_CONFIG_TELAO, JSON.stringify(configTelao));
+  }, [configTelao]);
 
   useEffect(() => {
     const atualizarEstadoTelaCheia = () => {
@@ -378,8 +422,57 @@ function CentralDashboardPage({ telaoMode = false }) {
     const bateHospital = filtroHospitalTelao === "TODOS" || hospital === filtroHospitalTelao;
     const bateStatus = filtroStatusTelao === "TODOS" || protocolo?.status === filtroStatusTelao;
 
+    if (configTelao.somentePendencias) {
+      const protocolo = paciente.protocolosME?.[0];
+      const possuiPendencias = obterExamesPendentes(protocolo).length > 0;
+      return bateHospital && bateStatus && possuiPendencias;
+    }
+
     return bateHospital && bateStatus;
   });
+
+  const totalPaginasTelao = Math.max(1, Math.ceil(pacientesFiltrados.length / itensPorPaginaTelao));
+
+  const pacientesExibidos = modoTelao
+    ? pacientesFiltrados.slice(
+        paginaAtualTelao * itensPorPaginaTelao,
+        paginaAtualTelao * itensPorPaginaTelao + itensPorPaginaTelao,
+      )
+    : pacientesFiltrados;
+
+  useEffect(() => {
+    if (!modoTelao) {
+      return;
+    }
+
+    setPaginaAtualTelao(0);
+  }, [modoTelao, filtroHospitalTelao, filtroStatusTelao, pacientesFiltrados.length, itensPorPaginaTelao]);
+
+  useEffect(() => {
+    if (!modoTelao || !configTelao.rotacaoAutomatica || totalPaginasTelao <= 1) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setPaginaAtualTelao((paginaAnterior) => (paginaAnterior + 1) % totalPaginasTelao);
+    }, intervaloRotacaoTelaoMs);
+
+    return () => clearInterval(timer);
+  }, [modoTelao, totalPaginasTelao, intervaloRotacaoTelaoMs, configTelao.rotacaoAutomatica]);
+
+  const atualizarConfigTelao = (chave, valor) => {
+    setConfigTelao((anterior) => ({
+      ...anterior,
+      [chave]: valor
+    }));
+  };
+
+  const resetarOpcoesTelao = () => {
+    setConfigTelao(obterConfiguracaoTelaoPadrao());
+    setFiltroHospitalTelao("TODOS");
+    setFiltroStatusTelao("TODOS");
+    setPaginaAtualTelao(0);
+  };
 
   const obterCorStatus = (status) => {
     switch (status) {
@@ -626,7 +719,13 @@ function CentralDashboardPage({ telaoMode = false }) {
   };
 
   return (
-    <section className={`central-dashboard ${modoTelao ? "telao-mode" : ""}`}>
+    <section className={`central-dashboard ${modoTelao ? "telao-mode" : ""} ${modoTelao && estaTelaCheia ? "tv-fullscreen" : ""}`}>
+      {modoTelao && estaTelaCheia && (
+        <button className="exit-fullscreen-fab" onClick={sairTelaCheia}>
+          🗗 Sair da Tela Cheia
+        </button>
+      )}
+
       <div className="brand-bar dashboard-header">
         <div>
           <h1>{modoTelao ? "📺 Telão Central de Monitoramento ME" : "🏥 Painel Central de Monitoramento ME"}</h1>
@@ -642,6 +741,14 @@ function CentralDashboardPage({ telaoMode = false }) {
               onClick={() => window.open("/dashboard-central/telao", "_blank", "noopener,noreferrer")}
             >
               📺 Abrir Telão
+            </button>
+          )}
+          {modoTelao && (
+            <button
+              className="secondary-button"
+              onClick={() => setMostrarOpcoesTelao((aberto) => !aberto)}
+            >
+              ⚙️ Opções do Telão
             </button>
           )}
           {modoTelao && (
@@ -690,6 +797,58 @@ function CentralDashboardPage({ telaoMode = false }) {
           <div className="telao-filtro-meta">
             <span>Exibindo {pacientesFiltrados.length} paciente(s)</span>
           </div>
+        </div>
+      )}
+
+      {modoTelao && mostrarOpcoesTelao && (
+        <div className="telao-opcoes-panel">
+          <div className="telao-opcao-item">
+            <label htmlFor="itens-pagina-telao">Pacientes por tela</label>
+            <select
+              id="itens-pagina-telao"
+              value={configTelao.itensPorPagina}
+              onChange={(e) => atualizarConfigTelao("itensPorPagina", Number(e.target.value))}
+            >
+              {[10, 15, 20, 25, 30, 40].map((valor) => (
+                <option key={`itens-pagina-${valor}`} value={valor}>{valor}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="telao-opcao-item">
+            <label htmlFor="intervalo-rotacao-telao">Troca automática (segundos)</label>
+            <select
+              id="intervalo-rotacao-telao"
+              value={configTelao.intervaloRotacaoSegundos}
+              onChange={(e) => atualizarConfigTelao("intervaloRotacaoSegundos", Number(e.target.value))}
+            >
+              {[5, 8, 10, 15, 20, 30].map((valor) => (
+                <option key={`intervalo-rotacao-${valor}`} value={valor}>{valor}s</option>
+              ))}
+            </select>
+          </div>
+
+          <label className="telao-opcao-checkbox">
+            <input
+              type="checkbox"
+              checked={configTelao.rotacaoAutomatica}
+              onChange={(e) => atualizarConfigTelao("rotacaoAutomatica", e.target.checked)}
+            />
+            <span>Rotação automática</span>
+          </label>
+
+          <label className="telao-opcao-checkbox">
+            <input
+              type="checkbox"
+              checked={configTelao.somentePendencias}
+              onChange={(e) => atualizarConfigTelao("somentePendencias", e.target.checked)}
+            />
+            <span>Mostrar só pacientes com pendências</span>
+          </label>
+
+          <button className="secondary-button telao-reset-button" onClick={resetarOpcoesTelao}>
+            Restaurar padrões
+          </button>
         </div>
       )}
 
@@ -852,6 +1011,11 @@ function CentralDashboardPage({ telaoMode = false }) {
                 : "Carregando..."}
             </p>
             <p className="note central-note-readonly">Status clínico em tempo real para apoio à decisão da Central.</p>
+            {modoTelao && pacientesFiltrados.length > 0 && (
+              <p className="note telao-page-indicator">
+                Página {paginaAtualTelao + 1}/{totalPaginasTelao} • {pacientesExibidos.length} paciente(s) nesta tela
+              </p>
+            )}
           </div>
         </header>
 
@@ -876,7 +1040,7 @@ function CentralDashboardPage({ telaoMode = false }) {
                 </tr>
               </thead>
               <tbody>
-                {pacientesFiltrados.map((paciente) => {
+                {pacientesExibidos.map((paciente) => {
                   const protocolo = paciente.protocolosME?.[0];
                   const examesPendentes = obterExamesPendentes(protocolo);
                   const examesConcluidos = obterExamesConcluidos(protocolo);
