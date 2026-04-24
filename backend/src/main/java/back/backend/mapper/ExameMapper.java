@@ -4,8 +4,9 @@ import back.backend.dto.ExameMEDTO;
 import back.backend.model.ExameME;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface ExameMapper {
 
     @Mapping(target = "protocoloId", expression = "java(entity.getProtocoloME() != null ? entity.getProtocoloME().getId() : null)")

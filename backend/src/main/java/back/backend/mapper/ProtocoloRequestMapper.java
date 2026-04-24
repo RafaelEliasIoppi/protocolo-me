@@ -4,8 +4,9 @@ import back.backend.dto.ProtocoloUpdateRequestDTO;
 import back.backend.model.ProtocoloME;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface ProtocoloRequestMapper {
 
     @Mapping(target = "id", ignore = true)

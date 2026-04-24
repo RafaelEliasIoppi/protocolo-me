@@ -1,8 +1,6 @@
 package back.backend.controller;
 
 import back.backend.dto.AnexoDocumentoDTO;
-import back.backend.mapper.AnexoDocumentoMapper;
-import back.backend.model.AnexoDocumento;
 import back.backend.service.AnexoDocumentoService;
 
 import org.springframework.http.HttpHeaders;
@@ -22,11 +20,9 @@ import java.util.List;
 public class AnexoDocumentoController {
 
     private final AnexoDocumentoService anexoService;
-    private final AnexoDocumentoMapper anexoDocumentoMapper;
 
-    public AnexoDocumentoController(AnexoDocumentoService anexoService, AnexoDocumentoMapper anexoDocumentoMapper) {
+    public AnexoDocumentoController(AnexoDocumentoService anexoService) {
         this.anexoService = anexoService;
-        this.anexoDocumentoMapper = anexoDocumentoMapper;
     }
 
     // ---------------- UPLOAD EXAME ----------------
@@ -38,12 +34,12 @@ public class AnexoDocumentoController {
             @RequestParam(required = false) String descricao,
             @RequestParam(required = false) String uploadPor) throws IOException {
 
-        AnexoDocumento anexo = anexoService.uploadAnexoExame(
+        AnexoDocumentoDTO anexo = anexoService.uploadAnexoExame(
                 exameMEId, arquivo, descricao, uploadPor
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(anexoDocumentoMapper.toDTO(anexo));
+            .body(anexo);
     }
 
     // ---------------- UPLOAD ENTREVISTA ----------------
@@ -55,48 +51,33 @@ public class AnexoDocumentoController {
             @RequestParam(required = false) String descricao,
             @RequestParam(required = false) String uploadPor) throws IOException {
 
-        AnexoDocumento anexo = anexoService.uploadAnexoEntrevista(
+        AnexoDocumentoDTO anexo = anexoService.uploadAnexoEntrevista(
                 protocoloMEId, arquivo, descricao, uploadPor
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(anexoDocumentoMapper.toDTO(anexo));
+            .body(anexo);
     }
 
     // ---------------- LIST EXAME ----------------
 
     @GetMapping("/exame/{exameMEId}")
     public ResponseEntity<List<AnexoDocumentoDTO>> listarExame(@PathVariable Long exameMEId) {
-
-        List<AnexoDocumentoDTO> lista = anexoService.listarAnexosExame(exameMEId)
-                .stream()
-            .map(anexoDocumentoMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(anexoService.listarAnexosExame(exameMEId));
     }
 
     // ---------------- LIST ENTREVISTA ----------------
 
     @GetMapping("/entrevista/{protocoloMEId}")
     public ResponseEntity<List<AnexoDocumentoDTO>> listarEntrevista(@PathVariable Long protocoloMEId) {
-
-        List<AnexoDocumentoDTO> lista = anexoService.listarAnexosEntrevista(protocoloMEId)
-                .stream()
-            .map(anexoDocumentoMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(anexoService.listarAnexosEntrevista(protocoloMEId));
     }
 
     // ---------------- DETAIL ----------------
 
     @GetMapping("/{id}")
     public ResponseEntity<AnexoDocumentoDTO> obter(@PathVariable Long id) {
-
-        AnexoDocumento anexo = anexoService.obterPorId(id);
-
-        return ResponseEntity.ok(anexoDocumentoMapper.toDTO(anexo));
+        return ResponseEntity.ok(anexoService.obterPorId(id));
     }
 
     // ---------------- DOWNLOAD ----------------
@@ -104,11 +85,11 @@ public class AnexoDocumentoController {
     @GetMapping("/{id}/download")
     public ResponseEntity<byte[]> download(@PathVariable Long id) throws IOException {
 
-        AnexoDocumento anexo = anexoService.obterPorId(id);
+        AnexoDocumentoDTO anexo = anexoService.obterPorId(id);
         byte[] conteudo = anexoService.downloadArquivo(id);
 
         return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(anexo.getTipoMime()))
+            .contentType(MediaType.parseMediaType(anexo.getTipoMime()))
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + anexo.getNomeArquivo() + "\"")
                 .body(conteudo);

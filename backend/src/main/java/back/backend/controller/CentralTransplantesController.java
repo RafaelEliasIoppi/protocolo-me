@@ -1,9 +1,8 @@
 package back.backend.controller;
 
-import back.backend.dto.AcaoResponseDTO;
 import back.backend.dto.CentralTransplantesDTO;
+import back.backend.dto.CentralTransplantesRequestDTO;
 import back.backend.model.CentralTransplantes;
-import back.backend.mapper.CentralTransplantesMapper;
 import back.backend.service.CentralTransplantesService;
 
 import javax.validation.Valid;
@@ -12,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/centrais-transplantes")
@@ -20,14 +18,13 @@ import java.util.stream.Collectors;
 public class CentralTransplantesController {
 
     private final CentralTransplantesService centralService;
-    private final CentralTransplantesMapper centralTransplantesMapper;
 
     // ---------------- CREATE ----------------
 
     @PostMapping
-    public ResponseEntity<CentralTransplantesDTO> criar(@Valid @RequestBody CentralTransplantesDTO dto) {
+    public ResponseEntity<CentralTransplantesDTO> criar(@Valid @RequestBody CentralTransplantesRequestDTO dto) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(centralTransplantesMapper.toDTO(centralService.criarCentralFromDTO(dto)));
+                .body(centralService.criarCentralFromDTO(dto));
     }
 
     // ---------------- READ ALL ----------------
@@ -35,10 +32,7 @@ public class CentralTransplantesController {
     @GetMapping
     public ResponseEntity<List<CentralTransplantesDTO>> listarTodas() {
         return ResponseEntity.ok(
-                centralService.listarTodas()
-                        .stream()
-                .map(centralTransplantesMapper::toDTO)
-                        .collect(Collectors.toList())
+            centralService.listarTodas()
         );
     }
 
@@ -46,28 +40,25 @@ public class CentralTransplantesController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CentralTransplantesDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(centralTransplantesMapper.toDTO(centralService.buscarPorIdOuFalhar(id)));
+        return ResponseEntity.ok(centralService.buscarPorIdOuFalhar(id));
     }
 
     // ---------------- FILTERS ----------------
 
     @GetMapping("/cnpj/{cnpj}")
     public ResponseEntity<CentralTransplantesDTO> buscarPorCnpj(@PathVariable String cnpj) {
-        return ResponseEntity.ok(centralTransplantesMapper.toDTO(centralService.buscarPorCnpjOuFalhar(cnpj)));
+        return ResponseEntity.ok(centralService.buscarPorCnpjOuFalhar(cnpj));
     }
 
     @GetMapping("/nome/{nome}")
     public ResponseEntity<CentralTransplantesDTO> buscarPorNome(@PathVariable String nome) {
-        return ResponseEntity.ok(centralTransplantesMapper.toDTO(centralService.buscarPorNomeOuFalhar(nome)));
+        return ResponseEntity.ok(centralService.buscarPorNomeOuFalhar(nome));
     }
 
     @GetMapping("/cidade/{cidade}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorCidade(@PathVariable String cidade) {
         return ResponseEntity.ok(
                 centralService.listarPorCidade(cidade)
-                        .stream()
-                        .map(centralTransplantesMapper::toDTO)
-                        .collect(Collectors.toList())
         );
     }
 
@@ -75,9 +66,6 @@ public class CentralTransplantesController {
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorEstado(@PathVariable String estado) {
         return ResponseEntity.ok(
                 centralService.listarPorEstado(estado)
-                        .stream()
-                        .map(centralTransplantesMapper::toDTO)
-                        .collect(Collectors.toList())
         );
     }
 
@@ -87,9 +75,6 @@ public class CentralTransplantesController {
 
         return ResponseEntity.ok(
                 centralService.listarPorStatus(statusEnum)
-                        .stream()
-                        .map(centralTransplantesMapper::toDTO)
-                        .collect(Collectors.toList())
         );
     }
 
@@ -98,11 +83,9 @@ public class CentralTransplantesController {
     @PutMapping("/{id}")
     public ResponseEntity<CentralTransplantesDTO> atualizar(
             @PathVariable Long id,
-            @Valid @RequestBody CentralTransplantesDTO dto) {
+            @Valid @RequestBody CentralTransplantesRequestDTO dto) {
 
-        return ResponseEntity.ok(
-            centralTransplantesMapper.toDTO(centralService.atualizarCentralFromDTO(id, dto))
-        );
+        return ResponseEntity.ok(centralService.atualizarCentralFromDTO(id, dto));
     }
 
     // ---------------- PATCH STATUS ----------------
@@ -114,35 +97,25 @@ public class CentralTransplantesController {
 
         CentralTransplantes.StatusCentral novoStatus = CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
 
-        return ResponseEntity.ok(
-            centralTransplantesMapper.toDTO(centralService.alterarStatus(id, novoStatus))
-        );
+        return ResponseEntity.ok(centralService.alterarStatus(id, novoStatus));
     }
 
     // ---------------- RELATIONSHIPS ----------------
 
     @PostMapping("/{centralId}/hospitais/{hospitalId}")
-    public ResponseEntity<AcaoResponseDTO> vincularHospital(
+    public ResponseEntity<CentralTransplantesDTO> vincularHospital(
             @PathVariable Long centralId,
             @PathVariable Long hospitalId) {
 
-        centralService.vincularHospital(centralId, hospitalId);
-
-        return ResponseEntity.ok(
-                new AcaoResponseDTO(centralId, "Hospital vinculado com sucesso")
-        );
+        return ResponseEntity.ok(centralService.vincularHospital(centralId, hospitalId));
     }
 
     @DeleteMapping("/{centralId}/hospitais/{hospitalId}")
-    public ResponseEntity<AcaoResponseDTO> removerHospital(
+    public ResponseEntity<CentralTransplantesDTO> removerHospital(
             @PathVariable Long centralId,
             @PathVariable Long hospitalId) {
 
-        centralService.removerHospital(centralId, hospitalId);
-
-        return ResponseEntity.ok(
-                new AcaoResponseDTO(centralId, "Hospital removido com sucesso")
-        );
+        return ResponseEntity.ok(centralService.removerHospital(centralId, hospitalId));
     }
 
     // ---------------- DELETE ----------------

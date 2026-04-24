@@ -2,9 +2,7 @@ package back.backend.controller;
 
 import back.backend.dto.PacienteRequestDTO;
 import back.backend.dto.PacienteStatusRequestDTO;
-import back.backend.mapper.PacienteMapper;
 import back.backend.mapper.PacienteRequestMapper;
-import back.backend.model.Paciente;
 import back.backend.dto.PacienteDTO;
 import back.backend.service.PacienteService;
 import lombok.RequiredArgsConstructor;
@@ -24,59 +22,37 @@ import java.util.stream.Collectors;
 public class PacienteController {
 
     private final PacienteService pacienteService;
-    private final PacienteMapper pacienteMapper;
     private final PacienteRequestMapper pacienteRequestMapper;
 
     @Transactional
     @PostMapping
     public ResponseEntity<PacienteDTO> criar(@Valid @RequestBody PacienteRequestDTO request) {
-        Paciente paciente = pacienteRequestMapper.toEntity(request);
-        Paciente criado = pacienteService.criarPaciente(paciente);
-        return ResponseEntity.status(201).body(pacienteMapper.toDTO(criado));
+        return ResponseEntity.status(201).body(pacienteService.criarPaciente(pacienteRequestMapper.toEntity(request)));
     }
 
     @GetMapping
     public ResponseEntity<List<PacienteDTO>> listarTodos() {
-        return ResponseEntity.ok(
-                pacienteService.listarTodos()
-                        .stream()
-                .map(pacienteMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(pacienteService.listarTodos());
     }
 
     @GetMapping("/{id:\\d+}")
     public ResponseEntity<PacienteDTO> obterPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(
-                pacienteMapper.toDTO(pacienteService.obterPacientePorId(id))
-        );
+        return ResponseEntity.ok(pacienteService.obterPacientePorId(id));
     }
 
     @GetMapping("/cpf/{cpf}")
     public ResponseEntity<PacienteDTO> obterPorCpf(@PathVariable String cpf) {
-        return ResponseEntity.ok(
-                pacienteMapper.toDTO(pacienteService.obterPacientePorCpf(cpf))
-        );
+        return ResponseEntity.ok(pacienteService.obterPacientePorCpf(cpf));
     }
 
     @GetMapping("/hospital/{hospitalId}")
     public ResponseEntity<List<PacienteDTO>> listarPorHospital(@PathVariable Long hospitalId) {
-        return ResponseEntity.ok(
-                pacienteService.listarPorHospital(hospitalId)
-                        .stream()
-                .map(pacienteMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(pacienteService.listarPorHospital(hospitalId));
     }
 
     @GetMapping("/status/{status}")
     public ResponseEntity<List<PacienteDTO>> listarPorStatus(@PathVariable String status) {
-        return ResponseEntity.ok(
-                pacienteService.listarPorStatus(status)
-                        .stream()
-                        .map(pacienteMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(pacienteService.listarPorStatus(status));
     }
 
     @GetMapping("/hospital/{hospitalId}/status/{status}")
@@ -84,19 +60,13 @@ public class PacienteController {
             @PathVariable Long hospitalId,
             @PathVariable String status) {
 
-        return ResponseEntity.ok(
-                pacienteService.listarPorHospitalEStatus(hospitalId, status)
-                        .stream()
-                        .map(pacienteMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(pacienteService.listarPorHospitalEStatus(hospitalId, status));
     }
 
     @Transactional
     @PutMapping("/{id:\\d+}")
     public ResponseEntity<PacienteDTO> atualizar(@PathVariable Long id, @Valid @RequestBody PacienteRequestDTO request) {
-        Paciente paciente = pacienteRequestMapper.toEntity(request);
-        return ResponseEntity.ok(pacienteMapper.toDTO(pacienteService.atualizarPaciente(id, paciente)));
+        return ResponseEntity.ok(pacienteService.atualizarPaciente(id, pacienteRequestMapper.toEntity(request)));
     }
 
     @Transactional
@@ -105,7 +75,7 @@ public class PacienteController {
             @PathVariable Long id,
             @Valid @RequestBody PacienteStatusRequestDTO request) {
 
-        return ResponseEntity.ok(pacienteMapper.toDTO(pacienteService.atualizarStatus(id, request.getStatus())));
+        return ResponseEntity.ok(pacienteService.atualizarStatus(id, request.getStatus()));
     }
 
     @Transactional

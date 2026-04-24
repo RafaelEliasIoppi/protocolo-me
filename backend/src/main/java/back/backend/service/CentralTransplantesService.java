@@ -1,6 +1,7 @@
 package back.backend.service;
 
 import back.backend.dto.CentralTransplantesDTO;
+import back.backend.dto.CentralTransplantesRequestDTO;
 import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.model.CentralTransplantes;
 import back.backend.model.Hospital;
@@ -10,6 +11,7 @@ import back.backend.repository.CentralTransplantesRepository;
 import back.backend.repository.HospitalRepository;
 import back.backend.repository.PacienteRepository;
 import back.backend.repository.ProtocoloMERepository;
+import back.backend.mapper.CentralTransplantesMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,42 +25,45 @@ public class CentralTransplantesService {
     private final HospitalRepository hospitalRepository;
     private final ProtocoloMERepository protocoloMERepository;
     private final PacienteRepository pacienteRepository;
+    private final CentralTransplantesMapper centralTransplantesMapper;
 
     public CentralTransplantesService(
             CentralTransplantesRepository centralRepository,
             HospitalRepository hospitalRepository,
             ProtocoloMERepository protocoloMERepository,
-            PacienteRepository pacienteRepository) {
+            PacienteRepository pacienteRepository,
+            CentralTransplantesMapper centralTransplantesMapper) {
 
         this.centralRepository = centralRepository;
         this.hospitalRepository = hospitalRepository;
         this.protocoloMERepository = protocoloMERepository;
         this.pacienteRepository = pacienteRepository;
+        this.centralTransplantesMapper = centralTransplantesMapper;
     }
 
     // ---------------- DTO BRIDGE ----------------
 
-    public CentralTransplantes criarCentralFromDTO(CentralTransplantesDTO dto) {
+    public CentralTransplantesDTO criarCentralFromDTO(CentralTransplantesRequestDTO dto) {
         CentralTransplantes central = mapDto(dto);
-        return criarCentral(central);
+        return toDTO(criarCentral(central));
     }
 
-    public CentralTransplantes atualizarCentralFromDTO(Long id, CentralTransplantesDTO dto) {
+    public CentralTransplantesDTO atualizarCentralFromDTO(Long id, CentralTransplantesRequestDTO dto) {
         CentralTransplantes central = centralRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Central não encontrada"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
 
         mapDto(dto, central);
 
-        return centralRepository.save(central);
+        return toDTO(centralRepository.save(central));
     }
 
-    private CentralTransplantes mapDto(CentralTransplantesDTO dto) {
+    private CentralTransplantes mapDto(CentralTransplantesRequestDTO dto) {
         CentralTransplantes c = new CentralTransplantes();
         mapDto(dto, c);
         return c;
     }
 
-    private void mapDto(CentralTransplantesDTO dto, CentralTransplantes c) {
+    private void mapDto(CentralTransplantesRequestDTO dto, CentralTransplantes c) {
         c.setNome(dto.getNome());
         c.setCnpj(dto.getCnpj());
         c.setEndereco(dto.getEndereco());
@@ -76,70 +81,70 @@ public class CentralTransplantesService {
 
     // ---------------- CRUD ----------------
 
-    public CentralTransplantes criarCentral(CentralTransplantes central) {
+    private CentralTransplantes criarCentral(CentralTransplantes central) {
         validarDuplicidade(central);
         return centralRepository.save(central);
     }
 
-    public List<CentralTransplantes> listarTodas() {
-        return centralRepository.findAll();
+    public List<CentralTransplantesDTO> listarTodas() {
+        return centralRepository.findAll().stream().map(this::toDTO).toList();
     }
 
-    public Optional<CentralTransplantes> buscarPorId(Long id) {
-        return centralRepository.findById(id);
+    public Optional<CentralTransplantesDTO> buscarPorId(Long id) {
+        return centralRepository.findById(id).map(this::toDTO);
     }
 
-    public CentralTransplantes buscarPorIdOuFalhar(Long id) {
-        return centralRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
+    public CentralTransplantesDTO buscarPorIdOuFalhar(Long id) {
+        return toDTO(centralRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada")));
     }
 
-    public Optional<CentralTransplantes> buscarPorCnpj(String cnpj) {
-        return centralRepository.findByCnpj(cnpj);
+    public Optional<CentralTransplantesDTO> buscarPorCnpj(String cnpj) {
+        return centralRepository.findByCnpj(cnpj).map(this::toDTO);
     }
 
-    public CentralTransplantes buscarPorCnpjOuFalhar(String cnpj) {
-        return centralRepository.findByCnpj(cnpj)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
+    public CentralTransplantesDTO buscarPorCnpjOuFalhar(String cnpj) {
+        return toDTO(centralRepository.findByCnpj(cnpj)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada")));
     }
 
-    public Optional<CentralTransplantes> buscarPorNome(String nome) {
-        return centralRepository.findByNome(nome);
+    public Optional<CentralTransplantesDTO> buscarPorNome(String nome) {
+        return centralRepository.findByNome(nome).map(this::toDTO);
     }
 
-    public CentralTransplantes buscarPorNomeOuFalhar(String nome) {
-        return centralRepository.findByNome(nome)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
+    public CentralTransplantesDTO buscarPorNomeOuFalhar(String nome) {
+        return toDTO(centralRepository.findByNome(nome)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada")));
     }
 
-    public List<CentralTransplantes> listarPorCidade(String cidade) {
-        return centralRepository.findByCidade(cidade);
+    public List<CentralTransplantesDTO> listarPorCidade(String cidade) {
+        return centralRepository.findByCidade(cidade).stream().map(this::toDTO).toList();
     }
 
-    public List<CentralTransplantes> listarPorEstado(String estado) {
-        return centralRepository.findByEstado(estado);
+    public List<CentralTransplantesDTO> listarPorEstado(String estado) {
+        return centralRepository.findByEstado(estado).stream().map(this::toDTO).toList();
     }
 
-    public List<CentralTransplantes> listarPorStatus(CentralTransplantes.StatusCentral status) {
-        return centralRepository.findByStatusOperacional(status);
+    public List<CentralTransplantesDTO> listarPorStatus(CentralTransplantes.StatusCentral status) {
+        return centralRepository.findByStatusOperacional(status).stream().map(this::toDTO).toList();
     }
 
     public void deletarCentral(Long id) {
         if (!centralRepository.existsById(id)) {
-            throw new RuntimeException("Central não encontrada");
+            throw new RecursoNaoEncontradoException("Central não encontrada");
         }
         centralRepository.deleteById(id);
     }
 
     // ---------------- BUSINESS ----------------
 
-    public CentralTransplantes alterarStatus(Long id, CentralTransplantes.StatusCentral status) {
+    public CentralTransplantesDTO alterarStatus(Long id, CentralTransplantes.StatusCentral status) {
         CentralTransplantes c = getCentral(id);
         c.setStatusOperacional(status);
-        return centralRepository.save(c);
+        return toDTO(centralRepository.save(c));
     }
 
-    public CentralTransplantes vincularHospital(Long centralId, Long hospitalId) {
+    public CentralTransplantesDTO vincularHospital(Long centralId, Long hospitalId) {
 
         CentralTransplantes central = getCentral(centralId);
         Hospital hospital = getHospital(hospitalId);
@@ -152,10 +157,10 @@ public class CentralTransplantesService {
             central.getHospitaisParceados().add(hospital);
         }
 
-        return centralRepository.save(central);
+        return toDTO(centralRepository.save(central));
     }
 
-    public CentralTransplantes removerHospital(Long centralId, Long hospitalId) {
+    public CentralTransplantesDTO removerHospital(Long centralId, Long hospitalId) {
 
         CentralTransplantes central = getCentral(centralId);
         Hospital hospital = getHospital(hospitalId);
@@ -164,7 +169,7 @@ public class CentralTransplantesService {
             central.getHospitaisParceados().remove(hospital);
         }
 
-        return centralRepository.save(central);
+        return toDTO(centralRepository.save(central));
     }
 
     // ---------------- HELPERS ----------------
@@ -179,14 +184,18 @@ public class CentralTransplantesService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado"));
     }
 
+    private CentralTransplantesDTO toDTO(CentralTransplantes entity) {
+        return centralTransplantesMapper.toDTO(entity);
+    }
+
     private void validarDuplicidade(CentralTransplantes central) {
 
         if (centralRepository.findByNome(central.getNome()).isPresent()) {
-            throw new RuntimeException("Nome já cadastrado");
+            throw new IllegalStateException("Nome já cadastrado");
         }
 
         if (centralRepository.findByCnpj(central.getCnpj()).isPresent()) {
-            throw new RuntimeException("CNPJ já cadastrado");
+            throw new IllegalStateException("CNPJ já cadastrado");
         }
     }
 

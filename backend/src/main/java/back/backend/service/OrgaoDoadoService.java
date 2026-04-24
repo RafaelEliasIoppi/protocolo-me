@@ -1,7 +1,10 @@
 package back.backend.service;
 
+import back.backend.dto.OrgaoDoadoDTO;
 import back.backend.model.OrgaoDoado;
 import back.backend.model.ProtocoloME;
+import back.backend.exception.RecursoNaoEncontradoException;
+import back.backend.mapper.OrgaoDoadoMapper;
 import back.backend.repository.OrgaoDoadoRepository;
 import back.backend.repository.ProtocoloMERepository;
 import org.springframework.stereotype.Service;
@@ -15,12 +18,15 @@ public class OrgaoDoadoService {
 
     private final OrgaoDoadoRepository orgaoDoadoRepository;
     private final ProtocoloMERepository protocoloMERepository;
+    private final OrgaoDoadoMapper orgaoDoadoMapper;
 
     public OrgaoDoadoService(
             OrgaoDoadoRepository orgaoDoadoRepository,
-            ProtocoloMERepository protocoloMERepository) {
+            ProtocoloMERepository protocoloMERepository,
+            OrgaoDoadoMapper orgaoDoadoMapper) {
         this.orgaoDoadoRepository = orgaoDoadoRepository;
         this.protocoloMERepository = protocoloMERepository;
+        this.orgaoDoadoMapper = orgaoDoadoMapper;
     }
 
     private static final Set<String> ORGAOS_SNT = Set.of(
@@ -49,7 +55,7 @@ public class OrgaoDoadoService {
     );
 
     // CREATE
-    public OrgaoDoado criar(OrgaoDoado orgaoDoado) {
+    public OrgaoDoadoDTO criar(OrgaoDoado orgaoDoado) {
 
         validarProtocolo(orgaoDoado);
         validarNome(orgaoDoado);
@@ -57,11 +63,11 @@ public class OrgaoDoadoService {
 
         orgaoDoado.setCpfReceptor(normalizarCpf(orgaoDoado.getCpfReceptor()));
 
-        return orgaoDoadoRepository.save(orgaoDoado);
+        return toDTO(orgaoDoadoRepository.save(orgaoDoado));
     }
 
     // UPDATE
-    public OrgaoDoado atualizar(Long id, OrgaoDoado atualizado) {
+    public OrgaoDoadoDTO atualizar(Long id, OrgaoDoado atualizado) {
 
         OrgaoDoado entity = buscarEntity(id);
 
@@ -76,11 +82,11 @@ public class OrgaoDoadoService {
 
         copiarCamposSimples(entity, atualizado);
 
-        return orgaoDoadoRepository.save(entity);
+        return toDTO(orgaoDoadoRepository.save(entity));
     }
 
     // IMPLANTAR
-    public OrgaoDoado registrarImplantacao(Long id, String hospital, String paciente) {
+    public OrgaoDoadoDTO registrarImplantacao(Long id, String hospital, String paciente) {
 
         OrgaoDoado entity = buscarEntity(id);
 
@@ -89,11 +95,11 @@ public class OrgaoDoadoService {
         entity.setPacienteReceptor(paciente);
         entity.setDataImplantacao(LocalDateTime.now());
 
-        return orgaoDoadoRepository.save(entity);
+        return toDTO(orgaoDoadoRepository.save(entity));
     }
 
     // DESCARTAR
-    public OrgaoDoado registrarDescarte(Long id, String motivo) {
+    public OrgaoDoadoDTO registrarDescarte(Long id, String motivo) {
 
         OrgaoDoado entity = buscarEntity(id);
 
@@ -101,21 +107,21 @@ public class OrgaoDoadoService {
         entity.setMotivoDescarte(motivo);
         entity.setDataDescarte(LocalDateTime.now());
 
-        return orgaoDoadoRepository.save(entity);
+        return toDTO(orgaoDoadoRepository.save(entity));
     }
 
     // QUERY
-    public OrgaoDoado buscarPorId(Long id) {
-        return buscarEntity(id);
+    public OrgaoDoadoDTO buscarPorId(Long id) {
+        return toDTO(buscarEntity(id));
     }
 
-    public List<OrgaoDoado> listarPorProtocolo(Long protocoloId) {
-        return orgaoDoadoRepository.findByProtocoloMEId(protocoloId);
+    public List<OrgaoDoadoDTO> listarPorProtocolo(Long protocoloId) {
+        return orgaoDoadoRepository.findByProtocoloMEId(protocoloId).stream().map(this::toDTO).toList();
     }
 
     public void deletar(Long id) {
         if (!orgaoDoadoRepository.existsById(id)) {
-            throw new RuntimeException("Órgão doado não encontrado");
+            throw new RecursoNaoEncontradoException("Órgão doado não encontrado");
         }
         orgaoDoadoRepository.deleteById(id);
     }
@@ -123,19 +129,19 @@ public class OrgaoDoadoService {
     // STATS
     public OrgaoStatisticas obterEstatisticas(Long protocoloId) {
 
-        List<OrgaoDoado> lista = listarPorProtocolo(protocoloId);
+        List<OrgaoDoadoDTO> lista = listarPorProtocolo(protocoloId);
 
         long total = lista.size();
         long implantados = lista.stream()
-                .filter(o -> o.getStatus() == OrgaoDoado.StatusOrgaoDoado.IMPLANTADO)
+            .filter(o -> "IMPLANTADO".equals(o.getStatus()))
                 .count();
 
         long descartados = lista.stream()
-                .filter(o -> o.getStatus() == OrgaoDoado.StatusOrgaoDoado.DESCARTADO)
+            .filter(o -> "DESCARTADO".equals(o.getStatus()))
                 .count();
 
         long aguardando = lista.stream()
-                .filter(o -> o.getStatus() == OrgaoDoado.StatusOrgaoDoado.AGUARDANDO_IMPLANTACAO)
+            .filter(o -> "AGUARDANDO_IMPLANTACAO".equals(o.getStatus()))
                 .count();
 
         return new OrgaoStatisticas(total, implantados, descartados, aguardando);
@@ -145,7 +151,11 @@ public class OrgaoDoadoService {
 
     private OrgaoDoado buscarEntity(Long id) {
         return orgaoDoadoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Órgão doado não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Órgão doado não encontrado"));
+    }
+
+    private OrgaoDoadoDTO toDTO(OrgaoDoado entity) {
+        return orgaoDoadoMapper.toDTO(entity);
     }
 
     private void validarProtocolo(OrgaoDoado orgao) {
@@ -155,7 +165,7 @@ public class OrgaoDoadoService {
         }
 
         ProtocoloME protocolo = protocoloMERepository.findById(orgao.getProtocoloME().getId())
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado"));
 
         orgao.setProtocoloME(protocolo);
     }

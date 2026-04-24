@@ -4,8 +4,9 @@ import back.backend.dto.UsuarioDTO;
 import back.backend.model.Usuario;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface UsuarioMapper {
 
     @Mapping(target = "role", expression = "java(entity.getRole() != null ? entity.getRole().name() : null)")

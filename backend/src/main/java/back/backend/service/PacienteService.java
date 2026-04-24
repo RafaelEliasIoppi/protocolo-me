@@ -1,6 +1,8 @@
 package back.backend.service;
 
+import back.backend.dto.PacienteDTO;
 import back.backend.exception.RecursoNaoEncontradoException;
+import back.backend.mapper.PacienteMapper;
 import back.backend.model.*;
 import back.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +31,12 @@ public class PacienteService {
     @Autowired
     private EstatisticaProtocoloMERepository estatisticaProtocoloMERepository;
 
+    @Autowired
+    private PacienteMapper pacienteMapper;
+
     // ================= CREATE =================
 
-    public Paciente criarPaciente(Paciente paciente) {
+    public PacienteDTO criarPaciente(Paciente paciente) {
 
         paciente.setCpf(normalizarCpf(paciente.getCpf()));
 
@@ -43,14 +48,14 @@ public class PacienteService {
         preencherHospital(paciente);
         validarPaciente(paciente);
 
-        return pacienteRepository.save(paciente);
+        return toDTO(pacienteRepository.save(paciente));
     }
 
     // ================= UPDATE =================
 
-    public Paciente atualizarPaciente(Long id, Paciente atualizado) {
+    public PacienteDTO atualizarPaciente(Long id, Paciente atualizado) {
 
-        Paciente paciente = obterPacientePorId(id);
+        Paciente paciente = buscarPacienteEntityPorId(id);
 
         if (atualizado.getCpf() != null) {
             paciente.setCpf(normalizarCpf(atualizado.getCpf()));
@@ -70,12 +75,12 @@ public class PacienteService {
         copiarCampos(paciente, atualizado);
         preencherHospital(paciente);
 
-        return pacienteRepository.save(paciente);
+        return toDTO(pacienteRepository.save(paciente));
     }
 
     // ================= STATUS =================
 
-    public Paciente atualizarStatus(Long id, String novoStatus) {
+    public PacienteDTO atualizarStatus(Long id, String novoStatus) {
         try {
             Paciente.StatusPaciente status =
                     Paciente.StatusPaciente.valueOf(novoStatus.toUpperCase());
@@ -87,51 +92,49 @@ public class PacienteService {
         }
     }
 
-    public Paciente atualizarStatus(Long id, Paciente.StatusPaciente status) {
-        Paciente paciente = obterPacientePorId(id);
+    public PacienteDTO atualizarStatus(Long id, Paciente.StatusPaciente status) {
+        Paciente paciente = buscarPacienteEntityPorId(id);
         paciente.setStatus(status);
-        return pacienteRepository.save(paciente);
+        return toDTO(pacienteRepository.save(paciente));
     }
 
     // ================= GET =================
 
-    public Paciente obterPacientePorId(Long id) {
-        return pacienteRepository.findById(id)
+    public PacienteDTO obterPacientePorId(Long id) {
+        return toDTO(buscarPacienteEntityPorId(id));
+    }
+
+    public PacienteDTO obterPacientePorCpf(String cpf) {
+        return toDTO(pacienteRepository.findByCpf(normalizarCpf(cpf))
                 .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Paciente não encontrado: " + id));
+                        new RecursoNaoEncontradoException("Paciente não encontrado")));
     }
 
-    public Paciente obterPacientePorCpf(String cpf) {
-        return pacienteRepository.findByCpf(normalizarCpf(cpf))
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Paciente não encontrado"));
+    public List<PacienteDTO> listarTodos() {
+        return pacienteRepository.findAll().stream().map(this::toDTO).toList();
     }
 
-    public List<Paciente> listarTodos() {
-        return pacienteRepository.findAll();
-    }
-
-    public List<Paciente> listarPorHospital(Long hospitalId) {
+    public List<PacienteDTO> listarPorHospital(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() ->
                         new RecursoNaoEncontradoException("Hospital não encontrado"));
 
-        return pacienteRepository.findByHospital(hospital);
+        return pacienteRepository.findByHospital(hospital).stream().map(this::toDTO).toList();
     }
 
-    public List<Paciente> listarPorStatus(String status) {
+    public List<PacienteDTO> listarPorStatus(String status) {
         try {
             Paciente.StatusPaciente statusEnum =
                     Paciente.StatusPaciente.valueOf(status.toUpperCase());
 
-            return pacienteRepository.findByStatus(statusEnum);
+            return pacienteRepository.findByStatus(statusEnum).stream().map(this::toDTO).toList();
 
         } catch (Exception e) {
             throw new IllegalArgumentException("Status inválido");
         }
     }
 
-    public List<Paciente> listarPorHospitalEStatus(Long hospitalId, String status) {
+    public List<PacienteDTO> listarPorHospitalEStatus(Long hospitalId, String status) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() ->
                         new RecursoNaoEncontradoException("Hospital não encontrado"));
@@ -140,7 +143,7 @@ public class PacienteService {
             Paciente.StatusPaciente statusEnum =
                     Paciente.StatusPaciente.valueOf(status.toUpperCase());
 
-            return pacienteRepository.findByHospitalAndStatus(hospital, statusEnum);
+            return pacienteRepository.findByHospitalAndStatus(hospital, statusEnum).stream().map(this::toDTO).toList();
 
         } catch (Exception e) {
             throw new IllegalArgumentException("Status inválido");
@@ -151,7 +154,7 @@ public class PacienteService {
 
     public void deletarPaciente(Long id) {
 
-        Paciente paciente = obterPacientePorId(id);
+        Paciente paciente = buscarPacienteEntityPorId(id);
 
         List<ProtocoloME> protocolos =
                 Optional.ofNullable(paciente.getProtocolosME())
@@ -265,6 +268,16 @@ public class PacienteService {
         if (orig.getObservacoesEntrevistaFamiliar() != null) dest.setObservacoesEntrevistaFamiliar(orig.getObservacoesEntrevistaFamiliar());
         if (orig.getDataEntrevistaFamiliar() != null) dest.setDataEntrevistaFamiliar(orig.getDataEntrevistaFamiliar());
         if (orig.getStatus() != null) dest.setStatus(orig.getStatus());
+    }
+
+    private Paciente buscarPacienteEntityPorId(Long id) {
+        return pacienteRepository.findById(id)
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException("Paciente não encontrado: " + id));
+    }
+
+    private PacienteDTO toDTO(Paciente paciente) {
+        return pacienteMapper.toDTO(paciente);
     }
 
     private String normalizarCpf(String cpf) {

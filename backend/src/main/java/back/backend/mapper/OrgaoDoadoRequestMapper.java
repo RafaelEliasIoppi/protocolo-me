@@ -5,8 +5,9 @@ import back.backend.model.OrgaoDoado;
 import back.backend.model.ProtocoloME;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface OrgaoDoadoRequestMapper {
 
     @Mapping(target = "id", ignore = true)

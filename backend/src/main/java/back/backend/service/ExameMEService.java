@@ -1,6 +1,10 @@
 package back.backend.service;
 
+import back.backend.dto.ExameMEDTO;
+import back.backend.dto.ExameResumoDTO;
 import back.backend.exception.RecursoNaoEncontradoException;
+import back.backend.mapper.ExameMapper;
+import back.backend.mapper.ExameResumoMapper;
 import back.backend.model.ExameME;
 import back.backend.repository.ExameMERepository;
 import org.springframework.stereotype.Service;
@@ -13,43 +17,47 @@ import java.util.Optional;
 public class ExameMEService {
 
     private final ExameMERepository exameRepository;
+    private final ExameMapper exameMapper;
+    private final ExameResumoMapper exameResumoMapper;
 
-    public ExameMEService(ExameMERepository exameRepository) {
+    public ExameMEService(ExameMERepository exameRepository, ExameMapper exameMapper, ExameResumoMapper exameResumoMapper) {
         this.exameRepository = exameRepository;
+        this.exameMapper = exameMapper;
+        this.exameResumoMapper = exameResumoMapper;
     }
 
-    public ExameME criarExame(ExameME exame) {
+    public ExameMEDTO criarExame(ExameME exame) {
         exame.setDataCriacao(LocalDateTime.now());
         exame.setDataAtualizacao(LocalDateTime.now());
-        return exameRepository.save(exame);
+        return toDTO(exameRepository.save(exame));
     }
 
-    public List<ExameME> listarExamesPorProtocolo(Long protocoloId) {
-        return exameRepository.findByProtocoloME_Id(protocoloId);
+    public List<ExameMEDTO> listarExamesPorProtocolo(Long protocoloId) {
+        return exameRepository.findByProtocoloME_Id(protocoloId).stream().map(this::toDTO).toList();
     }
 
-    public List<ExameME> listarExamesClinico(Long protocoloId) {
-        return exameRepository.findByProtocoloME_IdAndCategoria(protocoloId, ExameME.CategoriaExame.CLINICO);
+    public List<ExameMEDTO> listarExamesClinico(Long protocoloId) {
+        return exameRepository.findByProtocoloME_IdAndCategoria(protocoloId, ExameME.CategoriaExame.CLINICO).stream().map(this::toDTO).toList();
     }
 
-    public List<ExameME> listarExamesComplementares(Long protocoloId) {
-        return exameRepository.findByProtocoloME_IdAndCategoria(protocoloId, ExameME.CategoriaExame.COMPLEMENTAR);
+    public List<ExameMEDTO> listarExamesComplementares(Long protocoloId) {
+        return exameRepository.findByProtocoloME_IdAndCategoria(protocoloId, ExameME.CategoriaExame.COMPLEMENTAR).stream().map(this::toDTO).toList();
     }
 
-    public List<ExameME> listarExamesLaboratoriais(Long protocoloId) {
-        return exameRepository.findByProtocoloME_IdAndCategoria(protocoloId, ExameME.CategoriaExame.LABORATORIAL);
+    public List<ExameMEDTO> listarExamesLaboratoriais(Long protocoloId) {
+        return exameRepository.findByProtocoloME_IdAndCategoria(protocoloId, ExameME.CategoriaExame.LABORATORIAL).stream().map(this::toDTO).toList();
     }
 
     public Optional<ExameME> buscarPorId(Long id) {
         return exameRepository.findById(id);
     }
 
-    public ExameME buscarPorIdOuFalhar(Long id) {
-        return exameRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Exame não encontrado"));
+    public ExameMEDTO buscarPorIdOuFalhar(Long id) {
+        return toDTO(exameRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Exame não encontrado")));
     }
 
-    public ExameME atualizarExame(Long id, ExameME dados) {
+    public ExameMEDTO atualizarExame(Long id, ExameME dados) {
         ExameME exame = exameRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Exame não encontrado"));
 
@@ -61,10 +69,10 @@ public class ExameMEService {
         exame.setResponsavel(dados.getResponsavel());
         exame.setDataAtualizacao(LocalDateTime.now());
 
-        return exameRepository.save(exame);
+        return toDTO(exameRepository.save(exame));
     }
 
-    public ExameME registrarResultado(Long id, String resultado, Boolean resultadoPositivo, String responsavel) {
+    public ExameMEDTO registrarResultado(Long id, String resultado, Boolean resultadoPositivo, String responsavel) {
         ExameME exame = exameRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Exame não encontrado"));
 
@@ -74,7 +82,7 @@ public class ExameMEService {
         exame.setDataRealizacao(LocalDateTime.now());
         exame.setDataAtualizacao(LocalDateTime.now());
 
-        return exameRepository.save(exame);
+        return toDTO(exameRepository.save(exame));
     }
 
     public void deletarExame(Long id) {
@@ -84,7 +92,7 @@ public class ExameMEService {
         exameRepository.deleteById(id);
     }
 
-    public ExameResumo obterResumoExames(Long protocoloId) {
+    public ExameResumoDTO obterResumoExames(Long protocoloId) {
         List<ExameME> exames = exameRepository.findByProtocoloME_Id(protocoloId);
 
         int total = exames.size();
@@ -109,7 +117,7 @@ public class ExameMEService {
                 .filter(e -> e.getResultado() != null)
                 .count();
 
-        return new ExameResumo(
+        return exameResumoMapper.toDTO(new ExameResumo(
                 total,
                 realizados,
                 pendentes,
@@ -119,7 +127,11 @@ public class ExameMEService {
                 complementaresTotal,
                 laboratoriaisRealizados,
                 laboratoriaisTotal
-        );
+        ));
+    }
+
+    private ExameMEDTO toDTO(ExameME exame) {
+        return exameMapper.toDTO(exame);
     }
 
     public static class ExameResumo {

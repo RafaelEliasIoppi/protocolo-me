@@ -1,5 +1,8 @@
 package back.backend.service;
 
+import back.backend.dto.AnexoDocumentoDTO;
+import back.backend.exception.RecursoNaoEncontradoException;
+import back.backend.mapper.AnexoDocumentoMapper;
 import back.backend.model.AnexoDocumento;
 import back.backend.repository.AnexoDocumentoRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,9 +22,11 @@ import java.util.stream.Collectors;
 public class AnexoDocumentoService {
 
     private final AnexoDocumentoRepository anexoRepository;
+    private final AnexoDocumentoMapper anexoDocumentoMapper;
 
-    public AnexoDocumentoService(AnexoDocumentoRepository anexoRepository) {
+    public AnexoDocumentoService(AnexoDocumentoRepository anexoRepository, AnexoDocumentoMapper anexoDocumentoMapper) {
         this.anexoRepository = anexoRepository;
+        this.anexoDocumentoMapper = anexoDocumentoMapper;
     }
 
     @Value("${file.upload.dir:uploads/anexos}")
@@ -37,14 +42,14 @@ public class AnexoDocumentoService {
 
     // ---------------- UPLOAD ----------------
 
-    public AnexoDocumento uploadAnexoExame(Long exameId, MultipartFile file,
+    public AnexoDocumentoDTO uploadAnexoExame(Long exameId, MultipartFile file,
                                             String descricao, String uploadPor) throws IOException {
-        return upload(file, "EXAME", exameId, null, descricao, uploadPor);
+        return toDTO(upload(file, "EXAME", exameId, null, descricao, uploadPor));
     }
 
-    public AnexoDocumento uploadAnexoEntrevista(Long protocoloId, MultipartFile file,
+    public AnexoDocumentoDTO uploadAnexoEntrevista(Long protocoloId, MultipartFile file,
                                                  String descricao, String uploadPor) throws IOException {
-        return upload(file, "ENTREVISTA", null, protocoloId, descricao, uploadPor);
+        return toDTO(upload(file, "ENTREVISTA", null, protocoloId, descricao, uploadPor));
     }
 
     private AnexoDocumento upload(MultipartFile file, String tipo,
@@ -83,52 +88,51 @@ public class AnexoDocumentoService {
     private void validar(MultipartFile file) {
 
         if (file == null || file.isEmpty()) {
-            throw new RuntimeException("Arquivo inválido");
+            throw new IllegalArgumentException("Arquivo inválido");
         }
 
         if (file.getSize() > TAMANHO_MAXIMO) {
-            throw new RuntimeException("Arquivo maior que 20MB");
+            throw new IllegalArgumentException("Arquivo maior que 20MB");
         }
 
         String ext = getExtensao(file.getOriginalFilename());
 
         if (!EXTENSOES_PERMITIDAS.contains(ext)) {
-            throw new RuntimeException("Extensão não permitida: " + ext);
+            throw new IllegalArgumentException("Extensão não permitida: " + ext);
         }
     }
 
     private String getExtensao(String nome) {
         if (nome == null || !nome.contains(".")) {
-            throw new RuntimeException("Arquivo sem extensão");
+            throw new IllegalArgumentException("Arquivo sem extensão");
         }
         return nome.substring(nome.lastIndexOf(".") + 1).toLowerCase();
     }
 
     // ---------------- QUERY ----------------
 
-    public List<AnexoDocumento> listarAnexosExame(Long exameId) {
-        return anexoRepository.findByExameMEId(exameId);
+    public List<AnexoDocumentoDTO> listarAnexosExame(Long exameId) {
+        return anexoRepository.findByExameMEId(exameId).stream().map(this::toDTO).toList();
     }
 
-    public List<AnexoDocumento> listarAnexosEntrevista(Long protocoloId) {
-        return anexoRepository.findByProtocoloMEId(protocoloId);
+    public List<AnexoDocumentoDTO> listarAnexosEntrevista(Long protocoloId) {
+        return anexoRepository.findByProtocoloMEId(protocoloId).stream().map(this::toDTO).toList();
     }
 
-    public AnexoDocumento obterPorId(Long id) {
-        return anexoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Anexo não encontrado"));
+    public AnexoDocumentoDTO obterPorId(Long id) {
+        return toDTO(buscarEntityPorId(id));
     }
 
     // ---------------- DOWNLOAD ----------------
 
     public byte[] downloadArquivo(Long id) throws IOException {
 
-        AnexoDocumento anexo = obterPorId(id);
+        AnexoDocumento anexo = buscarEntityPorId(id);
 
         Path file = Paths.get(anexo.getCaminhoArquivo()).normalize();
 
         if (!Files.exists(file)) {
-            throw new RuntimeException("Arquivo não encontrado no disco");
+            throw new IllegalStateException("Arquivo não encontrado no disco");
         }
 
         return Files.readAllBytes(file);
@@ -138,7 +142,7 @@ public class AnexoDocumentoService {
 
     public void deletarAnexo(Long id) throws IOException {
 
-        AnexoDocumento anexo = obterPorId(id);
+        AnexoDocumento anexo = buscarEntityPorId(id);
 
         Path file = Paths.get(anexo.getCaminhoArquivo()).normalize();
 
@@ -182,5 +186,14 @@ public class AnexoDocumentoService {
                         }
                     });
         }
+    }
+
+    private AnexoDocumento buscarEntityPorId(Long id) {
+        return anexoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Anexo não encontrado"));
+    }
+
+    private AnexoDocumentoDTO toDTO(AnexoDocumento entity) {
+        return anexoDocumentoMapper.toDTO(entity);
     }
 }

@@ -7,8 +7,9 @@ import back.backend.model.Role;
 import back.backend.model.Usuario;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface UsuarioRequestMapper {
 
     @Mapping(target = "id", ignore = true)

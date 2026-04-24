@@ -1,6 +1,7 @@
 package back.backend.service;
 
 import back.backend.dto.EstatisticaProtocoloMEDTO;
+import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.model.EstatisticaProtocoloME;
 import back.backend.model.ProtocoloME;
 import back.backend.repository.EstatisticaProtocoloMERepository;
@@ -83,7 +84,7 @@ public class EstatisticaProtocoloMEService {
                 estatisticaRepository.save(estatistica);
 
             } catch (Exception e) {
-                throw new RuntimeException("Erro ao migrar dados", e);
+                throw new IllegalStateException("Erro ao migrar dados", e);
             }
         }
     }
@@ -91,7 +92,7 @@ public class EstatisticaProtocoloMEService {
     public EstatisticaProtocoloMEDTO obterPorProtocoloId(Long protocoloId) {
 
         ProtocoloME protocolo = protocoloRepository.findById(protocoloId)
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado"));
 
         return estatisticaRepository.findByProtocoloMEId(protocoloId)
                 .map(e -> toDTO(e, protocolo))
@@ -102,7 +103,7 @@ public class EstatisticaProtocoloMEService {
                                                        EstatisticaProtocoloMEDTO payload) {
 
         ProtocoloME protocolo = protocoloRepository.findById(protocoloId)
-                .orElseThrow(() -> new RuntimeException("Protocolo não encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado"));
 
         EstatisticaProtocoloME estatistica =
                 estatisticaRepository.findByProtocoloMEId(protocoloId)
@@ -170,7 +171,7 @@ public class EstatisticaProtocoloMEService {
             } catch (NoSuchFieldException ignored) {
                 // Campo legado não mapeado diretamente
             } catch (IllegalAccessException e) {
-                throw new RuntimeException("Erro ao aplicar campo " + entry.getKey(), e);
+                throw new IllegalStateException("Erro ao aplicar campo " + entry.getKey(), e);
             }
         }
     }
@@ -221,7 +222,7 @@ public class EstatisticaProtocoloMEService {
         try {
             return objectMapper.writeValueAsString(campos != null ? campos : Collections.emptyMap());
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao serializar campos da estatística", e);
+            throw new IllegalStateException("Erro ao serializar campos da estatística", e);
         }
     }
 

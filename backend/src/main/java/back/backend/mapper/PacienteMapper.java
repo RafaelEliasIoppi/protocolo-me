@@ -4,8 +4,9 @@ import back.backend.dto.PacienteDTO;
 import back.backend.model.Paciente;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface PacienteMapper {
 
     @Mapping(target = "genero", expression = "java(entity.getGenero() != null ? entity.getGenero().name() : null)")

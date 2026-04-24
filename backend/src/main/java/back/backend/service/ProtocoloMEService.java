@@ -1,6 +1,8 @@
 package back.backend.service;
 
+import back.backend.dto.ProtocoloMEDTO;
 import back.backend.exception.RecursoNaoEncontradoException;
+import back.backend.mapper.ProtocoloMapper;
 import back.backend.model.*;
 import back.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,7 @@ public class ProtocoloMEService {
     @Autowired private CentralTransplantesRepository centralRepository;
     @Autowired private ExameMERepository exameRepository;
     @Autowired private PacienteRepository pacienteRepository;
+    @Autowired private ProtocoloMapper protocoloMapper;
 
     // ================= HELPERS =================
 
@@ -29,7 +32,7 @@ public class ProtocoloMEService {
     private CentralTransplantes obterCentralPadrao() {
         return centralRepository.findAll().stream()
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Nenhuma central cadastrada"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Nenhuma central cadastrada"));
     }
 
     private String gerarNumeroProtocolo() {
@@ -54,10 +57,10 @@ public class ProtocoloMEService {
 
     // ================= CREATE =================
 
-    public ProtocoloME criarProtocoloPorPacienteId(Long pacienteId, String diagnostico, String numero) {
+    public ProtocoloMEDTO criarProtocoloPorPacienteId(Long pacienteId, String diagnostico, String numero) {
 
         Paciente paciente = pacienteRepository.findById(pacienteId)
-                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Paciente não encontrado"));
 
         ProtocoloME p = new ProtocoloME();
         p.setPaciente(paciente);
@@ -80,68 +83,68 @@ public class ProtocoloMEService {
         paciente.setStatus(Paciente.StatusPaciente.EM_PROTOCOLO_ME);
         pacienteRepository.save(paciente);
 
-        return salvo;
+        return toDTO(salvo);
     }
 
     // ================= QUERY =================
 
-    public List<ProtocoloME> listarTodos() {
-        return protocoloRepository.findAllWithDetalhes();
+    public List<ProtocoloMEDTO> listarTodos() {
+        return protocoloRepository.findAllWithDetalhes().stream().map(this::toDTO).toList();
     }
 
-    public Optional<ProtocoloME> buscarPorId(Long id) {
-        return protocoloRepository.findByIdWithDetalhes(id);
+    public Optional<ProtocoloMEDTO> buscarPorId(Long id) {
+        return protocoloRepository.findByIdWithDetalhes(id).map(this::toDTO);
     }
 
-    public ProtocoloME buscarPorIdOuFalhar(Long id) {
-        return protocoloRepository.findByIdWithDetalhes(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado: " + id));
+    public ProtocoloMEDTO buscarPorIdOuFalhar(Long id) {
+        return toDTO(protocoloRepository.findByIdWithDetalhes(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado: " + id)));
     }
 
-    public Optional<ProtocoloME> buscarPorNumeroProtocolo(String numero) {
-        return protocoloRepository.findByNumeroProtocolo(numero);
+    public Optional<ProtocoloMEDTO> buscarPorNumeroProtocolo(String numero) {
+        return protocoloRepository.findByNumeroProtocolo(numero).map(this::toDTO);
     }
 
-    public ProtocoloME buscarPorNumeroProtocoloOuFalhar(String numero) {
-        return protocoloRepository.findByNumeroProtocolo(numero)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado"));
+    public ProtocoloMEDTO buscarPorNumeroProtocoloOuFalhar(String numero) {
+        return toDTO(protocoloRepository.findByNumeroProtocolo(numero)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado")));
     }
 
-    public List<ProtocoloME> listarPorCentral(Long centralId) {
+    public List<ProtocoloMEDTO> listarPorCentral(Long centralId) {
         CentralTransplantes c = centralRepository.findById(centralId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
 
-        return protocoloRepository.findByCentralTransplantes(c);
+        return protocoloRepository.findByCentralTransplantes(c).stream().map(this::toDTO).toList();
     }
 
-    public List<ProtocoloME> listarPorStatus(ProtocoloME.StatusProtocoloME status) {
-        return protocoloRepository.findByStatus(status);
+    public List<ProtocoloMEDTO> listarPorStatus(ProtocoloME.StatusProtocoloME status) {
+        return protocoloRepository.findByStatus(status).stream().map(this::toDTO).toList();
     }
 
-    public List<ProtocoloME> listarPorCentralEStatus(Long id, ProtocoloME.StatusProtocoloME status) {
+    public List<ProtocoloMEDTO> listarPorCentralEStatus(Long id, ProtocoloME.StatusProtocoloME status) {
         CentralTransplantes c = centralRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
 
-        return protocoloRepository.findByCentralTransplantesAndStatus(c, status);
+        return protocoloRepository.findByCentralTransplantesAndStatus(c, status).stream().map(this::toDTO).toList();
     }
 
-    public List<ProtocoloME> listarPorPeriodo(LocalDateTime ini, LocalDateTime fim) {
-        return protocoloRepository.findByDataNotificacaoBetween(ini, fim);
+    public List<ProtocoloMEDTO> listarPorPeriodo(LocalDateTime ini, LocalDateTime fim) {
+        return protocoloRepository.findByDataNotificacaoBetween(ini, fim).stream().map(this::toDTO).toList();
     }
 
-    public List<ProtocoloME> listarPorHospitalOrigem(String hospital) {
-        return protocoloRepository.findByHospitalOrigem(hospital);
+    public List<ProtocoloMEDTO> listarPorHospitalOrigem(String hospital) {
+        return protocoloRepository.findByHospitalOrigem(hospital).stream().map(this::toDTO).toList();
     }
 
     // ================= UPDATE =================
 
-    public ProtocoloME atualizarProtocolo(Long id, ProtocoloME novo) {
+    public ProtocoloMEDTO atualizarProtocolo(Long id, ProtocoloME novo) {
 
         ProtocoloME p = buscarOuFalhar(id);
 
         if (novo.getNumeroProtocolo() != null &&
                 protocoloRepository.existsByNumeroProtocoloAndIdNot(novo.getNumeroProtocolo(), id)) {
-            throw new RuntimeException("Número de protocolo já existe");
+            throw new IllegalStateException("Número de protocolo já existe");
         }
 
         p.setNumeroProtocolo(novo.getNumeroProtocolo());
@@ -152,65 +155,65 @@ public class ProtocoloMEService {
         p.setEnfermeiro(novo.getEnfermeiro());
         p.setOrgaosDisponiveis(novo.getOrgaosDisponiveis());
 
-        return salvar(p);
+        return toDTO(salvar(p));
     }
 
-    public ProtocoloME atualizarRelatorioFinal(Long id, String texto, String usuario) {
+    public ProtocoloMEDTO atualizarRelatorioFinal(Long id, String texto, String usuario) {
         ProtocoloME p = buscarOuFalhar(id);
 
         p.setRelatorioFinalEditavel(texto);
         p.setRelatorioFinalAtualizadoPor(usuario);
         p.setRelatorioFinalAtualizadoEm(LocalDateTime.now());
 
-        return salvar(p);
+        return toDTO(salvar(p));
     }
 
     // ================= ACTIONS =================
 
-    public ProtocoloME registrarTesteClinico1(Long id) {
+    public ProtocoloMEDTO registrarTesteClinico1(Long id) {
         return executar(id, p -> {
             p.setTesteClinico1Realizado(true);
             p.setDataTesteClinico1(LocalDateTime.now());
         });
     }
 
-    public ProtocoloME registrarTesteClinico2(Long id) {
+    public ProtocoloMEDTO registrarTesteClinico2(Long id) {
         return executar(id, p -> {
             p.setTesteClinico2Realizado(true);
             p.setDataTesteClinico2(LocalDateTime.now());
         });
     }
 
-    public ProtocoloME confirmarMorteCerebral(Long id) {
+    public ProtocoloMEDTO confirmarMorteCerebral(Long id) {
         return executar(id, p -> {
             p.setStatus(ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA);
             p.setDataConfirmacaoME(LocalDateTime.now());
         });
     }
 
-    public ProtocoloME registrarNotificacaoFamilia(Long id) {
+    public ProtocoloMEDTO registrarNotificacaoFamilia(Long id) {
         return executar(id, p -> {
             p.setFamiliaNotificada(true);
             p.setDataNotificacaoFamilia(LocalDateTime.now());
         });
     }
 
-    public ProtocoloME autorizarAutopsia(Long id) {
+    public ProtocoloMEDTO autorizarAutopsia(Long id) {
         return executar(id, p -> p.setAutopsiaAutorizada(true));
     }
 
-    public ProtocoloME registrarPreservacaoOrgaos(Long id) {
+    public ProtocoloMEDTO registrarPreservacaoOrgaos(Long id) {
         return executar(id, p -> {
             p.setPreservacaoOrgaos(true);
             p.setDataPreservacao(LocalDateTime.now());
         });
     }
 
-    public ProtocoloME alterarStatus(Long id, ProtocoloME.StatusProtocoloME status) {
+    public ProtocoloMEDTO alterarStatus(Long id, ProtocoloME.StatusProtocoloME status) {
         return executar(id, p -> p.setStatus(status));
     }
 
-    public ProtocoloME atualizarStatusAutomatico(Long id) {
+    public ProtocoloMEDTO atualizarStatusAutomatico(Long id) {
         ProtocoloME protocolo = buscarOuFalhar(id);
 
         if (Boolean.TRUE.equals(protocolo.getAutopsiaAutorizada())) {
@@ -221,22 +224,22 @@ public class ProtocoloMEService {
             protocolo.setStatus(ProtocoloME.StatusProtocoloME.NOTIFICADO);
         }
 
-        return salvar(protocolo);
+        return toDTO(salvar(protocolo));
     }
 
     // ================= CORE ENGINE =================
 
-    private ProtocoloME executar(Long id, java.util.function.Consumer<ProtocoloME> acao) {
+    private ProtocoloMEDTO executar(Long id, java.util.function.Consumer<ProtocoloME> acao) {
         ProtocoloME p = buscarOuFalhar(id);
         acao.accept(p);
-        return salvar(p);
+        return toDTO(salvar(p));
     }
 
     private void sincronizarStatusPaciente(ProtocoloME protocolo) {
     if (protocolo.getPaciente() == null) return;
 
     Paciente paciente = pacienteRepository.findById(protocolo.getPaciente().getId())
-            .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Paciente não encontrado"));
 
     switch (protocolo.getStatus()) {
 
@@ -264,5 +267,9 @@ public class ProtocoloMEService {
             throw new RecursoNaoEncontradoException("Protocolo não encontrado");
         }
         protocoloRepository.deleteById(id);
+    }
+
+    private ProtocoloMEDTO toDTO(ProtocoloME protocolo) {
+        return protocoloMapper.toDTO(protocolo);
     }
 }

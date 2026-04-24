@@ -1,5 +1,8 @@
 package back.backend.service;
 
+import back.backend.dto.UsuarioDTO;
+import back.backend.exception.RecursoNaoEncontradoException;
+import back.backend.mapper.UsuarioMapper;
 import back.backend.model.Role;
 import back.backend.model.Usuario;
 import back.backend.repository.UsuarioRepository;
@@ -24,27 +27,28 @@ public class UsuarioService implements UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UsuarioMapper usuarioMapper;
 
     public long countAdmins() {
         return usuarioRepository.countByRole(Role.ADMIN);
     }
 
-    public Usuario autenticar(String email, String senha) {
+    public UsuarioDTO autenticar(String email, String senha) {
 
         String emailNormalizado = normalizarEmail(email);
 
         Usuario usuario = usuarioRepository.findByEmail(emailNormalizado)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
 
         if (!Boolean.TRUE.equals(usuario.getAtivo())) {
-            throw new RuntimeException("Usuário inativo");
+            throw new IllegalStateException("Usuário inativo");
         }
 
         if (!passwordEncoder.matches(senha, usuario.getSenha())) {
-            throw new RuntimeException("Senha inválida");
+            throw new IllegalArgumentException("Senha inválida");
         }
 
-        return usuario;
+        return toDTO(usuario);
     }
 
     public void validarPermissaoCriacaoAdmin(Usuario usuario) {
@@ -58,11 +62,11 @@ public class UsuarioService implements UserDetailsService {
                 && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
-            throw new RuntimeException("Primeiro usuário deve ser ADMIN");
+            throw new IllegalStateException("Primeiro usuário deve ser ADMIN");
         }
 
         if (totalAdmins > 0 && !isAdmin) {
-            throw new RuntimeException("Apenas ADMIN pode cadastrar usuários");
+            throw new IllegalStateException("Apenas ADMIN pode cadastrar usuários");
         }
     }
 
@@ -79,14 +83,14 @@ public class UsuarioService implements UserDetailsService {
                 .build();
     }
 
-    public Usuario registrar(Usuario usuario) {
+    public UsuarioDTO registrar(Usuario usuario) {
 
         validarUsuario(usuario);
 
         String email = normalizarEmail(usuario.getEmail());
 
         if (usuarioRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Email já cadastrado");
+            throw new IllegalStateException("Email já cadastrado");
         }
 
         usuario.setEmail(email);
@@ -100,10 +104,10 @@ public class UsuarioService implements UserDetailsService {
         usuario.setDataCriacao(LocalDateTime.now());
         usuario.setDataAtualizacao(LocalDateTime.now());
 
-        return usuarioRepository.save(usuario);
+        return toDTO(usuarioRepository.save(usuario));
     }
 
-    public Usuario atualizarUsuario(Long id, Usuario dados) {
+    public UsuarioDTO atualizarUsuario(Long id, Usuario dados) {
 
         Usuario usuario = buscarOuFalhar(id);
 
@@ -125,10 +129,10 @@ public class UsuarioService implements UserDetailsService {
 
         usuario.setDataAtualizacao(LocalDateTime.now());
 
-        return usuarioRepository.save(usuario);
+        return toDTO(usuarioRepository.save(usuario));
     }
 
-    public Usuario redefinirSenha(Long id, String senhaNova) {
+    public UsuarioDTO redefinirSenha(Long id, String senhaNova) {
 
         Usuario usuario = buscarOuFalhar(id);
 
@@ -137,20 +141,20 @@ public class UsuarioService implements UserDetailsService {
         usuario.setSenha(passwordEncoder.encode(senhaNova));
         usuario.setDataAtualizacao(LocalDateTime.now());
 
-        return usuarioRepository.save(usuario);
+        return toDTO(usuarioRepository.save(usuario));
     }
 
-    public Usuario alterarMinhaSenha(String email, String atual, String nova, String confirmar) {
+    public UsuarioDTO alterarMinhaSenha(String email, String atual, String nova, String confirmar) {
 
         Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
 
         if (!passwordEncoder.matches(atual, usuario.getSenha())) {
-            throw new RuntimeException("Senha atual inválida");
+            throw new IllegalArgumentException("Senha atual inválida");
         }
 
         if (!nova.equals(confirmar)) {
-            throw new RuntimeException("Confirmação inválida");
+            throw new IllegalArgumentException("Confirmação inválida");
         }
 
         validarSenha(nova);
@@ -158,41 +162,45 @@ public class UsuarioService implements UserDetailsService {
         usuario.setSenha(passwordEncoder.encode(nova));
         usuario.setDataAtualizacao(LocalDateTime.now());
 
-        return usuarioRepository.save(usuario);
+        return toDTO(usuarioRepository.save(usuario));
     }
 
-    public List<Usuario> listarTodos() {
-        return usuarioRepository.findAll();
+    public List<UsuarioDTO> listarTodos() {
+        return usuarioRepository.findAll().stream().map(this::toDTO).toList();
     }
 
     public void deletar(Long id) {
         if (!usuarioRepository.existsById(id)) {
-            throw new RuntimeException("Usuário não encontrado");
+            throw new RecursoNaoEncontradoException("Usuário não encontrado");
         }
         usuarioRepository.deleteById(id);
     }
 
     private Usuario buscarOuFalhar(Long id) {
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
     }
 
     private String normalizarEmail(String email) {
         if (email == null || email.isBlank()) {
-            throw new RuntimeException("Email obrigatório");
+            throw new IllegalArgumentException("Email obrigatório");
         }
         return email.trim().toLowerCase();
     }
 
     private void validarUsuario(Usuario usuario) {
         if (usuario.getSenha() == null || usuario.getSenha().length() < 6) {
-            throw new RuntimeException("Senha inválida");
+            throw new IllegalArgumentException("Senha inválida");
         }
     }
 
     private void validarSenha(String senha) {
         if (senha == null || senha.length() < 6) {
-            throw new RuntimeException("Senha deve ter no mínimo 6 caracteres");
+            throw new IllegalArgumentException("Senha deve ter no mínimo 6 caracteres");
         }
+    }
+
+    private UsuarioDTO toDTO(Usuario usuario) {
+        return usuarioMapper.toDTO(usuario);
     }
 }

@@ -1,17 +1,18 @@
 package back.backend.mapper;
 
-import back.backend.dto.HospitalRequestDTO;
-import back.backend.model.Hospital;
+import back.backend.dto.CentralTransplantesRequestDTO;
+import back.backend.model.CentralTransplantes;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
 @Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
-public interface HospitalRequestMapper {
+public interface CentralTransplantesRequestMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "statusOperacional", ignore = true)
+    @Mapping(target = "hospitaisParceados", ignore = true)
     @Mapping(target = "dataCriacao", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
-    Hospital toEntity(HospitalRequestDTO dto);
+    CentralTransplantes toEntity(CentralTransplantesRequestDTO dto);
 }

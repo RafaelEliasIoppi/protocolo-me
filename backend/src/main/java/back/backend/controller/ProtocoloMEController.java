@@ -6,7 +6,6 @@ import back.backend.dto.ProtocoloStatusRequestDTO;
 import back.backend.dto.ProtocoloUpdateRequestDTO;
 import back.backend.dto.ProtocoloMEDTO;
 import back.backend.model.ProtocoloME;
-import back.backend.mapper.ProtocoloMapper;
 import back.backend.mapper.ProtocoloRequestMapper;
 import back.backend.service.ProtocoloMEService;
 import lombok.RequiredArgsConstructor;
@@ -25,66 +24,48 @@ import java.util.List;
 public class ProtocoloMEController {
 
     private final ProtocoloMEService protocoloService;
-    private final ProtocoloMapper protocoloMapper;
     private final ProtocoloRequestMapper protocoloRequestMapper;
 
     // ================= CREATE =================
 
     @PostMapping
     public ResponseEntity<ProtocoloMEDTO> criarProtocolo(@Valid @RequestBody ProtocoloCreateRequestDTO request) {
-        ProtocoloME novo = protocoloService.criarProtocoloPorPacienteId(
+        return ResponseEntity
+            .status(201)
+            .body(protocoloService.criarProtocoloPorPacienteId(
                 request.getPacienteId(),
                 request.getDiagnosticoBasico(),
                 request.getNumeroProtocolo()
-        );
-
-        return ResponseEntity
-                .status(201)
-                .body(protocoloMapper.toDTO(novo));
+        ));
     }
 
     // ================= READ =================
 
     @GetMapping
     public ResponseEntity<List<ProtocoloMEDTO>> listarTodos() {
-        return ResponseEntity.ok(
-                protocoloService.listarTodos()
-                        .stream()
-                .map(protocoloMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(protocoloService.listarTodos());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProtocoloMEDTO> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(protocoloMapper.toDTO(protocoloService.buscarPorIdOuFalhar(id)));
+        return ResponseEntity.ok(protocoloService.buscarPorIdOuFalhar(id));
     }
 
     @GetMapping("/numero/{numero}")
     public ResponseEntity<ProtocoloMEDTO> buscarPorNumero(@PathVariable String numero) {
-        return ResponseEntity.ok(protocoloMapper.toDTO(protocoloService.buscarPorNumeroProtocoloOuFalhar(numero)));
+        return ResponseEntity.ok(protocoloService.buscarPorNumeroProtocoloOuFalhar(numero));
     }
 
     @GetMapping("/central/{centralId}")
     public ResponseEntity<?> listarPorCentral(@PathVariable Long centralId) {
-        return ResponseEntity.ok(
-                protocoloService.listarPorCentral(centralId)
-                        .stream()
-                        .map(protocoloMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(protocoloService.listarPorCentral(centralId));
     }
 
     @GetMapping("/status/{status}")
     public ResponseEntity<?> listarPorStatus(@PathVariable String status) {
         ProtocoloME.StatusProtocoloME s = parseStatus(status);
 
-        return ResponseEntity.ok(
-                protocoloService.listarPorStatus(s)
-                        .stream()
-                        .map(protocoloMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(protocoloService.listarPorStatus(s));
     }
 
     @GetMapping("/central/{centralId}/status/{status}")
@@ -94,12 +75,7 @@ public class ProtocoloMEController {
 
         ProtocoloME.StatusProtocoloME s = parseStatus(status);
 
-        return ResponseEntity.ok(
-                protocoloService.listarPorCentralEStatus(centralId, s)
-                        .stream()
-                        .map(protocoloMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(protocoloService.listarPorCentralEStatus(centralId, s));
     }
 
     @GetMapping("/periodo")
@@ -107,22 +83,12 @@ public class ProtocoloMEController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim) {
 
-        return ResponseEntity.ok(
-                protocoloService.listarPorPeriodo(inicio, fim)
-                        .stream()
-                .map(protocoloMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(protocoloService.listarPorPeriodo(inicio, fim));
     }
 
     @GetMapping("/hospital/{hospital}")
     public ResponseEntity<List<ProtocoloMEDTO>> listarPorHospital(@PathVariable String hospital) {
-        return ResponseEntity.ok(
-                protocoloService.listarPorHospitalOrigem(hospital)
-                        .stream()
-                .map(protocoloMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(protocoloService.listarPorHospitalOrigem(hospital));
     }
 
     // ================= UPDATE =================
@@ -130,9 +96,7 @@ public class ProtocoloMEController {
     @PutMapping("/{id}")
     public ResponseEntity<ProtocoloMEDTO> atualizar(@PathVariable Long id, @RequestBody ProtocoloUpdateRequestDTO request) {
         ProtocoloME protocolo = protocoloRequestMapper.toEntity(request);
-        return ResponseEntity.ok(
-                protocoloMapper.toDTO(protocoloService.atualizarProtocolo(id, protocolo))
-        );
+        return ResponseEntity.ok(protocoloService.atualizarProtocolo(id, protocolo));
     }
 
     @PatchMapping("/{id}/relatorio-final")
@@ -141,11 +105,11 @@ public class ProtocoloMEController {
             @RequestBody ProtocoloRelatorioRequestDTO request) {
 
         return ResponseEntity.ok(
-                protocoloMapper.toDTO(protocoloService.atualizarRelatorioFinal(
-                        id,
-                        request.getTextoRelatorio(),
-                        request.getAtualizadoPor()
-                ))
+            protocoloService.atualizarRelatorioFinal(
+                    id,
+                    request.getTextoRelatorio(),
+                    request.getAtualizadoPor()
+            )
         );
     }
 
@@ -156,9 +120,7 @@ public class ProtocoloMEController {
 
         ProtocoloME.StatusProtocoloME s = parseStatus(request.getStatus());
 
-        return ResponseEntity.ok(
-                protocoloMapper.toDTO(protocoloService.alterarStatus(id, s))
-        );
+        return ResponseEntity.ok(protocoloService.alterarStatus(id, s));
     }
 
     // ================= ACTIONS =================
@@ -212,7 +174,7 @@ public class ProtocoloMEController {
         return ProtocoloME.StatusProtocoloME.valueOf(status.toUpperCase());
     }
 
-    private ResponseEntity<ProtocoloMEDTO> action(Long id, java.util.function.Function<Long, ProtocoloME> fn) {
-        return ResponseEntity.ok(protocoloMapper.toDTO(fn.apply(id)));
+    private ResponseEntity<ProtocoloMEDTO> action(Long id, java.util.function.Function<Long, ProtocoloMEDTO> fn) {
+        return ResponseEntity.ok(fn.apply(id));
     }
 }

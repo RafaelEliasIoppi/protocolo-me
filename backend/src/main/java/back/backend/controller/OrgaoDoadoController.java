@@ -3,7 +3,6 @@ package back.backend.controller;
 import back.backend.dto.OrgaoDoadoDTO;
 import back.backend.dto.OrgaoDoadoRequestDTO;
 import back.backend.mapper.OrgaoDoadoRequestMapper;
-import back.backend.mapper.OrgaoDoadoMapper;
 import javax.validation.Valid;
 import back.backend.service.OrgaoDoadoService;
 import org.springframework.http.HttpStatus;
@@ -18,58 +17,37 @@ import java.util.List;
 public class OrgaoDoadoController {
 
     private final OrgaoDoadoService orgaoDoadoService;
-    private final OrgaoDoadoMapper orgaoDoadoMapper;
     private final OrgaoDoadoRequestMapper orgaoDoadoRequestMapper;
 
-    public OrgaoDoadoController(OrgaoDoadoService orgaoDoadoService, OrgaoDoadoMapper orgaoDoadoMapper, OrgaoDoadoRequestMapper orgaoDoadoRequestMapper) {
+    public OrgaoDoadoController(OrgaoDoadoService orgaoDoadoService, OrgaoDoadoRequestMapper orgaoDoadoRequestMapper) {
         this.orgaoDoadoService = orgaoDoadoService;
-        this.orgaoDoadoMapper = orgaoDoadoMapper;
         this.orgaoDoadoRequestMapper = orgaoDoadoRequestMapper;
     }
 
     // CREATE
     @PostMapping
     public ResponseEntity<OrgaoDoadoDTO> criar(@Valid @RequestBody OrgaoDoadoRequestDTO request) {
-
-        var orgaoDoado = orgaoDoadoRequestMapper.toEntity(request);
-
-        var novo = orgaoDoadoService.criar(orgaoDoado);
-
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(orgaoDoadoMapper.toDTO(novo));
+                .body(orgaoDoadoService.criar(orgaoDoadoRequestMapper.toEntity(request)));
     }
 
     // GET BY ID
     @GetMapping("/{id}")
     public ResponseEntity<OrgaoDoadoDTO> buscarPorId(@PathVariable Long id) {
-
-        var orgao = orgaoDoadoService.buscarPorId(id);
-
-        return ResponseEntity.ok(orgaoDoadoMapper.toDTO(orgao));
+        return ResponseEntity.ok(orgaoDoadoService.buscarPorId(id));
     }
 
     // LIST BY PROTOCOLO
     @GetMapping("/protocolo/{protocoloId}")
     public ResponseEntity<List<OrgaoDoadoDTO>> listarPorProtocolo(@PathVariable Long protocoloId) {
-
-        List<OrgaoDoadoDTO> lista = orgaoDoadoService.listarPorProtocolo(protocoloId)
-                .stream()
-            .map(orgaoDoadoMapper::toDTO)
-                .toList();
-
-        return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(orgaoDoadoService.listarPorProtocolo(protocoloId));
     }
 
     // UPDATE
     @PutMapping("/{id}")
     public ResponseEntity<OrgaoDoadoDTO> atualizar(@PathVariable Long id,
                                                    @Valid @RequestBody OrgaoDoadoRequestDTO request) {
-
-        var orgaoDoado = orgaoDoadoRequestMapper.toEntity(request);
-
-        var atualizado = orgaoDoadoService.atualizar(id, orgaoDoado);
-
-        return ResponseEntity.ok(orgaoDoadoMapper.toDTO(atualizado));
+        return ResponseEntity.ok(orgaoDoadoService.atualizar(id, orgaoDoadoRequestMapper.toEntity(request)));
     }
 
     // IMPLANTAR
@@ -79,10 +57,7 @@ public class OrgaoDoadoController {
             @RequestParam String hospitalReceptor,
             @RequestParam String pacienteReceptor) {
 
-        var implantado =
-                orgaoDoadoService.registrarImplantacao(id, hospitalReceptor, pacienteReceptor);
-
-        return ResponseEntity.ok(orgaoDoadoMapper.toDTO(implantado));
+        return ResponseEntity.ok(orgaoDoadoService.registrarImplantacao(id, hospitalReceptor, pacienteReceptor));
     }
 
     // DESCARTAR
@@ -91,10 +66,7 @@ public class OrgaoDoadoController {
             @PathVariable Long id,
             @RequestParam String motivo) {
 
-        var descartado =
-                orgaoDoadoService.registrarDescarte(id, motivo);
-
-        return ResponseEntity.ok(orgaoDoadoMapper.toDTO(descartado));
+        return ResponseEntity.ok(orgaoDoadoService.registrarDescarte(id, motivo));
     }
 
     // DELETE

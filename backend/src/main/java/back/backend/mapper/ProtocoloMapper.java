@@ -8,8 +8,9 @@ import back.backend.model.Paciente;
 import back.backend.model.ProtocoloME;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring", uses = OrgaoDoadoMapper.class)
+@Mapper(componentModel = "spring", uses = OrgaoDoadoMapper.class, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface ProtocoloMapper {
 
     @Mapping(target = "status", expression = "java(entity.getStatus() != null ? entity.getStatus().name() : null)")

@@ -1,9 +1,7 @@
 package back.backend.controller;
 
-import back.backend.dto.ErrorResponseDTO;
 import back.backend.dto.HospitalDTO;
 import back.backend.dto.HospitalRequestDTO;
-import back.backend.mapper.HospitalMapper;
 import back.backend.mapper.HospitalRequestMapper;
 import back.backend.model.Hospital;
 import back.backend.service.HospitalService;
@@ -20,105 +18,75 @@ import java.util.List;
 public class HospitalController {
 
     private final HospitalService hospitalService;
-    private final HospitalMapper hospitalMapper;
     private final HospitalRequestMapper hospitalRequestMapper;
 
-    public HospitalController(HospitalService hospitalService, HospitalMapper hospitalMapper, HospitalRequestMapper hospitalRequestMapper) {
+    public HospitalController(HospitalService hospitalService, HospitalRequestMapper hospitalRequestMapper) {
         this.hospitalService = hospitalService;
-        this.hospitalMapper = hospitalMapper;
         this.hospitalRequestMapper = hospitalRequestMapper;
     }
 
     // POST
     @PostMapping
-    public ResponseEntity<?> criarHospital(@Valid @RequestBody HospitalRequestDTO request) {
+    public ResponseEntity<HospitalDTO> criarHospital(@Valid @RequestBody HospitalRequestDTO request) {
         Hospital hospital = hospitalRequestMapper.toEntity(request);
-        Hospital novo = hospitalService.criarHospital(hospital);
+        HospitalDTO novo = hospitalService.criarHospital(hospital);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(hospitalMapper.toDTO(novo));
+                .body(novo);
     }
 
     // GET ALL
     @GetMapping
     public ResponseEntity<List<HospitalDTO>> listarTodos() {
-        return ResponseEntity.ok(
-                hospitalService.listarTodos()
-                        .stream()
-                    .map(hospitalMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(hospitalService.listarTodos());
     }
 
     // GET BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(hospitalMapper.toDTO(hospitalService.buscarPorIdOuFalhar(id)));
+    public ResponseEntity<HospitalDTO> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(hospitalService.buscarPorIdOuFalhar(id));
     }
 
     // GET BY CNPJ
     @GetMapping("/cnpj/{cnpj}")
-    public ResponseEntity<?> buscarPorCnpj(@PathVariable String cnpj) {
-        return ResponseEntity.ok(hospitalMapper.toDTO(hospitalService.buscarPorCnpjOuFalhar(cnpj)));
+    public ResponseEntity<HospitalDTO> buscarPorCnpj(@PathVariable String cnpj) {
+        return ResponseEntity.ok(hospitalService.buscarPorCnpjOuFalhar(cnpj));
     }
 
     // GET BY STATUS
     @GetMapping("/status/{status}")
-    public ResponseEntity<?> listarPorStatus(@PathVariable String status) {
+    public ResponseEntity<List<HospitalDTO>> listarPorStatus(@PathVariable String status) {
         Hospital.StatusHospital statusEnum = Hospital.StatusHospital.valueOf(status.toUpperCase());
 
-        return ResponseEntity.ok(
-            hospitalService.listarPorStatus(statusEnum)
-                .stream()
-                .map(hospitalMapper::toDTO)
-                .toList()
-        );
+        return ResponseEntity.ok(hospitalService.listarPorStatus(statusEnum));
     }
 
     // GET BY CIDADE
     @GetMapping("/cidade/{cidade}")
     public ResponseEntity<List<HospitalDTO>> listarPorCidade(@PathVariable String cidade) {
-        return ResponseEntity.ok(
-                hospitalService.listarPorCidade(cidade)
-                        .stream()
-                    .map(hospitalMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(hospitalService.listarPorCidade(cidade));
     }
 
     // GET BY ESTADO
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<HospitalDTO>> listarPorEstado(@PathVariable String estado) {
-        return ResponseEntity.ok(
-                hospitalService.listarPorEstado(estado)
-                        .stream()
-                    .map(hospitalMapper::toDTO)
-                        .toList()
-        );
+        return ResponseEntity.ok(hospitalService.listarPorEstado(estado));
     }
 
     // PUT
     @PutMapping("/{id}")
-        public ResponseEntity<?> atualizarHospital(@PathVariable Long id, @Valid @RequestBody HospitalRequestDTO request) {
+        public ResponseEntity<HospitalDTO> atualizarHospital(@PathVariable Long id, @Valid @RequestBody HospitalRequestDTO request) {
             Hospital hospital = hospitalRequestMapper.toEntity(request);
-            return ResponseEntity.ok(
-                hospitalMapper.toDTO(
-                    hospitalService.atualizarHospital(id, hospital)
-                )
-            );
+            return ResponseEntity.ok(hospitalService.atualizarHospital(id, hospital));
     }
 
     // PATCH STATUS
     @PatchMapping("/{id}/status")
-    public ResponseEntity<?> alterarStatus(
+    public ResponseEntity<HospitalDTO> alterarStatus(
             @PathVariable Long id,
             @RequestParam String status) {
         Hospital.StatusHospital novoStatus = Hospital.StatusHospital.valueOf(status.toUpperCase());
 
-        return ResponseEntity.ok(
-            hospitalMapper.toDTO(
-                hospitalService.alterarStatus(id, novoStatus)
-            )
-        );
+        return ResponseEntity.ok(hospitalService.alterarStatus(id, novoStatus));
     }
 
     // DELETE
