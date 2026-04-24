@@ -17,10 +17,12 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   });
 
   const [filtroCategoria, setFiltroCategoria] = useState('');
+  const [mostrarExamesAdicionais, setMostrarExamesAdicionais] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
   const [exameSelecionado, setExameSelecionado] = useState(null);
+  const categoriasObrigatorias = ['CLINICO', 'COMPLEMENTAR'];
 
   const tiposExame = [
     // Exames Clínicos
@@ -71,9 +73,17 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     { valor: 'LABORATORIAL', label: 'Exames Laboratoriais', cor: 'roxo' }
   ];
 
-  const tiposExameDisponiveis = tiposExame.filter(
+  const categoriasVisiveis = mostrarExamesAdicionais
+    ? categorias
+    : categorias.filter((categoria) => categoriasObrigatorias.includes(categoria.valor));
+
+  const tiposExameDisponiveisBase = tiposExame.filter(
     (tipo) => !exames.some((exame) => exame.tipoExame === tipo.valor)
   );
+
+  const tiposExameDisponiveis = mostrarExamesAdicionais
+    ? tiposExameDisponiveisBase
+    : tiposExameDisponiveisBase.filter((tipo) => categoriasObrigatorias.includes(tipo.categoria));
 
   useEffect(() => {
     if (protocoloId) {
@@ -84,7 +94,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
   useEffect(() => {
     filtrarExames();
-  }, [exames, filtroCategoria]);
+  }, [exames, filtroCategoria, mostrarExamesAdicionais]);
 
   const carregarExames = async () => {
     setCarregando(true);
@@ -108,10 +118,14 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   };
 
   const filtrarExames = () => {
+    const base = mostrarExamesAdicionais
+      ? exames
+      : exames.filter((exame) => categoriasObrigatorias.includes(exame.categoria));
+
     if (filtroCategoria) {
-      setExamesFiltrados(exames.filter(e => e.categoria === filtroCategoria));
+      setExamesFiltrados(base.filter(e => e.categoria === filtroCategoria));
     } else {
-      setExamesFiltrados(exames);
+      setExamesFiltrados(base);
     }
   };
 
@@ -276,8 +290,28 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
       <div className="novo-exame-section">
         <h3>Adicionar Novo Exame</h3>
+        <p className="note">
+          Exibindo {mostrarExamesAdicionais ? 'obrigatórios e adicionais' : 'apenas obrigatórios (clínicos e complementares)'}.
+        </p>
+        <button
+          type="button"
+          className="btn-recarregar"
+          onClick={() => {
+            const novoValor = !mostrarExamesAdicionais;
+            setMostrarExamesAdicionais(novoValor);
+            if (!novoValor && filtroCategoria === 'LABORATORIAL') {
+              setFiltroCategoria('');
+            }
+          }}
+        >
+          {mostrarExamesAdicionais ? 'Mostrar só obrigatórios' : 'Mostrar exames adicionais'}
+        </button>
         {tiposExameDisponiveis.length === 0 ? (
-          <p className="note">Todos os tipos de exame já foram gerados para este protocolo. Não é necessário adicionar novos exames.</p>
+          <p className="note">
+            {mostrarExamesAdicionais
+              ? 'Todos os tipos de exame disponíveis já foram adicionados para este protocolo.'
+              : 'Todos os exames obrigatórios disponíveis já foram adicionados. Use "Mostrar exames adicionais" para incluir outros exames.'}
+          </p>
         ) : (
         <form onSubmit={handleCriarExame}>
           <div className="form-row">
@@ -290,7 +324,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
                 required
               >
                 <option value="">Selecione um exame...</option>
-                {categorias.map(cat => (
+                {categoriasVisiveis.map(cat => (
                   <optgroup key={cat.valor} label={cat.label}>
                     {tiposExameDisponiveis
                       .filter(t => t.categoria === cat.valor)
@@ -336,7 +370,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
         <label>Filtrar por Categoria:</label>
         <select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)}>
           <option value="">Todas</option>
-          {categorias.map(cat => (
+          {categoriasVisiveis.map(cat => (
             <option key={cat.valor} value={cat.valor}>
               {cat.label}
             </option>

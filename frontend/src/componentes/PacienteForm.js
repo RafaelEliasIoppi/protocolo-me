@@ -4,7 +4,15 @@ import { formatarCpf } from '../utils/cpf';
 import { formatarTelefone } from '../utils/telefone';
 import '../styles/PacienteForm.css';
 
-const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => {
+const PacienteForm = ({
+  paciente,
+  onSave,
+  onCancel,
+  onEditarPaciente,
+  ocultarResumo = false,
+  somenteListagem = false,
+  somenteFormulario = false,
+}) => {
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
@@ -334,6 +342,7 @@ const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => 
       )}
 
       {/* Formulário */}
+      {!somenteListagem && (
       <form onSubmit={handleSubmit} className="paciente-form">
         <h2>{editandoId ? 'Editar Paciente' : 'Novo Paciente'}</h2>
 
@@ -548,9 +557,10 @@ const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => 
           ) : null}
         </div>
       </form>
+      )}
 
       {/* Filtros */}
-      {!paciente && (
+      {!paciente && !somenteFormulario && (
         <>
           <div className="filtros-section">
             <h2>Filtros e Busca</h2>
@@ -617,7 +627,18 @@ const PacienteForm = ({ paciente, onSave, onCancel, ocultarResumo = false }) => 
                       )}
                     </div>
                     <div className="card-actions">
-                      <button className="btn-editar" onClick={() => editar(pItem)}>Editar</button>
+                      <button
+                        className="btn-editar"
+                        onClick={() => {
+                          if (somenteListagem && typeof onEditarPaciente === 'function') {
+                            onEditarPaciente(pItem);
+                            return;
+                          }
+                          editar(pItem);
+                        }}
+                      >
+                        Editar
+                      </button>
                       <span className="status-badge-listagem">
                         {formatarStatus(pItem.status)}
                       </span>

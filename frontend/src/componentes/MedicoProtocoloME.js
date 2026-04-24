@@ -250,6 +250,25 @@ function MedicoProtocoloME() {
     return exames;
   };
 
+  const examesObrigatoriosConcluidos = (protocolo) =>
+    Boolean(protocolo?.testeClinico1Realizado)
+    && Boolean(protocolo?.testeClinico2Realizado)
+    && Boolean(protocolo?.testesComplementaresRealizados);
+
+  const entrevistaLiberada = (protocolo) => {
+    const status = protocolo?.status;
+    if (examesObrigatoriosConcluidos(protocolo)) {
+      return true;
+    }
+
+    return [
+      "ENTREVISTA_FAMILIAR",
+      "DOACAO_AUTORIZADA",
+      "FAMILIA_RECUSOU",
+      "FINALIZADO",
+    ].includes(status);
+  };
+
   const obterProximoPasso = (protocolo, paciente) => {
     if (!protocolo) return "Inicie o protocolo e registre os exames obrigatórios.";
 
@@ -391,6 +410,8 @@ function MedicoProtocoloME() {
               const statusEntrevista = formatarStatusEntrevista(paciente.statusEntrevistaFamiliar);
               const resultadoEntrevista = formatarResultadoEntrevista(paciente, protocolo);
               const entrevistaConcluida = paciente.statusEntrevistaFamiliar === "AUTORIZADA" || paciente.statusEntrevistaFamiliar === "RECUSADA";
+              const podeAbrirEntrevista = entrevistaLiberada(protocolo);
+              const statusFluxoEntrevista = podeAbrirEntrevista ? "liberada" : "aguardando";
 
               return (
                 <div key={`${paciente.id}-${protocolo?.id || index}`} className={`protocolo-card status-${statusBadge.cor}`}>
@@ -439,6 +460,10 @@ function MedicoProtocoloME() {
                         </span>
                       </div>
 
+                      <div className={`fluxo-entrevista-pill fluxo-entrevista-pill-${statusFluxoEntrevista}`}>
+                        {podeAbrirEntrevista ? "Entrevista liberada" : "Aguardando exames obrigatórios"}
+                      </div>
+
                       <div className="entrevista-resumo-resultado">
                         <span className="entrevista-resumo-rotulo">Resultado:</span>
                         <span className={`resultado-badge resultado-${resultadoEntrevista.cor}`}>
@@ -449,14 +474,19 @@ function MedicoProtocoloME() {
                       <div className="entrevista-resumo-footer">
                         {!entrevistaConcluida && (
                           <p className="entrevista-resumo-texto">
-                            {protocolo?.status === "MORTE_CEREBRAL_CONFIRMADA"
-                              ? "A entrevista já pode ser iniciada neste perfil."
-                              : "A entrevista será liberada após a confirmação da morte cerebral."}
+                            {podeAbrirEntrevista
+                              ? "Entrevista liberada: exames obrigatórios concluídos e confirmação de ME pronta para abordagem familiar."
+                              : "A entrevista será liberada após concluir 2 testes clínicos e 1 exame complementar."}
                           </p>
                         )}
                         <button
                           className="btn-entrevista-inline"
+                          title={!podeAbrirEntrevista ? "Conclua 2 testes clínicos e 1 exame complementar para liberar a entrevista" : ""}
                           onClick={() => {
+                            if (!podeAbrirEntrevista) {
+                              setErro("Entrevista ainda não liberada. Conclua 2 testes clínicos e 1 exame complementar.");
+                              return;
+                            }
                             setProtocoloSelecionado(protocolo);
                             setAbaProtocoloAberta("entrevista");
                             setMostraExames(true);
@@ -492,6 +522,7 @@ function MedicoProtocoloME() {
                         <div className="progress-bar">
                           <div className="progress" style={{ width: `${(examesRealizados / 3) * 100}%` }}></div>
                         </div>
+                        <p className="exames-ajuda">Para inserir exames, clique no botão <strong>Inserir Exames</strong> abaixo.</p>
                       </div>
                     </div>
 
@@ -499,6 +530,12 @@ function MedicoProtocoloME() {
                     <div className="proximo-passo-box">
                       <strong>Próximo passo:</strong> {obterProximoPasso(protocolo, paciente)}
                     </div>
+
+                    {!podeAbrirEntrevista && (
+                      <div className="entrevista-alerta-card" role="alert">
+                        ⚠️ Entrevista bloqueada no momento. Conclua 2 testes clínicos e 1 exame complementar para liberar esta etapa.
+                      </div>
+                    )}
                   </div>
 
                   <div className="card-actions">
@@ -510,11 +547,26 @@ function MedicoProtocoloME() {
                         setMostraExames(true);
                       }}
                     >
-                      📋 Acessar Protocolo
+                      🧪 Inserir Exames
                     </button>
                     <button
                       className="btn-secondary"
                       onClick={() => {
+                        setProtocoloSelecionado(protocolo);
+                        setAbaProtocoloAberta("exames");
+                        setMostraExames(true);
+                      }}
+                    >
+                      📋 Ver Protocolo
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      title={!podeAbrirEntrevista ? "Conclua 2 testes clínicos e 1 exame complementar para liberar a entrevista" : ""}
+                      onClick={() => {
+                        if (!podeAbrirEntrevista) {
+                          setErro("Entrevista ainda não liberada. Conclua 2 testes clínicos e 1 exame complementar.");
+                          return;
+                        }
                         setProtocoloSelecionado(protocolo);
                         setAbaProtocoloAberta("entrevista");
                         setMostraExames(true);
@@ -551,11 +603,32 @@ function MedicoProtocoloME() {
               </button>
               <button
                 className="secondary-button"
-                onClick={() => setAbaProtocoloAberta("entrevista")}
+                onClick={() => {
+                  if (!entrevistaLiberada(protocoloSelecionado)) {
+                    setErro("Entrevista ainda não liberada. Conclua 2 testes clínicos e 1 exame complementar.");
+                    return;
+                  }
+                  setAbaProtocoloAberta("entrevista");
+                }}
+                title={!entrevistaLiberada(protocoloSelecionado) ? "Conclua 2 testes clínicos e 1 exame complementar para liberar a entrevista" : ""}
               >
                 Entrevista
               </button>
             </div>
+            <div style={{ marginBottom: "0.8rem" }}>
+              <span
+                className={`fluxo-entrevista-pill ${entrevistaLiberada(protocoloSelecionado) ? "fluxo-entrevista-pill-liberada" : "fluxo-entrevista-pill-aguardando"}`}
+              >
+                {entrevistaLiberada(protocoloSelecionado)
+                  ? "Entrevista liberada"
+                  : "Aguardando exames obrigatórios"}
+              </span>
+            </div>
+            {!entrevistaLiberada(protocoloSelecionado) && (
+              <div className="entrevista-alerta-card entrevista-alerta-modal" role="alert">
+                ⚠️ Entrevista bloqueada no momento. Conclua 2 testes clínicos e 1 exame complementar para liberar esta etapa.
+              </div>
+            )}
             <div className="modal-body">
               {abaProtocoloAberta === "entrevista" && (
                 <div className="info-banner entrevista-banner">

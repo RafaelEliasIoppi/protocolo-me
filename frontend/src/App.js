@@ -4,6 +4,7 @@ import Login from "./componentes/login";
 import Dashboard from "./componentes/Dashboard";
 import AppLayout from "./componentes/AppLayout";
 import PacientesPage from "./componentes/PacientesPage";
+import PacienteCadastroPage from "./componentes/PacienteCadastroPage";
 import PacientesProtocoloMEPage from "./componentes/PacientesProtocoloMEPage";
 import HospitaisPage from "./componentes/HospitaisPage";
 import CentraisPage from "./componentes/CentraisPage";
@@ -120,6 +121,14 @@ function App() {
             element={
               <GuardedRoute isLogged={isLogged} allowedRoles={["MEDICO", "ENFERMEIRO", "CENTRAL_TRANSPLANTES"]}>
                 <PacientesPage />
+              </GuardedRoute>
+            }
+          />
+          <Route
+            path="cadastros/pacientes/novo"
+            element={
+              <GuardedRoute isLogged={isLogged} allowedRoles={["MEDICO", "ENFERMEIRO", "CENTRAL_TRANSPLANTES"]}>
+                <PacienteCadastroPage />
               </GuardedRoute>
             }
           />

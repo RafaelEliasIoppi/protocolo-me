@@ -26,6 +26,7 @@ public class PacienteController {
     /**
      * POST /api/pacientes - Criar novo paciente
      */
+    @Transactional(readOnly = false)
     @PostMapping
     public ResponseEntity<?> criar(@RequestBody Paciente paciente) {
         try {
@@ -223,6 +224,7 @@ public class PacienteController {
     /**
      * PUT /api/pacientes/{id} - Atualizar paciente
      */
+    @Transactional(readOnly = false)
     @PutMapping("/{id:\\d+}")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Paciente paciente) {
         try {
@@ -237,6 +239,7 @@ public class PacienteController {
     /**
      * PATCH /api/pacientes/{id}/status - Atualizar status do paciente
      */
+    @Transactional(readOnly = false)
     @PatchMapping("/{id:\\d+}/status")
     public ResponseEntity<?> atualizarStatus(
             @PathVariable Long id,
@@ -255,6 +258,7 @@ public class PacienteController {
     /**
      * DELETE /api/pacientes/{id} - Deletar paciente
      */
+    @Transactional(readOnly = false)
     @DeleteMapping("/{id:\\d+}")
     public ResponseEntity<?> deletar(@PathVariable Long id) {
         try {

@@ -440,6 +440,30 @@
   color: #1f3a3d;
 }
 
+.fluxo-entrevista-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.fluxo-entrevista-pill-liberada {
+  background: #d5f4e6;
+  color: #0b5345;
+  border: 1px solid #7dcea0;
+}
+
+.fluxo-entrevista-pill-aguardando {
+  background: #fdeaa8;
+  color: #7d6608;
+  border: 1px solid #f8c471;
+}
+
 .entrevista-resumo-rotulo {
   font-weight: 600;
 }
@@ -560,6 +584,12 @@
   gap: 0.4rem;
 }
 
+.exames-ajuda {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #34495e;
+}
+
 /* Progress bar */
 .progress-bar {
   height: 6px;
@@ -588,6 +618,22 @@
 
 .proximo-passo-box strong {
   color: #1f618d;
+}
+
+.entrevista-alerta-card {
+  margin-top: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  background: #fff4e5;
+  border: 1px solid #f5c37a;
+  color: #7c2d12;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.entrevista-alerta-modal {
+  margin: 0 0 0.85rem;
 }
 
 .card-actions {
@@ -863,6 +909,32 @@
 [data-theme="dark"] .medico-protocolo-me .resultado-badge.resultado-nao-definido {
   background: #334155;
   color: #e2e8f0;
+}
+
+[data-theme="dark"] .medico-protocolo-me .entrevista-alerta-card {
+  background: #3f2a14;
+  border-color: #f59e0b;
+  color: #fde68a;
+}
+
+[data-theme="dark"] .medico-protocolo-me .exame.completo {
+  background: #14532d;
+  color: #dcfce7;
+  border: 1px solid #22c55e;
+}
+
+[data-theme="dark"] .medico-protocolo-me .exame.pendente {
+  background: #78350f;
+  color: #fef3c7;
+  border: 1px solid #f59e0b;
+}
+
+[data-theme="dark"] .medico-protocolo-me .exames-ajuda {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .medico-protocolo-me .exames-count strong {
+  color: #f8fafc;
 }
 
 [data-theme="light"] .medico-protocolo-me .panel,

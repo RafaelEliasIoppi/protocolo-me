@@ -120,7 +120,7 @@ public class ProtocoloMEService {
         pacienteRepository.save(paciente);
     }
 
-    // Criar novo protocolo de ME e auto-popular com 35 exames
+    // Criar novo protocolo de ME
     public ProtocoloME criarProtocolo(ProtocoloME protocolo) {
         if (protocolo.getPaciente() == null || protocolo.getPaciente().getId() == null) {
             throw new RuntimeException("Paciente é obrigatório para criar protocolo");
@@ -165,9 +165,6 @@ public class ProtocoloMEService {
         // Atualizar status do paciente para em protocolo
         paciente.setStatus(Paciente.StatusPaciente.EM_PROTOCOLO_ME);
         pacienteRepository.save(paciente);
-        
-        // Auto-popular com 35 exames (Clínicos, Complementares, Laboratoriais)
-        preencherExamesAutomaticamente(protocoloSalvo);
         
         return protocoloSalvo;
     }
