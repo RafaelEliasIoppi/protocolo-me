@@ -1,5 +1,6 @@
 package back.backend.service;
 
+import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.model.Paciente;
 import back.backend.model.Hospital;
 import back.backend.model.ExameME;
@@ -8,6 +9,7 @@ import back.backend.model.AnexoDocumento;
 import back.backend.repository.PacienteRepository;
 import back.backend.repository.HospitalRepository;
 import back.backend.repository.AnexoDocumentoRepository;
+import back.backend.repository.EstatisticaProtocoloMERepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,9 @@ public class PacienteService {
 
     @Autowired
     private AnexoDocumentoRepository anexoDocumentoRepository;
+
+    @Autowired
+    private EstatisticaProtocoloMERepository estatisticaProtocoloMERepository;
 
     /**
      * Criar novo paciente
@@ -90,12 +95,17 @@ public class PacienteService {
         return pacienteRepository.save(paciente);
     }
 
+    public Paciente atualizarStatus(Long id, String novoStatus) {
+        Paciente.StatusPaciente status = Paciente.StatusPaciente.valueOf(novoStatus.toUpperCase());
+        return atualizarStatus(id, status);
+    }
+
     /**
      * Obter paciente por ID
      */
     public Paciente obterPacientePorId(Long id) {
         return pacienteRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("Paciente não encontrado com ID: " + id));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Paciente não encontrado com ID: " + id));
     }
 
     /**
@@ -103,7 +113,7 @@ public class PacienteService {
      */
     public Paciente obterPacientePorCpf(String cpf) {
         return pacienteRepository.findByCpf(cpf)
-            .orElseThrow(() -> new IllegalArgumentException("Paciente não encontrado com CPF: " + cpf));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Paciente não encontrado com CPF: " + cpf));
     }
 
     /**
@@ -118,7 +128,7 @@ public class PacienteService {
      */
     public List<Paciente> listarPorHospital(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
-            .orElseThrow(() -> new IllegalArgumentException("Hospital não encontrado com ID: " + hospitalId));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado com ID: " + hospitalId));
         return pacienteRepository.findByHospital(hospital);
     }
 
@@ -129,13 +139,23 @@ public class PacienteService {
         return pacienteRepository.findByStatus(status);
     }
 
+    public List<Paciente> listarPorStatus(String status) {
+        Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
+        return listarPorStatus(statusEnum);
+    }
+
     /**
      * Listar pacientes por hospital e status
      */
     public List<Paciente> listarPorHospitalEStatus(Long hospitalId, Paciente.StatusPaciente status) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
-            .orElseThrow(() -> new IllegalArgumentException("Hospital não encontrado com ID: " + hospitalId));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado com ID: " + hospitalId));
         return pacienteRepository.findByHospitalAndStatus(hospital, status);
+    }
+
+    public List<Paciente> listarPorHospitalEStatus(Long hospitalId, String status) {
+        Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
+        return listarPorHospitalEStatus(hospitalId, statusEnum);
     }
 
     /**
@@ -153,7 +173,7 @@ public class PacienteService {
      */
     public List<Paciente> procurarPorNomeEHospital(Long hospitalId, String nome) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
-            .orElseThrow(() -> new IllegalArgumentException("Hospital não encontrado com ID: " + hospitalId));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado com ID: " + hospitalId));
         return pacienteRepository.findByHospitalAndNomeContainingIgnoreCase(hospital, nome);
     }
 
@@ -169,7 +189,7 @@ public class PacienteService {
      */
     public List<Paciente> listarPacientesEmProtocoloMEPorHospital(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
-            .orElseThrow(() -> new IllegalArgumentException("Hospital não encontrado com ID: " + hospitalId));
+            .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado com ID: " + hospitalId));
         return pacienteRepository.findPacientesEmProtocoloMEPorHospital(hospital);
     }
 
@@ -178,6 +198,32 @@ public class PacienteService {
      */
     public void deletarPaciente(Long id) {
         Paciente paciente = obterPacientePorId(id);
+
+        List<ProtocoloME> protocolos = paciente.getProtocolosME() != null
+            ? new ArrayList<>(paciente.getProtocolosME())
+            : new ArrayList<>();
+
+        for (ProtocoloME protocolo : protocolos) {
+            Long protocoloId = protocolo.getId();
+            if (protocoloId == null) {
+                continue;
+            }
+
+            estatisticaProtocoloMERepository.deleteByProtocoloMEId(protocoloId);
+            anexoDocumentoRepository.deleteByProtocoloMEId(protocoloId);
+
+            List<Long> idsExames = protocolo.getExames() != null
+                ? protocolo.getExames().stream()
+                    .map(ExameME::getId)
+                    .filter(java.util.Objects::nonNull)
+                    .collect(Collectors.toList())
+                : new ArrayList<>();
+
+            if (!idsExames.isEmpty()) {
+                anexoDocumentoRepository.deleteByExameMEIdIn(idsExames);
+            }
+        }
+
         pacienteRepository.delete(paciente);
     }
 
@@ -412,7 +458,7 @@ public class PacienteService {
             Long hospitalId = paciente.getHospital().getId();
             if (hospitalId != null) {
                 Hospital hospital = hospitalRepository.findById(hospitalId)
-                    .orElseThrow(() -> new IllegalArgumentException("Hospital não encontrado com ID: " + hospitalId));
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado com ID: " + hospitalId));
                 paciente.setHospitalOrigem(hospital.getNome());
                 paciente.setHospital(hospital);
             }

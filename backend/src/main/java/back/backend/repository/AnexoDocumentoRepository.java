@@ -17,11 +17,13 @@ public interface AnexoDocumentoRepository extends JpaRepository<AnexoDocumento, 
      */
     List<AnexoDocumento> findByExameMEId(Long exameMEId);
     List<AnexoDocumento> findByExameMEIdIn(List<Long> exameMEIds);
+    void deleteByExameMEIdIn(List<Long> exameMEIds);
 
     /**
      * Buscar anexos por ID do protocolo (para entrevista familiar)
      */
     List<AnexoDocumento> findByProtocoloMEId(Long protocoloMEId);
+    void deleteByProtocoloMEId(Long protocoloMEId);
 
     /**
      * Buscar anexos por tipo (EXAME ou ENTREVISTA)

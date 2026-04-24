@@ -10,6 +10,7 @@ import java.util.Optional;
 @Repository
 public interface EstatisticaProtocoloMERepository extends JpaRepository<EstatisticaProtocoloME, Long> {
     Optional<EstatisticaProtocoloME> findByProtocoloMEId(Long protocoloMEId);
+    void deleteByProtocoloMEId(Long protocoloMEId);
     List<EstatisticaProtocoloME> findByAnoCompetencia(Integer anoCompetencia);
     List<EstatisticaProtocoloME> findByAnoCompetenciaAndMesCompetencia(Integer anoCompetencia, Integer mesCompetencia);
 }

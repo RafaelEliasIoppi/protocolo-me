@@ -1,6 +1,7 @@
 package back.backend.controller;
 
 import back.backend.dto.ErrorResponseDTO;
+import back.backend.exception.RecursoNaoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -13,6 +14,11 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<ErrorResponseDTO> handleNotFound(RecursoNaoEncontradoException ex) {
+        return new ResponseEntity<>(new ErrorResponseDTO(ex.getMessage(), 404), HttpStatus.NOT_FOUND);
+    }
 
     // Captura erros de validação (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
