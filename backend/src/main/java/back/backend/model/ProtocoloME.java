@@ -1,6 +1,8 @@
 package back.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Getter;
+import lombok.Setter;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -8,6 +10,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "protocolo_me")
+@Getter
+@Setter
 public class ProtocoloME {
 
     @Id

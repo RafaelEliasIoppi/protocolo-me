@@ -9,6 +9,6 @@ import org.mapstruct.NullValueCheckStrategy;
 @Mapper(componentModel = "spring", nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface ExameResumoMapper {
 
-    @Mapping(source = "exames_Clinicos", target = "examesClinicos")
+    @Mapping(source = "examesClinicos", target = "examesClinicos")
     ExameResumoDTO toDTO(ExameMEService.ExameResumo resumo);
 }

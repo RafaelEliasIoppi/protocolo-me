@@ -96,6 +96,18 @@ public class Doacao {
                StatusDoacao.FINALIZADA.equals(this.status);
     }
 
+    public Boolean getAutorizada() {
+        return isAutorizada();
+    }
+
+    public void setAutorizada(Boolean autorizada) {
+        if (autorizada == null) {
+            this.status = StatusDoacao.EM_ANALISE;
+            return;
+        }
+        this.status = autorizada ? StatusDoacao.AUTORIZADA : StatusDoacao.RECUSADA;
+    }
+
     // =========================
     // GETTERS E SETTERS
     // =========================

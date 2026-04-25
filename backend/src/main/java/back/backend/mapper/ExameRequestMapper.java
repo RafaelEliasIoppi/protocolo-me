@@ -12,12 +12,23 @@ public interface ExameRequestMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "protocoloME", expression = "java(toProtocolo(dto.getProtocoloId()))")
-    @Mapping(target = "categoria", expression = "java(dto.getCategoria() != null ? ExameME.CategoriaExame.valueOf(dto.getCategoria().toUpperCase()) : null)")
     @Mapping(target = "tipoExame", expression = "java(dto.getTipoExame() != null ? ExameME.TipoExame.valueOf(dto.getTipoExame().toUpperCase()) : null)")
-    @Mapping(target = "resultado_positivo", source = "resultadoPositivo")
+    @Mapping(target = "resultado", expression = "java(toResultado(dto.getResultado(), dto.getResultadoPositivo()))")
     @Mapping(target = "dataCriacao", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     ExameME toEntity(ExameRequestDTO dto);
+
+    default ExameME.ResultadoExame toResultado(String resultado, Boolean resultadoPositivo) {
+        if (resultado != null && !resultado.isBlank()) {
+            return ExameME.ResultadoExame.valueOf(resultado.trim().toUpperCase());
+        }
+        if (resultadoPositivo == null) {
+            return null;
+        }
+        return resultadoPositivo
+                ? ExameME.ResultadoExame.POSITIVO
+                : ExameME.ResultadoExame.NEGATIVO;
+    }
 
     default ProtocoloME toProtocolo(Long protocoloId) {
         if (protocoloId == null) {

@@ -148,13 +148,54 @@ public class EstatisticaProtocoloMEService {
                          p.getDataNotificacao().getYear() == ano))
                 .map(p -> {
                     ProtocoloSemEstatisticaDTO dto = new ProtocoloSemEstatisticaDTO();
-                    dto.setProtocoloId(p.getId());
+                    dto.setProtocoloMEId(p.getId());
                     dto.setNumeroProtocolo(p.getNumeroProtocolo());
                     dto.setNomeDoador(p.getPaciente() != null ? p.getPaciente().getNome() : null);
                     dto.setAno(ano);
                     return dto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    public EstatisticaProtocoloMEDTO obterPorProtocoloId(Long protocoloId) {
+        EstatisticaProtocoloME estatistica = estatisticaRepository
+                .findByProtocoloMEId(protocoloId)
+                .orElseGet(() -> gerarPorProtocolo(protocoloId));
+
+        return toDTO(estatistica, estatistica.getProtocoloME());
+    }
+
+    public EstatisticaProtocoloMEDTO salvarOuAtualizar(Long protocoloId, EstatisticaProtocoloMEDTO payload) {
+
+        ProtocoloME protocolo = protocoloRepository.findById(protocoloId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado"));
+
+        EstatisticaProtocoloME estatistica = estatisticaRepository
+                .findByProtocoloMEId(protocoloId)
+                .orElseGet(() -> {
+                    EstatisticaProtocoloME nova = new EstatisticaProtocoloME();
+                    nova.setProtocoloME(protocolo);
+                    return nova;
+                });
+
+        if (payload.getAnoCompetencia() != null) {
+            estatistica.setAnoCompetencia(payload.getAnoCompetencia());
+        }
+        if (payload.getMesCompetencia() != null) {
+            estatistica.setMesCompetencia(payload.getMesCompetencia());
+        }
+        if (payload.getPeriodicidade() != null && !payload.getPeriodicidade().isBlank()) {
+            estatistica.setPeriodicidade(EstatisticaProtocoloME.Periodicidade.valueOf(payload.getPeriodicidade().toUpperCase()));
+        }
+        estatistica.setAtualizadoPor(payload.getAtualizadoPor());
+
+        Map<String, String> campos = payload.getCampos() != null
+                ? new LinkedHashMap<>(payload.getCampos())
+                : new LinkedHashMap<>();
+        aplicarCamposNaEntidade(estatistica, campos);
+
+        EstatisticaProtocoloME salvo = estatisticaRepository.save(estatistica);
+        return toDTO(salvo, protocolo);
     }
 
     // =========================

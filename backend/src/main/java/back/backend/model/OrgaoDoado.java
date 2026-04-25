@@ -1,12 +1,17 @@
 package back.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Getter;
+import lombok.Setter;
 
 import jakarta.persistence.*;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "orgao_doado")
+@Getter
+@Setter
 public class OrgaoDoado {
 
     @Id
@@ -171,43 +176,37 @@ public class OrgaoDoado {
         FALHA_IMPLANTACAO
     }
 
-    // =========================
-    // GETTERS E SETTERS
-    // =========================
+    @Transient
+    public ProtocoloME getProtocoloME() {
+        return doacao != null ? doacao.getProtocoloME() : null;
+    }
 
-    public Long getId() { return id; }
+    public void setProtocoloME(ProtocoloME protocoloME) {
+        if (protocoloME == null) {
+            this.doacao = null;
+            return;
+        }
+        if (this.doacao == null) {
+            this.doacao = new Doacao();
+        }
+        this.doacao.setProtocoloME(protocoloME);
+    }
 
-    public Doacao getDoacao() { return doacao; }
-    public void setDoacao(Doacao doacao) { this.doacao = doacao; }
+    @Transient
+    public String getNomeOrgao() {
+        return tipo != null ? tipo.name() : null;
+    }
 
-    public TipoOrgao getTipo() { return tipo; }
-    public void setTipo(TipoOrgao tipo) { this.tipo = tipo; }
-
-    public LadoOrgao getLado() { return lado; }
-    public void setLado(LadoOrgao lado) { this.lado = lado; }
-
-    public SubtipoOrgao getSubtipo() { return subtipo; }
-    public void setSubtipo(SubtipoOrgao subtipo) { this.subtipo = subtipo; }
-
-    public StatusOrgaoDoado getStatus() { return status; }
-    public void setStatus(StatusOrgaoDoado status) { this.status = status; }
-
-    public String getMotivo() { return motivo; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
-
-    public String getHospitalReceptor() { return hospitalReceptor; }
-    public void setHospitalReceptor(String hospitalReceptor) { this.hospitalReceptor = hospitalReceptor; }
-
-    public String getPacienteReceptor() { return pacienteReceptor; }
-    public void setPacienteReceptor(String pacienteReceptor) { this.pacienteReceptor = pacienteReceptor; }
-
-    public String getCpfReceptor() { return cpfReceptor; }
-    public void setCpfReceptor(String cpfReceptor) { this.cpfReceptor = cpfReceptor; }
-
-    public LocalDateTime getDataImplantacao() { return dataImplantacao; }
-    public void setDataImplantacao(LocalDateTime dataImplantacao) { this.dataImplantacao = dataImplantacao; }
-
-    public LocalDateTime getDataDescarte() { return dataDescarte; }
-    public void setDataDescarte(LocalDateTime dataDescarte) { this.dataDescarte = dataDescarte; }
+    public void setNomeOrgao(String nomeOrgao) {
+        if (nomeOrgao == null || nomeOrgao.isBlank()) {
+            this.tipo = null;
+            return;
+        }
+        String normalizado = Normalizer.normalize(nomeOrgao.trim(), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toUpperCase()
+                .replace(' ', '_');
+        this.tipo = TipoOrgao.valueOf(normalizado);
+    }
 
 }

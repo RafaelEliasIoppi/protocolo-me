@@ -1,6 +1,8 @@
 package back.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Getter;
+import lombok.Setter;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -10,6 +12,8 @@ import java.time.LocalDateTime;
        uniqueConstraints = {
            @UniqueConstraint(name = "uk_estatistica_protocolo", columnNames = {"protocolo_me_id"})
        })
+@Getter
+@Setter
 public class EstatisticaProtocoloME {
 
     @Id
