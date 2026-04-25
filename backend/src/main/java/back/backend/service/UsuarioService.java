@@ -8,7 +8,9 @@ import back.backend.mapper.UsuarioMapper;
 import back.backend.model.Role;
 import back.backend.model.Usuario;
 import back.backend.repository.UsuarioRepository;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -16,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,16 +34,41 @@ public class UsuarioService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UsuarioMapper usuarioMapper;
 
+    // ================= ADMIN =================
+
     public long countAdmins() {
         return usuarioRepository.countByRole(Role.ADMIN);
     }
+
+    public void validarPermissaoCriacaoAdmin(Usuario usuario) {
+
+        long totalAdmins = usuarioRepository.countByRole(Role.ADMIN);
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        boolean isAdmin = auth != null
+                && auth.isAuthenticated()
+                && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
+            throw new ConflitoNegocioException("Primeiro usuário deve ser ADMIN");
+        }
+
+        if (totalAdmins > 0 && !isAdmin) {
+            throw new ConflitoNegocioException("Apenas ADMIN pode cadastrar usuários");
+        }
+    }
+
+    // ================= AUTH =================
 
     public UsuarioDTO autenticar(String email, String senha) {
 
         String emailNormalizado = normalizarEmail(email);
 
         Usuario usuario = usuarioRepository.findByEmail(emailNormalizado)
-            .orElseThrow(() -> new AutenticacaoException("Usuário não encontrado ou inativo"));
+                .orElseThrow(() ->
+                        new AutenticacaoException("Usuário não encontrado ou inativo"));
 
         if (!Boolean.TRUE.equals(usuario.getAtivo())) {
             throw new AutenticacaoException("Usuário não encontrado ou inativo");
@@ -53,30 +81,12 @@ public class UsuarioService implements UserDetailsService {
         return toDTO(usuario);
     }
 
-    public void validarPermissaoCriacaoAdmin(Usuario usuario) {
-
-        long totalAdmins = usuarioRepository.countByRole(Role.ADMIN);
-
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        boolean isAdmin = auth != null
-                && auth.isAuthenticated()
-                && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-
-        if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
-            throw new ConflitoNegocioException("Primeiro usuário deve ser ADMIN");
-        }
-
-        if (totalAdmins > 0 && !isAdmin) {
-            throw new ConflitoNegocioException("Apenas ADMIN pode cadastrar usuários");
-        }
-    }
-
     @Override
     public UserDetails loadUserByUsername(String email) {
 
         Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("Usuário não encontrado"));
 
         return User.builder()
                 .username(usuario.getEmail())
@@ -84,6 +94,8 @@ public class UsuarioService implements UserDetailsService {
                 .authorities("ROLE_" + usuario.getRole().name())
                 .build();
     }
+
+    // ================= CREATE =================
 
     public UsuarioDTO registrar(Usuario usuario) {
 
@@ -110,25 +122,32 @@ public class UsuarioService implements UserDetailsService {
     }
 
     public UsuarioDTO registrarPublico(Usuario usuario) {
+
         if (usuario.getRole() == null) {
             usuario.setRole(Role.MEDICO);
         }
 
-        if (usuario.getRole() != Role.MEDICO && usuario.getRole() != Role.ENFERMEIRO) {
-            throw new IllegalArgumentException("Cadastro público permite apenas MÉDICO ou ENFERMEIRO");
+        if (usuario.getRole() != Role.MEDICO &&
+            usuario.getRole() != Role.ENFERMEIRO) {
+            throw new IllegalArgumentException(
+                    "Cadastro público permite apenas MÉDICO ou ENFERMEIRO");
         }
 
         return registrar(usuario);
     }
 
     public UsuarioDTO registrarAdmin(Usuario usuario) {
+
         if (usuario.getRole() == null) {
             throw new IllegalArgumentException("Informe a função");
         }
 
         validarPermissaoCriacaoAdmin(usuario);
+
         return registrar(usuario);
     }
+
+    // ================= UPDATE =================
 
     public UsuarioDTO atualizarUsuario(Long id, Usuario dados) {
 
@@ -167,10 +186,15 @@ public class UsuarioService implements UserDetailsService {
         return toDTO(usuarioRepository.save(usuario));
     }
 
-    public UsuarioDTO alterarMinhaSenha(String email, String atual, String nova, String confirmar) {
+    public UsuarioDTO alterarMinhaSenha(
+            String email,
+            String atual,
+            String nova,
+            String confirmar) {
 
         Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException("Usuário não encontrado"));
 
         if (!passwordEncoder.matches(atual, usuario.getSenha())) {
             throw new IllegalArgumentException("Senha atual inválida");
@@ -188,38 +212,56 @@ public class UsuarioService implements UserDetailsService {
         return toDTO(usuarioRepository.save(usuario));
     }
 
+    // ================= READ =================
+
     public List<UsuarioDTO> listarTodos() {
-        return usuarioRepository.findAll().stream().map(this::toDTO).toList();
+        return usuarioRepository.findAll()
+                .stream()
+                .map(this::toDTO)
+                .toList();
     }
 
+    // ================= DELETE =================
+
     public void deletar(Long id) {
+
         if (!usuarioRepository.existsById(id)) {
             throw new RecursoNaoEncontradoException("Usuário não encontrado");
         }
+
         usuarioRepository.deleteById(id);
     }
 
+    // ================= HELPERS =================
+
     private Usuario buscarOuFalhar(Long id) {
         return usuarioRepository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException("Usuário não encontrado"));
     }
 
     private String normalizarEmail(String email) {
+
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("Email obrigatório");
         }
+
         return email.trim().toLowerCase();
     }
 
     private void validarUsuario(Usuario usuario) {
-        if (usuario.getSenha() == null || usuario.getSenha().length() < 6) {
+
+        if (usuario.getSenha() == null ||
+            usuario.getSenha().length() < 6) {
             throw new IllegalArgumentException("Senha inválida");
         }
     }
 
     private void validarSenha(String senha) {
+
         if (senha == null || senha.length() < 6) {
-            throw new IllegalArgumentException("Senha deve ter no mínimo 6 caracteres");
+            throw new IllegalArgumentException(
+                    "Senha deve ter no mínimo 6 caracteres");
         }
     }
 

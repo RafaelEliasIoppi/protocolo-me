@@ -1,6 +1,7 @@
 package back.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -13,12 +14,21 @@ public class OrgaoDoado {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "protocolo_me_id")
-    @JsonIgnoreProperties({"exames", "orgaosDoados", "paciente", "centralTransplantes", "hibernateLazyInitializer", "handler"})
-    private ProtocoloME protocoloME;
+    @JoinColumn(name = "doacao_id")
+    @JsonIgnoreProperties({"orgaos", "protocoloME"})
+    private Doacao doacao;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String nomeOrgao;
+    private TipoOrgao tipo;
+
+    // 🔥 NOVO: lado (quando aplicável)
+    @Enumerated(EnumType.STRING)
+    private LadoOrgao lado;
+
+    // 🔥 NOVO: subtipo (ex: esclera, válvula, etc)
+    @Enumerated(EnumType.STRING)
+    private SubtipoOrgao subtipo;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -27,22 +37,12 @@ public class OrgaoDoado {
     @Column(length = 1000)
     private String motivo;
 
-    @Column
     private String hospitalReceptor;
-
-    @Column
     private String pacienteReceptor;
-
-    @Column
     private String cpfReceptor;
 
-    @Column
     private LocalDateTime dataArmazenamento;
-
-    @Column
     private LocalDateTime dataImplantacao;
-
-    @Column
     private LocalDateTime dataDescarte;
 
     @Column(length = 500)
@@ -57,137 +57,65 @@ public class OrgaoDoado {
     @Column
     private LocalDateTime dataAtualizacao;
 
-    // Construtores
+    // =========================
+    // CONSTRUTORES
+    // =========================
+
     public OrgaoDoado() {}
 
-    public OrgaoDoado(ProtocoloME protocoloME, String nomeOrgao) {
-        this.protocoloME = protocoloME;
-        this.nomeOrgao = nomeOrgao;
-        this.status = StatusOrgaoDoado.AGUARDANDO_IMPLANTACAO;
+    public OrgaoDoado(Doacao doacao, TipoOrgao tipo, LadoOrgao lado) {
+        this.doacao = doacao;
+        this.tipo = tipo;
+        this.lado = lado;
     }
 
-    // Getters e Setters
-    public Long getId() {
-        return id;
+    // =========================
+    // VALIDAÇÕES
+    // =========================
+
+    @PrePersist
+    @PreUpdate
+    private void validarEstado() {
+
+        // Não pode criar órgão se doação recusada
+        if (doacao != null && Boolean.FALSE.equals(doacao.getAutorizada())) {
+            throw new RuntimeException("Doação não autorizada não pode ter órgãos");
+        }
+
+        // Implantado precisa de data
+        if (status == StatusOrgaoDoado.IMPLANTADO && dataImplantacao == null) {
+            throw new RuntimeException("Órgão implantado precisa de data de implantação");
+        }
+
+        // Descartado precisa de motivo
+        if (status == StatusOrgaoDoado.DESCARTADO && motivoDescarte == null) {
+            throw new RuntimeException("Órgão descartado precisa de motivo");
+        }
+
+        // Não pode implantar e descartar ao mesmo tempo
+        if (dataImplantacao != null && dataDescarte != null) {
+            throw new RuntimeException("Órgão não pode ser implantado e descartado ao mesmo tempo");
+        }
+
+        // 🔥 REGRA DE LADO
+        if (tipo == TipoOrgao.RIM || tipo == TipoOrgao.PULMAO || tipo == TipoOrgao.CORNEA) {
+            if (lado == null) {
+                throw new RuntimeException("Órgão exige lado (direito/esquerdo)");
+            }
+        }
+
+        // Órgãos que NÃO devem ter lado
+        if (tipo == TipoOrgao.FIGADO || tipo == TipoOrgao.CORACAO || tipo == TipoOrgao.PANCREAS) {
+            if (lado != null) {
+                throw new RuntimeException("Este órgão não possui lado");
+            }
+        }
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    // =========================
+    // LIFECYCLE
+    // =========================
 
-    public ProtocoloME getProtocoloME() {
-        return protocoloME;
-    }
-
-    public void setProtocoloME(ProtocoloME protocoloME) {
-        this.protocoloME = protocoloME;
-    }
-
-    public String getNomeOrgao() {
-        return nomeOrgao;
-    }
-
-    public void setNomeOrgao(String nomeOrgao) {
-        this.nomeOrgao = nomeOrgao;
-    }
-
-    public StatusOrgaoDoado getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusOrgaoDoado status) {
-        this.status = status;
-    }
-
-    public String getMotivo() {
-        return motivo;
-    }
-
-    public void setMotivo(String motivo) {
-        this.motivo = motivo;
-    }
-
-    public String getHospitalReceptor() {
-        return hospitalReceptor;
-    }
-
-    public void setHospitalReceptor(String hospitalReceptor) {
-        this.hospitalReceptor = hospitalReceptor;
-    }
-
-    public String getPacienteReceptor() {
-        return pacienteReceptor;
-    }
-
-    public void setPacienteReceptor(String pacienteReceptor) {
-        this.pacienteReceptor = pacienteReceptor;
-    }
-
-    public String getCpfReceptor() {
-        return cpfReceptor;
-    }
-
-    public void setCpfReceptor(String cpfReceptor) {
-        this.cpfReceptor = cpfReceptor;
-    }
-
-    public LocalDateTime getDataArmazenamento() {
-        return dataArmazenamento;
-    }
-
-    public void setDataArmazenamento(LocalDateTime dataArmazenamento) {
-        this.dataArmazenamento = dataArmazenamento;
-    }
-
-    public LocalDateTime getDataImplantacao() {
-        return dataImplantacao;
-    }
-
-    public void setDataImplantacao(LocalDateTime dataImplantacao) {
-        this.dataImplantacao = dataImplantacao;
-    }
-
-    public LocalDateTime getDataDescarte() {
-        return dataDescarte;
-    }
-
-    public void setDataDescarte(LocalDateTime dataDescarte) {
-        this.dataDescarte = dataDescarte;
-    }
-
-    public String getMotivoDescarte() {
-        return motivoDescarte;
-    }
-
-    public void setMotivoDescarte(String motivoDescarte) {
-        this.motivoDescarte = motivoDescarte;
-    }
-
-    public String getObservacoes() {
-        return observacoes;
-    }
-
-    public void setObservacoes(String observacoes) {
-        this.observacoes = observacoes;
-    }
-
-    public LocalDateTime getDataCriacao() {
-        return dataCriacao;
-    }
-
-    public void setDataCriacao(LocalDateTime dataCriacao) {
-        this.dataCriacao = dataCriacao;
-    }
-
-    public LocalDateTime getDataAtualizacao() {
-        return dataAtualizacao;
-    }
-
-    public void setDataAtualizacao(LocalDateTime dataAtualizacao) {
-        this.dataAtualizacao = dataAtualizacao;
-    }
-
-    // Lifecycle callbacks
     @PrePersist
     protected void onCreate() {
         dataCriacao = LocalDateTime.now();
@@ -199,28 +127,87 @@ public class OrgaoDoado {
         dataAtualizacao = LocalDateTime.now();
     }
 
-    // Enum para status do órgão doado
-    public enum StatusOrgaoDoado {
-        AGUARDANDO_IMPLANTACAO("Aguardando Implantação", "Órgão em preservação, aguardando receptor"),
-        IMPLANTADO("Implantado", "Órgão foi implantado com sucesso"),
-        DESCARTADO("Descartado", "Órgão foi descartado por contraindicação"),
-        PROCESSANDO("Processando", "Órgão em processamento para implantação"),
-        FALHA_IMPLANTACAO("Falha na Implantação", "Tentativa de implantação falhou");
+    // =========================
+    // ENUMS
+    // =========================
 
-        private String label;
-        private String descricao;
-
-        StatusOrgaoDoado(String label, String descricao) {
-            this.label = label;
-            this.descricao = descricao;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public String getDescricao() {
-            return descricao;
-        }
+    public enum TipoOrgao {
+        RIM,
+        FIGADO,
+        CORACAO,
+        PULMAO,
+        PANCREAS,
+        CORNEA,
+        PELE,
+        OSSO,
+        VALVA_CARDIACA
     }
+
+    public enum LadoOrgao {
+        DIREITO,
+        ESQUERDO
+    }
+
+    public enum SubtipoOrgao {
+        // Córnea
+        CORNEA_TOTAL,
+        ESCLERA,
+
+        // Valva
+        VALVA_AORTICA,
+        VALVA_MITRAL,
+
+        // Outros
+        ENXERTO_OSSEO,
+        PELE_TOTAL
+    }
+
+    public enum StatusOrgaoDoado {
+        AGUARDANDO_IMPLANTACAO,
+        EM_CAPTACAO,
+        EM_TRANSPORTE,
+        IMPLANTADO,
+        DESCARTADO,
+        FALHA_IMPLANTACAO
+    }
+
+    // =========================
+    // GETTERS E SETTERS
+    // =========================
+
+    public Long getId() { return id; }
+
+    public Doacao getDoacao() { return doacao; }
+    public void setDoacao(Doacao doacao) { this.doacao = doacao; }
+
+    public TipoOrgao getTipo() { return tipo; }
+    public void setTipo(TipoOrgao tipo) { this.tipo = tipo; }
+
+    public LadoOrgao getLado() { return lado; }
+    public void setLado(LadoOrgao lado) { this.lado = lado; }
+
+    public SubtipoOrgao getSubtipo() { return subtipo; }
+    public void setSubtipo(SubtipoOrgao subtipo) { this.subtipo = subtipo; }
+
+    public StatusOrgaoDoado getStatus() { return status; }
+    public void setStatus(StatusOrgaoDoado status) { this.status = status; }
+
+    public String getMotivo() { return motivo; }
+    public void setMotivo(String motivo) { this.motivo = motivo; }
+
+    public String getHospitalReceptor() { return hospitalReceptor; }
+    public void setHospitalReceptor(String hospitalReceptor) { this.hospitalReceptor = hospitalReceptor; }
+
+    public String getPacienteReceptor() { return pacienteReceptor; }
+    public void setPacienteReceptor(String pacienteReceptor) { this.pacienteReceptor = pacienteReceptor; }
+
+    public String getCpfReceptor() { return cpfReceptor; }
+    public void setCpfReceptor(String cpfReceptor) { this.cpfReceptor = cpfReceptor; }
+
+    public LocalDateTime getDataImplantacao() { return dataImplantacao; }
+    public void setDataImplantacao(LocalDateTime dataImplantacao) { this.dataImplantacao = dataImplantacao; }
+
+    public LocalDateTime getDataDescarte() { return dataDescarte; }
+    public void setDataDescarte(LocalDateTime dataDescarte) { this.dataDescarte = dataDescarte; }
+
 }

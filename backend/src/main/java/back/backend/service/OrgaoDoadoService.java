@@ -7,6 +7,7 @@ import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.mapper.OrgaoDoadoMapper;
 import back.backend.repository.OrgaoDoadoRepository;
 import back.backend.repository.ProtocoloMERepository;
+
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
@@ -24,10 +25,13 @@ public class OrgaoDoadoService {
             OrgaoDoadoRepository orgaoDoadoRepository,
             ProtocoloMERepository protocoloMERepository,
             OrgaoDoadoMapper orgaoDoadoMapper) {
+
         this.orgaoDoadoRepository = orgaoDoadoRepository;
         this.protocoloMERepository = protocoloMERepository;
         this.orgaoDoadoMapper = orgaoDoadoMapper;
     }
+
+    // ================= CONSTANTES =================
 
     private static final Set<String> ORGAOS_SNT = Set.of(
             "Coração", "Pulmão", "Fígado", "Rins", "Pâncreas",
@@ -54,7 +58,8 @@ public class OrgaoDoadoService {
             Map.entry("valvulas cardiacas", "Válvulas Cardíacas")
     );
 
-    // CREATE
+    // ================= CREATE =================
+
     public OrgaoDoadoDTO criar(OrgaoDoado orgaoDoado) {
 
         validarProtocolo(orgaoDoado);
@@ -66,13 +71,15 @@ public class OrgaoDoadoService {
         return toDTO(orgaoDoadoRepository.save(orgaoDoado));
     }
 
-    // UPDATE
+    // ================= UPDATE =================
+
     public OrgaoDoadoDTO atualizar(Long id, OrgaoDoado atualizado) {
 
         OrgaoDoado entity = buscarEntity(id);
 
         if (atualizado.getNomeOrgao() != null) {
-            entity.setNomeOrgao(validarENormalizarNomeOrgao(atualizado.getNomeOrgao()));
+            entity.setNomeOrgao(
+                    validarENormalizarNomeOrgao(atualizado.getNomeOrgao()));
         }
 
         if (atualizado.getStatus() != null) {
@@ -85,7 +92,8 @@ public class OrgaoDoadoService {
         return toDTO(orgaoDoadoRepository.save(entity));
     }
 
-    // IMPLANTAR
+    // ================= AÇÕES =================
+
     public OrgaoDoadoDTO registrarImplantacao(Long id, String hospital, String paciente) {
 
         OrgaoDoado entity = buscarEntity(id);
@@ -98,7 +106,6 @@ public class OrgaoDoadoService {
         return toDTO(orgaoDoadoRepository.save(entity));
     }
 
-    // DESCARTAR
     public OrgaoDoadoDTO registrarDescarte(Long id, String motivo) {
 
         OrgaoDoado entity = buscarEntity(id);
@@ -110,13 +117,17 @@ public class OrgaoDoadoService {
         return toDTO(orgaoDoadoRepository.save(entity));
     }
 
-    // QUERY
+    // ================= QUERY =================
+
     public OrgaoDoadoDTO buscarPorId(Long id) {
         return toDTO(buscarEntity(id));
     }
 
     public List<OrgaoDoadoDTO> listarPorProtocolo(Long protocoloId) {
-        return orgaoDoadoRepository.findByProtocoloMEId(protocoloId).stream().map(this::toDTO).toList();
+        return orgaoDoadoRepository.findByProtocoloMEId(protocoloId)
+                .stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     public void deletar(Long id) {
@@ -126,22 +137,24 @@ public class OrgaoDoadoService {
         orgaoDoadoRepository.deleteById(id);
     }
 
-    // STATS
+    // ================= STATS =================
+
     public OrgaoStatisticas obterEstatisticas(Long protocoloId) {
 
         List<OrgaoDoadoDTO> lista = listarPorProtocolo(protocoloId);
 
         long total = lista.size();
+
         long implantados = lista.stream()
-            .filter(o -> "IMPLANTADO".equals(o.getStatus()))
+                .filter(o -> "IMPLANTADO".equals(o.getStatus()))
                 .count();
 
         long descartados = lista.stream()
-            .filter(o -> "DESCARTADO".equals(o.getStatus()))
+                .filter(o -> "DESCARTADO".equals(o.getStatus()))
                 .count();
 
         long aguardando = lista.stream()
-            .filter(o -> "AGUARDANDO_IMPLANTACAO".equals(o.getStatus()))
+                .filter(o -> "AGUARDANDO_IMPLANTACAO".equals(o.getStatus()))
                 .count();
 
         return new OrgaoStatisticas(total, implantados, descartados, aguardando);
@@ -151,7 +164,8 @@ public class OrgaoDoadoService {
 
     private OrgaoDoado buscarEntity(Long id) {
         return orgaoDoadoRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Órgão doado não encontrado"));
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException("Órgão doado não encontrado"));
     }
 
     private OrgaoDoadoDTO toDTO(OrgaoDoado entity) {
@@ -160,28 +174,36 @@ public class OrgaoDoadoService {
 
     private void validarProtocolo(OrgaoDoado orgao) {
 
-        if (orgao.getProtocoloME() == null || orgao.getProtocoloME().getId() == null) {
+        if (orgao.getProtocoloME() == null ||
+            orgao.getProtocoloME().getId() == null) {
+
             throw new IllegalArgumentException("Protocolo de ME é obrigatório");
         }
 
-        ProtocoloME protocolo = protocoloMERepository.findById(orgao.getProtocoloME().getId())
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado"));
+        ProtocoloME protocolo = protocoloMERepository.findById(
+                orgao.getProtocoloME().getId()
+        ).orElseThrow(() ->
+                new RecursoNaoEncontradoException("Protocolo não encontrado"));
 
         orgao.setProtocoloME(protocolo);
     }
 
     private void validarNome(OrgaoDoado orgao) {
 
-        if (orgao.getNomeOrgao() == null || orgao.getNomeOrgao().isBlank()) {
+        if (orgao.getNomeOrgao() == null ||
+            orgao.getNomeOrgao().isBlank()) {
+
             throw new IllegalArgumentException("Nome do órgão é obrigatório");
         }
 
-        orgao.setNomeOrgao(validarENormalizarNomeOrgao(orgao.getNomeOrgao()));
+        orgao.setNomeOrgao(
+                validarENormalizarNomeOrgao(orgao.getNomeOrgao()));
     }
 
     private void aplicarStatusPadrao(OrgaoDoado orgao) {
         if (orgao.getStatus() == null) {
-            orgao.setStatus(OrgaoDoado.StatusOrgaoDoado.AGUARDANDO_IMPLANTACAO);
+            orgao.setStatus(
+                    OrgaoDoado.StatusOrgaoDoado.AGUARDANDO_IMPLANTACAO);
         }
     }
 
@@ -189,24 +211,26 @@ public class OrgaoDoadoService {
 
         if (orgao.getStatus() == OrgaoDoado.StatusOrgaoDoado.IMPLANTADO
                 && orgao.getDataImplantacao() == null) {
+
             orgao.setDataImplantacao(LocalDateTime.now());
         }
 
         if (orgao.getStatus() == OrgaoDoado.StatusOrgaoDoado.DESCARTADO
                 && orgao.getDataDescarte() == null) {
+
             orgao.setDataDescarte(LocalDateTime.now());
         }
     }
 
-    private void copiarCamposSimples(OrgaoDoado destino, OrgaoDoado origem) {
+    private void copiarCamposSimples(OrgaoDoado dest, OrgaoDoado orig) {
 
-        if (origem.getMotivo() != null) destino.setMotivo(origem.getMotivo());
-        if (origem.getHospitalReceptor() != null) destino.setHospitalReceptor(origem.getHospitalReceptor());
-        if (origem.getPacienteReceptor() != null) destino.setPacienteReceptor(origem.getPacienteReceptor());
-        if (origem.getCpfReceptor() != null) destino.setCpfReceptor(normalizarCpf(origem.getCpfReceptor()));
-        if (origem.getDataArmazenamento() != null) destino.setDataArmazenamento(origem.getDataArmazenamento());
-        if (origem.getMotivoDescarte() != null) destino.setMotivoDescarte(origem.getMotivoDescarte());
-        if (origem.getObservacoes() != null) destino.setObservacoes(origem.getObservacoes());
+        if (orig.getMotivo() != null) dest.setMotivo(orig.getMotivo());
+        if (orig.getHospitalReceptor() != null) dest.setHospitalReceptor(orig.getHospitalReceptor());
+        if (orig.getPacienteReceptor() != null) dest.setPacienteReceptor(orig.getPacienteReceptor());
+        if (orig.getCpfReceptor() != null) dest.setCpfReceptor(normalizarCpf(orig.getCpfReceptor()));
+        if (orig.getDataArmazenamento() != null) dest.setDataArmazenamento(orig.getDataArmazenamento());
+        if (orig.getMotivoDescarte() != null) dest.setMotivoDescarte(orig.getMotivoDescarte());
+        if (orig.getObservacoes() != null) dest.setObservacoes(orig.getObservacoes());
     }
 
     private String validarENormalizarNomeOrgao(String nome) {
@@ -238,17 +262,24 @@ public class OrgaoDoadoService {
             throw new IllegalArgumentException("CPF inválido");
         }
 
-        return n.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
+        return n.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})",
+                "$1.$2.$3-$4");
     }
 
-    // DTO INTERNO
+    // ================= DTO INTERNO =================
+
     public static class OrgaoStatisticas {
+
         public final long total;
         public final long implantados;
         public final long descartados;
         public final long aguardando;
 
-        public OrgaoStatisticas(long total, long implantados, long descartados, long aguardando) {
+        public OrgaoStatisticas(long total,
+                                long implantados,
+                                long descartados,
+                                long aguardando) {
+
             this.total = total;
             this.implantados = implantados;
             this.descartados = descartados;
@@ -256,5 +287,3 @@ public class OrgaoDoadoService {
         }
     }
 }
-
-

@@ -25,6 +25,7 @@ public class EstatisticasTransplantesController {
         this.estatisticaProtocoloMEService = estatisticaProtocoloMEService;
     }
 
+    // 🔹 Estatísticas gerais por ano
     @GetMapping("/gerais")
     public ResponseEntity<EstatisticasTransplantesService.EstatisticasGeradasTransplante> obterEstatisticasGerais(
             @RequestParam(required = false) Integer ano) {
@@ -32,20 +33,37 @@ public class EstatisticasTransplantesController {
         return ResponseEntity.ok(estatisticasService.obterEstatisticasGerais(ano));
     }
 
+    // 🔹 Estatísticas por paciente (por ano)
     @GetMapping("/por-paciente")
-    public ResponseEntity<List<EstatisticasTransplantesService.PacienteDoacaoInfo>> obterEstatisticasPorPaciente(
-            @RequestParam(required = false) Integer ano,
-            @RequestParam(required = false) String nomePaciente,
-            @RequestParam(required = false) String receptor) {
+    public ResponseEntity<List<EstatisticasTransplantesService.PacienteDoacaoInfo>> obterPorAno(
+            @RequestParam(required = false) Integer ano) {
 
-        return ResponseEntity.ok(estatisticasService.obterEstatisticasPorPaciente(ano, nomePaciente, receptor));
+        return ResponseEntity.ok(estatisticasService.obterEstatisticasPorPaciente(ano));
     }
 
+    // 🔹 Buscar por nome do paciente
+    @GetMapping("/por-paciente/nome")
+    public ResponseEntity<List<EstatisticasTransplantesService.PacienteDoacaoInfo>> obterPorNomePaciente(
+            @RequestParam String nomePaciente) {
+
+        return ResponseEntity.ok(estatisticasService.buscarPorNomePaciente(nomePaciente));
+    }
+
+    // 🔹 Buscar por nome do receptor
+    @GetMapping("/por-receptor")
+    public ResponseEntity<List<EstatisticasTransplantesService.PacienteDoacaoInfo>> obterPorNomeReceptor(
+            @RequestParam String nomeReceptor) {
+
+        return ResponseEntity.ok(estatisticasService.buscarPorNomeReceptor(nomeReceptor));
+    }
+
+    // 🔹 Anos disponíveis
     @GetMapping("/anos-disponiveis")
     public ResponseEntity<List<Integer>> obterAnosDisponiveis() {
         return ResponseEntity.ok(estatisticasService.obterAnosDisponiveis());
     }
 
+    // 🔹 Estatísticas do protocolo ME (com filtro por periodicidade/ano/mês)
     @GetMapping("/protocolo-me")
     public ResponseEntity<List<EstatisticaProtocoloMEDTO>> listarEstatisticasPorProtocolo(
             @RequestParam(defaultValue = "ANUAL") String periodicidade,
@@ -57,6 +75,7 @@ public class EstatisticasTransplantesController {
         );
     }
 
+    // 🔹 Obter estatística de um protocolo específico
     @GetMapping("/protocolo-me/{protocoloId}")
     public ResponseEntity<EstatisticaProtocoloMEDTO> obterEstatisticaPorProtocolo(
             @PathVariable Long protocoloId) {
@@ -66,6 +85,7 @@ public class EstatisticasTransplantesController {
         );
     }
 
+    // 🔹 Salvar/atualizar estatística de um protocolo
     @PutMapping("/protocolo-me/{protocoloId}")
     public ResponseEntity<EstatisticaProtocoloMEDTO> salvarEstatisticaPorProtocolo(
             @PathVariable Long protocoloId,
@@ -76,6 +96,7 @@ public class EstatisticasTransplantesController {
         );
     }
 
+    // 🔹 Auditoria: protocolos sem estatística
     @GetMapping("/protocolo-me/auditoria")
     public ResponseEntity<List<EstatisticaProtocoloMEService.ProtocoloSemEstatisticaDTO>> listarProtocolosSemEstatistica(
             @RequestParam(required = false) Integer ano) {

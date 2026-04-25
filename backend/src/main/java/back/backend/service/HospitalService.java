@@ -7,12 +7,13 @@ import back.backend.mapper.HospitalMapper;
 import back.backend.model.Hospital;
 import back.backend.repository.HospitalRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
-
 @Service
+@Transactional
 public class HospitalService {
 
     private final HospitalRepository hospitalRepository;
@@ -23,18 +24,30 @@ public class HospitalService {
         this.hospitalMapper = hospitalMapper;
     }
 
-    // CREATE
+    // ================= CREATE =================
+
     public HospitalDTO criarHospital(Hospital hospital) {
 
-        hospitalRepository.findByCnpj(hospital.getCnpj())
+        validarHospital(hospital);
+
+        String cnpjNormalizado = normalizarCnpj(hospital.getCnpj());
+
+        hospitalRepository.findByCnpj(cnpjNormalizado)
                 .ifPresent(h -> {
-                    throw new ConflitoNegocioException("CNPJ já cadastrado: " + hospital.getCnpj());
+                    throw new ConflitoNegocioException("CNPJ já cadastrado: " + cnpjNormalizado);
                 });
+
+        hospital.setCnpj(cnpjNormalizado);
+
+        if (hospital.getStatus() == null) {
+            hospital.setStatus(Hospital.StatusHospital.ATIVO);
+        }
 
         return toDTO(hospitalRepository.save(hospital));
     }
 
-    // READ
+    // ================= READ =================
+
     public List<HospitalDTO> listarTodos() {
         return hospitalRepository.findAll().stream().map(this::toDTO).toList();
     }
@@ -49,11 +62,11 @@ public class HospitalService {
     }
 
     public Optional<Hospital> buscarPorCnpj(String cnpj) {
-        return hospitalRepository.findByCnpj(cnpj);
+        return hospitalRepository.findByCnpj(normalizarCnpj(cnpj));
     }
 
     public HospitalDTO buscarPorCnpjOuFalhar(String cnpj) {
-        return toDTO(hospitalRepository.findByCnpj(cnpj)
+        return toDTO(hospitalRepository.findByCnpj(normalizarCnpj(cnpj))
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado")));
     }
 
@@ -66,35 +79,40 @@ public class HospitalService {
     }
 
     public List<HospitalDTO> listarPorCidade(String cidade) {
-        return hospitalRepository.findByCidade(cidade).stream().map(this::toDTO).toList();
+        return hospitalRepository.findByCidadeIgnoreCase(cidade.trim())
+                .stream().map(this::toDTO).toList();
     }
 
     public List<HospitalDTO> listarPorEstado(String estado) {
-        return hospitalRepository.findByEstado(estado).stream().map(this::toDTO).toList();
+        return hospitalRepository.findByEstadoIgnoreCase(estado.trim())
+                .stream().map(this::toDTO).toList();
     }
 
-    // UPDATE
+    // ================= UPDATE =================
+
     public HospitalDTO atualizarHospital(Long id, Hospital atualizado) {
 
         Hospital hospital = hospitalRepository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado: " + id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado: " + id));
 
-        hospital.setNome(atualizado.getNome());
-        hospital.setEndereco(atualizado.getEndereco());
-        hospital.setCidade(atualizado.getCidade());
-        hospital.setEstado(atualizado.getEstado());
-        hospital.setTelefone(atualizado.getTelefone());
-        hospital.setEmail(atualizado.getEmail());
-        hospital.setResponsavelMedico(atualizado.getResponsavelMedico());
+        // update parcial seguro
+        if (atualizado.getNome() != null) hospital.setNome(atualizado.getNome());
+        if (atualizado.getEndereco() != null) hospital.setEndereco(atualizado.getEndereco());
+        if (atualizado.getCidade() != null) hospital.setCidade(atualizado.getCidade());
+        if (atualizado.getEstado() != null) hospital.setEstado(atualizado.getEstado());
+        if (atualizado.getTelefone() != null) hospital.setTelefone(atualizado.getTelefone());
+        if (atualizado.getEmail() != null) hospital.setEmail(atualizado.getEmail());
+        if (atualizado.getResponsavelMedico() != null) hospital.setResponsavelMedico(atualizado.getResponsavelMedico());
 
         return toDTO(hospitalRepository.save(hospital));
     }
 
-    // PATCH STATUS
+    // ================= STATUS =================
+
     public HospitalDTO alterarStatus(Long id, Hospital.StatusHospital status) {
 
         Hospital hospital = hospitalRepository.findById(id)
-            .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado: " + id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado: " + id));
 
         hospital.setStatus(status);
 
@@ -105,7 +123,8 @@ public class HospitalService {
         return alterarStatus(id, parseStatus(status));
     }
 
-    // DELETE
+    // ================= DELETE =================
+
     public void deletarHospital(Long id) {
 
         if (!hospitalRepository.existsById(id)) {
@@ -115,11 +134,44 @@ public class HospitalService {
         hospitalRepository.deleteById(id);
     }
 
+    // ================= HELPERS =================
+
+    private void validarHospital(Hospital hospital) {
+
+        if (hospital.getNome() == null || hospital.getNome().isBlank()) {
+            throw new IllegalArgumentException("Nome do hospital é obrigatório");
+        }
+
+        if (hospital.getCnpj() == null || hospital.getCnpj().isBlank()) {
+            throw new IllegalArgumentException("CNPJ é obrigatório");
+        }
+    }
+
+    private String normalizarCnpj(String cnpj) {
+
+        if (cnpj == null || cnpj.isBlank()) {
+            throw new IllegalArgumentException("CNPJ obrigatório");
+        }
+
+        String n = cnpj.replaceAll("\\D", "");
+
+        if (n.length() != 14) {
+            throw new IllegalArgumentException("CNPJ inválido");
+        }
+
+        return n.replaceAll("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})",
+                "$1.$2.$3/$4-$5");
+    }
+
     private HospitalDTO toDTO(Hospital hospital) {
         return hospitalMapper.toDTO(hospital);
     }
 
     private Hospital.StatusHospital parseStatus(String status) {
-        return Hospital.StatusHospital.valueOf(status.toUpperCase());
+        try {
+            return Hospital.StatusHospital.valueOf(status.toUpperCase());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Status inválido: " + status);
+        }
     }
 }

@@ -1,17 +1,18 @@
 package back.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
 import javax.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "paciente")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Paciente {
@@ -20,10 +21,12 @@ public class Paciente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @NotBlank
     private String nome;
 
     @Column(nullable = false, unique = true)
+    @NotBlank
+    @Size(min = 11, max = 11)
     private String cpf;
 
     @Column(nullable = false)
@@ -33,7 +36,6 @@ public class Paciente {
     @Column(nullable = false)
     private Genero genero;
 
-    @Column
     private String hospitalOrigem;
 
     @ManyToOne(optional = false)
@@ -41,10 +43,8 @@ public class Paciente {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Hospital hospital;
 
-    @Column
     private String leito;
 
-    @Column
     private LocalDate dataInternacao;
 
     @Column(columnDefinition = "TEXT")
@@ -53,33 +53,19 @@ public class Paciente {
     @Column(columnDefinition = "TEXT")
     private String historicoMedico;
 
-    @Column
+    // Responsável
     private String nomeResponsavel;
-
-    @Column
     private String telefoneResponsavel;
-
-    @Column
     private String emailResponsavel;
-
-    @Column(length = 30)
-    private String statusEntrevistaFamiliar;
-
-    @Column(columnDefinition = "TEXT")
-    private String observacoesEntrevistaFamiliar;
-
-    @Column
-    private LocalDateTime dataEntrevistaFamiliar;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusPaciente status = StatusPaciente.INTERNADO;
 
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"paciente", "centralTransplantes", "exames", "orgaosDoados", "hibernateLazyInitializer", "handler"})
+    @JsonIgnoreProperties({"paciente", "centralTransplantes", "exames"})
     private List<ProtocoloME> protocolosME;
 
-    // Exames adicionados quando em protocolo ME
     @Transient
     private List<ExameME> examesEmProtocolo;
 
@@ -100,7 +86,6 @@ public class Paciente {
         this.dataAtualizacao = LocalDateTime.now();
     }
 
-    // Enums
     public enum Genero {
         MASCULINO, FEMININO, OUTRO
     }
@@ -114,72 +99,4 @@ public class Paciente {
         RECUSADO,
         EXODO
     }
-
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getCpf() { return cpf; }
-    public void setCpf(String cpf) { this.cpf = cpf; }
-
-    public LocalDate getDataNascimento() { return dataNascimento; }
-    public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
-
-    public Genero getGenero() { return genero; }
-    public void setGenero(Genero genero) { this.genero = genero; }
-
-    public String getHospitalOrigem() { return hospitalOrigem; }
-    public void setHospitalOrigem(String hospitalOrigem) { this.hospitalOrigem = hospitalOrigem; }
-
-    public Hospital getHospital() { return hospital; }
-    public void setHospital(Hospital hospital) { this.hospital = hospital; }
-
-    public String getLeito() { return leito; }
-    public void setLeito(String leito) { this.leito = leito; }
-
-    public LocalDate getDataInternacao() { return dataInternacao; }
-    public void setDataInternacao(LocalDate dataInternacao) { this.dataInternacao = dataInternacao; }
-
-    public String getDiagnosticoPrincipal() { return diagnosticoPrincipal; }
-    public void setDiagnosticoPrincipal(String diagnosticoPrincipal) { this.diagnosticoPrincipal = diagnosticoPrincipal; }
-
-    public String getHistoricoMedico() { return historicoMedico; }
-    public void setHistoricoMedico(String historicoMedico) { this.historicoMedico = historicoMedico; }
-
-    public String getNomeResponsavel() { return nomeResponsavel; }
-    public void setNomeResponsavel(String nomeResponsavel) { this.nomeResponsavel = nomeResponsavel; }
-
-    public String getTelefoneResponsavel() { return telefoneResponsavel; }
-    public void setTelefoneResponsavel(String telefoneResponsavel) { this.telefoneResponsavel = telefoneResponsavel; }
-
-    public String getEmailResponsavel() { return emailResponsavel; }
-    public void setEmailResponsavel(String emailResponsavel) { this.emailResponsavel = emailResponsavel; }
-
-    public String getStatusEntrevistaFamiliar() { return statusEntrevistaFamiliar; }
-    public void setStatusEntrevistaFamiliar(String statusEntrevistaFamiliar) { this.statusEntrevistaFamiliar = statusEntrevistaFamiliar; }
-
-    public String getObservacoesEntrevistaFamiliar() { return observacoesEntrevistaFamiliar; }
-    public void setObservacoesEntrevistaFamiliar(String observacoesEntrevistaFamiliar) { this.observacoesEntrevistaFamiliar = observacoesEntrevistaFamiliar; }
-
-    public LocalDateTime getDataEntrevistaFamiliar() { return dataEntrevistaFamiliar; }
-    public void setDataEntrevistaFamiliar(LocalDateTime dataEntrevistaFamiliar) { this.dataEntrevistaFamiliar = dataEntrevistaFamiliar; }
-
-    public StatusPaciente getStatus() { return status; }
-    public void setStatus(StatusPaciente status) { this.status = status; }
-
-    public List<ProtocoloME> getProtocolosME() { return protocolosME; }
-    public void setProtocolosME(List<ProtocoloME> protocolosME) { this.protocolosME = protocolosME; }
-
-    public LocalDateTime getDataCriacao() { return dataCriacao; }
-    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
-
-    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
-    public void setDataAtualizacao(LocalDateTime dataAtualizacao) { this.dataAtualizacao = dataAtualizacao; }
-
-    public List<ExameME> getExamesEmProtocolo() { return examesEmProtocolo; }
-    public void setExamesEmProtocolo(List<ExameME> examesEmProtocolo) { this.examesEmProtocolo = examesEmProtocolo; }
-
 }

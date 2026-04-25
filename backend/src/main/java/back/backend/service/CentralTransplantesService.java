@@ -4,20 +4,14 @@ import back.backend.dto.CentralTransplantesDTO;
 import back.backend.dto.CentralTransplantesRequestDTO;
 import back.backend.exception.ConflitoNegocioException;
 import back.backend.exception.RecursoNaoEncontradoException;
-import back.backend.model.CentralTransplantes;
-import back.backend.model.Hospital;
-import back.backend.model.Paciente;
-import back.backend.model.ProtocoloME;
-import back.backend.repository.CentralTransplantesRepository;
-import back.backend.repository.HospitalRepository;
-import back.backend.repository.PacienteRepository;
-import back.backend.repository.ProtocoloMERepository;
+import back.backend.model.*;
+import back.backend.repository.*;
 import back.backend.mapper.CentralTransplantesMapper;
+
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CentralTransplantesService {
@@ -26,45 +20,44 @@ public class CentralTransplantesService {
     private final HospitalRepository hospitalRepository;
     private final ProtocoloMERepository protocoloMERepository;
     private final PacienteRepository pacienteRepository;
-    private final CentralTransplantesMapper centralTransplantesMapper;
+    private final CentralTransplantesMapper mapper;
 
     public CentralTransplantesService(
             CentralTransplantesRepository centralRepository,
             HospitalRepository hospitalRepository,
             ProtocoloMERepository protocoloMERepository,
             PacienteRepository pacienteRepository,
-            CentralTransplantesMapper centralTransplantesMapper) {
+            CentralTransplantesMapper mapper) {
 
         this.centralRepository = centralRepository;
         this.hospitalRepository = hospitalRepository;
         this.protocoloMERepository = protocoloMERepository;
         this.pacienteRepository = pacienteRepository;
-        this.centralTransplantesMapper = centralTransplantesMapper;
+        this.mapper = mapper;
     }
 
-    // ---------------- DTO BRIDGE ----------------
+    // =========================
+    // DTO
+    // =========================
 
     public CentralTransplantesDTO criarCentralFromDTO(CentralTransplantesRequestDTO dto) {
-        CentralTransplantes central = mapDto(dto);
-        return toDTO(criarCentral(central));
+        CentralTransplantes central = mapDto(dto, new CentralTransplantes());
+        validarDuplicidade(central, null);
+        return mapper.toDTO(centralRepository.save(central));
     }
 
     public CentralTransplantesDTO atualizarCentralFromDTO(Long id, CentralTransplantesRequestDTO dto) {
-        CentralTransplantes central = centralRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"));
+
+        CentralTransplantes central = getCentral(id);
 
         mapDto(dto, central);
+        validarDuplicidade(central, id);
 
-        return toDTO(centralRepository.save(central));
+        return mapper.toDTO(centralRepository.save(central));
     }
 
-    private CentralTransplantes mapDto(CentralTransplantesRequestDTO dto) {
-        CentralTransplantes c = new CentralTransplantes();
-        mapDto(dto, c);
-        return c;
-    }
+    private CentralTransplantes mapDto(CentralTransplantesRequestDTO dto, CentralTransplantes c) {
 
-    private void mapDto(CentralTransplantesRequestDTO dto, CentralTransplantes c) {
         c.setNome(dto.getNome());
         c.setCnpj(dto.getCnpj());
         c.setEndereco(dto.getEndereco());
@@ -78,60 +71,20 @@ public class CentralTransplantesService {
         c.setTelefoneCoordenador(dto.getTelefoneCoordenador());
         c.setCapacidadeProcessamento(dto.getCapacidadeProcessamento());
         c.setEspecialidadesOrgaos(dto.getEspecialidadesOrgaos());
+
+        return c;
     }
 
-    // ---------------- CRUD ----------------
-
-    private CentralTransplantes criarCentral(CentralTransplantes central) {
-        validarDuplicidade(central);
-        return centralRepository.save(central);
-    }
+    // =========================
+    // CRUD
+    // =========================
 
     public List<CentralTransplantesDTO> listarTodas() {
-        return centralRepository.findAll().stream().map(this::toDTO).toList();
-    }
-
-    public Optional<CentralTransplantesDTO> buscarPorId(Long id) {
-        return centralRepository.findById(id).map(this::toDTO);
+        return centralRepository.findAll().stream().map(mapper::toDTO).toList();
     }
 
     public CentralTransplantesDTO buscarPorIdOuFalhar(Long id) {
-        return toDTO(centralRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada")));
-    }
-
-    public Optional<CentralTransplantesDTO> buscarPorCnpj(String cnpj) {
-        return centralRepository.findByCnpj(cnpj).map(this::toDTO);
-    }
-
-    public CentralTransplantesDTO buscarPorCnpjOuFalhar(String cnpj) {
-        return toDTO(centralRepository.findByCnpj(cnpj)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada")));
-    }
-
-    public Optional<CentralTransplantesDTO> buscarPorNome(String nome) {
-        return centralRepository.findByNome(nome).map(this::toDTO);
-    }
-
-    public CentralTransplantesDTO buscarPorNomeOuFalhar(String nome) {
-        return toDTO(centralRepository.findByNome(nome)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada")));
-    }
-
-    public List<CentralTransplantesDTO> listarPorCidade(String cidade) {
-        return centralRepository.findByCidade(cidade).stream().map(this::toDTO).toList();
-    }
-
-    public List<CentralTransplantesDTO> listarPorEstado(String estado) {
-        return centralRepository.findByEstado(estado).stream().map(this::toDTO).toList();
-    }
-
-    public List<CentralTransplantesDTO> listarPorStatus(CentralTransplantes.StatusCentral status) {
-        return centralRepository.findByStatusOperacional(status).stream().map(this::toDTO).toList();
-    }
-
-    public List<CentralTransplantesDTO> listarPorStatus(String status) {
-        return listarPorStatus(parseStatus(status));
+        return mapper.toDTO(getCentral(id));
     }
 
     public void deletarCentral(Long id) {
@@ -141,16 +94,14 @@ public class CentralTransplantesService {
         centralRepository.deleteById(id);
     }
 
-    // ---------------- BUSINESS ----------------
-
-    public CentralTransplantesDTO alterarStatus(Long id, CentralTransplantes.StatusCentral status) {
-        CentralTransplantes c = getCentral(id);
-        c.setStatusOperacional(status);
-        return toDTO(centralRepository.save(c));
-    }
+    // =========================
+    // BUSINESS
+    // =========================
 
     public CentralTransplantesDTO alterarStatus(Long id, String status) {
-        return alterarStatus(id, parseStatus(status));
+        CentralTransplantes c = getCentral(id);
+        c.setStatusOperacional(parseStatus(status));
+        return mapper.toDTO(centralRepository.save(c));
     }
 
     public CentralTransplantesDTO vincularHospital(Long centralId, Long hospitalId) {
@@ -158,15 +109,14 @@ public class CentralTransplantesService {
         CentralTransplantes central = getCentral(centralId);
         Hospital hospital = getHospital(hospitalId);
 
-        if (central.getHospitaisParceados() == null) {
-            central.setHospitaisParceados(new ArrayList<>());
+        List<Hospital> lista = getOrDefaultList(central.getHospitaisParceados());
+
+        if (!lista.contains(hospital)) {
+            lista.add(hospital);
         }
 
-        if (!central.getHospitaisParceados().contains(hospital)) {
-            central.getHospitaisParceados().add(hospital);
-        }
-
-        return toDTO(centralRepository.save(central));
+        central.setHospitaisParceados(lista);
+        return mapper.toDTO(centralRepository.save(central));
     }
 
     public CentralTransplantesDTO removerHospital(Long centralId, Long hospitalId) {
@@ -174,14 +124,80 @@ public class CentralTransplantesService {
         CentralTransplantes central = getCentral(centralId);
         Hospital hospital = getHospital(hospitalId);
 
-        if (central.getHospitaisParceados() != null) {
-            central.getHospitaisParceados().remove(hospital);
-        }
+        List<Hospital> lista = getOrDefaultList(central.getHospitaisParceados());
+        lista.remove(hospital);
 
-        return toDTO(centralRepository.save(central));
+        central.setHospitaisParceados(lista);
+        return mapper.toDTO(centralRepository.save(central));
     }
 
-    // ---------------- HELPERS ----------------
+    // =========================
+    // 🔥 ESTATÍSTICAS REAIS
+    // =========================
+
+    public EstatisticasCentralDoacaoTransplante obterEstatisticasDoacaoTransplante() {
+
+        List<ProtocoloME> protocolos = protocoloMERepository.findAll();
+
+        EstatisticasCentralDoacaoTransplante dto = new EstatisticasCentralDoacaoTransplante();
+
+        dto.setTotalProtocolos(protocolos.size());
+
+        long emAvaliacao = 0;
+        long autorizados = 0;
+        long recusas = 0;
+
+        Map<String, Long> orgaosCount = new HashMap<>();
+
+        for (ProtocoloME p : protocolos) {
+
+            switch (p.getStatus()) {
+                case NOTIFICADO, EM_PROCESSO -> emAvaliacao++;
+                case DOACAO_AUTORIZADA -> autorizados++;
+                case FAMILIA_RECUSOU -> recusas++;
+            }
+
+            // 🔥 CONTAR ÓRGÃOS
+            if (p.getDoacao() != null && p.getDoacao().getOrgaos() != null) {
+                for (OrgaoDoado orgao : p.getDoacao().getOrgaos()) {
+
+                    String nome = orgao.getTipo().name();
+
+                    orgaosCount.put(
+                            nome,
+                            orgaosCount.getOrDefault(nome, 0L) + 1
+                    );
+                }
+            }
+        }
+
+        dto.setDoadoresEmAvaliacao(emAvaliacao);
+        dto.setDoadoresAutorizados(autorizados);
+        dto.setRecusasFamiliares(recusas);
+
+        dto.setReceptoresAptos(
+                pacienteRepository.countByStatus(Paciente.StatusPaciente.APTO_TRANSPLANTE)
+        );
+
+        dto.setReceptoresNaoAptos(
+                pacienteRepository.countByStatus(Paciente.StatusPaciente.NAO_APTO)
+        );
+
+        // 🔥 montar lista de órgãos
+        List<ItemOrgaoTecidoEstatistica> listaOrgaos = orgaosCount.entrySet()
+                .stream()
+                .map(e -> new ItemOrgaoTecidoEstatistica(e.getKey(), e.getValue()))
+                .sorted(Comparator.comparing(ItemOrgaoTecidoEstatistica::getTotal).reversed())
+                .toList();
+
+        dto.setOrgaosTecidos(listaOrgaos);
+
+        return dto;
+    }
+
+    // =========================
+    // HELPERS
+    // =========================
 
     private CentralTransplantes getCentral(Long id) {
         return centralRepository.findById(id)
@@ -193,72 +209,32 @@ public class CentralTransplantesService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado"));
     }
 
-    private CentralTransplantesDTO toDTO(CentralTransplantes entity) {
-        return centralTransplantesMapper.toDTO(entity);
+    private List<Hospital> getOrDefaultList(List<Hospital> list) {
+        return list != null ? list : new ArrayList<>();
     }
 
     private CentralTransplantes.StatusCentral parseStatus(String status) {
-        return CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
-    }
-
-    private void validarDuplicidade(CentralTransplantes central) {
-
-        if (centralRepository.findByNome(central.getNome()).isPresent()) {
-            throw new ConflitoNegocioException("Nome já cadastrado");
-        }
-
-        if (centralRepository.findByCnpj(central.getCnpj()).isPresent()) {
-            throw new ConflitoNegocioException("CNPJ já cadastrado");
+        try {
+            return CentralTransplantes.StatusCentral.valueOf(status.toUpperCase());
+        } catch (Exception e) {
+            throw new ConflitoNegocioException("Status inválido: " + status);
         }
     }
 
-    // ---------------- STATISTICS ----------------
+    private void validarDuplicidade(CentralTransplantes central, Long idAtual) {
 
-    public EstatisticasCentralDoacaoTransplante obterEstatisticasDoacaoTransplante() {
+        centralRepository.findByNome(central.getNome())
+                .filter(c -> !c.getId().equals(idAtual))
+                .ifPresent(c -> { throw new ConflitoNegocioException("Nome já cadastrado"); });
 
-        List<ProtocoloME> protocolos = protocoloMERepository.findAll();
-
-        EstatisticasCentralDoacaoTransplante dto = new EstatisticasCentralDoacaoTransplante();
-
-        dto.setTotalProtocolos(protocolos.size());
-
-        dto.setDoadoresEmAvaliacao(
-                protocolos.stream().filter(this::emAvaliacao).count()
-        );
-
-        dto.setDoadoresAutorizados(
-                protocolos.stream().filter(this::autorizado).count()
-        );
-
-        dto.setRecusasFamiliares(
-                protocolos.stream()
-                        .filter(p -> p.getStatus() == ProtocoloME.StatusProtocoloME.FAMILIA_RECUSOU)
-                        .count()
-        );
-
-        dto.setReceptoresAptos(
-                pacienteRepository.countByStatus(Paciente.StatusPaciente.APTO_TRANSPLANTE)
-        );
-
-        dto.setReceptoresNaoAptos(
-                pacienteRepository.countByStatus(Paciente.StatusPaciente.NAO_APTO)
-        );
-
-        dto.setOrgaosTecidos(new ArrayList<>());
-
-        return dto;
+        centralRepository.findByCnpj(central.getCnpj())
+                .filter(c -> !c.getId().equals(idAtual))
+                .ifPresent(c -> { throw new ConflitoNegocioException("CNPJ já cadastrado"); });
     }
 
-    private boolean emAvaliacao(ProtocoloME p) {
-        return p.getStatus() == ProtocoloME.StatusProtocoloME.NOTIFICADO
-                || p.getStatus() == ProtocoloME.StatusProtocoloME.EM_PROCESSO;
-    }
-
-    private boolean autorizado(ProtocoloME p) {
-        return p.getStatus() == ProtocoloME.StatusProtocoloME.DOACAO_AUTORIZADA;
-    }
-
-    // ---------------- DTO INTERNO ----------------
+    // =========================
+    // DTO INTERNO
+    // =========================
 
     public static class EstatisticasCentralDoacaoTransplante {
 
@@ -270,6 +246,7 @@ public class CentralTransplantesService {
         private long receptoresNaoAptos;
         private List<ItemOrgaoTecidoEstatistica> orgaosTecidos;
 
+        // getters/setters...
         public long getTotalProtocolos() { return totalProtocolos; }
         public void setTotalProtocolos(long totalProtocolos) { this.totalProtocolos = totalProtocolos; }
 
@@ -297,17 +274,12 @@ public class CentralTransplantesService {
         private String nome;
         private long total;
 
-        public ItemOrgaoTecidoEstatistica() {}
-
         public ItemOrgaoTecidoEstatistica(String nome, long total) {
             this.nome = nome;
             this.total = total;
         }
 
         public String getNome() { return nome; }
-        public void setNome(String nome) { this.nome = nome; }
-
         public long getTotal() { return total; }
-        public void setTotal(long total) { this.total = total; }
     }
 }

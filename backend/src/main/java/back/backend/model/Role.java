@@ -4,14 +4,53 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum Role {
-    ADMIN("Administrador", Arrays.asList("gerenciar_usuarios", "gerenciar_hospitais", "gerenciar_centrais")),
-    COORDENADOR_TRANSPLANTES("Coordenador de Transplantes", Arrays.asList("gerenciar_protocolos", "visualizar_disponibilidade", "atualizar_status")),
-    MEDICO("Médico", Arrays.asList("visualizar_protocolos", "atualizar_protocolo", "registrar_observacoes")),
-    ENFERMEIRO("Enfermeiro", Arrays.asList("visualizar_protocolos", "registrar_observacoes")),
-    CENTRAL_TRANSPLANTES("Central de Transplantes", Arrays.asList("gerenciar_protocolos_me", "registrar_doadores", "atualizar_protocolo_me"));
 
-    private String descricao;
-    private List<String> permissoes;
+    ADMIN(
+        "Administrador",
+        Arrays.asList(
+            "GERENCIAR_USUARIOS",
+            "GERENCIAR_HOSPITAIS",
+            "GERENCIAR_CENTRAIS"
+        )
+    ),
+
+    COORDENADOR_TRANSPLANTES(
+        "Coordenador de Transplantes",
+        Arrays.asList(
+            "GERENCIAR_PROTOCOLOS",
+            "VISUALIZAR_DISPONIBILIDADE",
+            "ATUALIZAR_STATUS"
+        )
+    ),
+
+    MEDICO(
+        "Médico",
+        Arrays.asList(
+            "VISUALIZAR_PROTOCOLOS",
+            "ATUALIZAR_PROTOCOLO",
+            "REGISTRAR_OBSERVACOES"
+        )
+    ),
+
+    ENFERMEIRO(
+        "Enfermeiro",
+        Arrays.asList(
+            "VISUALIZAR_PROTOCOLOS",
+            "REGISTRAR_OBSERVACOES"
+        )
+    ),
+
+    CENTRAL_TRANSPLANTES(
+        "Central de Transplantes",
+        Arrays.asList(
+            "GERENCIAR_PROTOCOLOS_ME",
+            "REGISTRAR_DOADORES",
+            "ATUALIZAR_PROTOCOLO_ME"
+        )
+    );
+
+    private final String descricao;
+    private final List<String> permissoes;
 
     Role(String descricao, List<String> permissoes) {
         this.descricao = descricao;

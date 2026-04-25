@@ -1,5 +1,7 @@
 package back.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
@@ -10,6 +12,24 @@ public class AnexoDocumento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    // =========================
+    // RELACIONAMENTOS (CORRETO)
+    // =========================
+
+    @ManyToOne
+    @JoinColumn(name = "exame_me_id")
+    @JsonIgnoreProperties({"protocoloME"})
+    private ExameME exameME;
+
+    @ManyToOne
+    @JoinColumn(name = "protocolo_me_id")
+    @JsonIgnoreProperties({"exames", "paciente", "centralTransplantes"})
+    private ProtocoloME protocoloME;
+
+    // =========================
+    // DADOS DO ARQUIVO
+    // =========================
 
     @Column(nullable = false)
     private String nomeArquivo;
@@ -23,50 +43,62 @@ public class AnexoDocumento {
     @Column(nullable = false)
     private Long tamanhoBytes;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String tipoAnexo; // "EXAME" ou "ENTREVISTA"
+    private TipoAnexo tipoAnexo;
 
-    @Column
-    private Long exameMEId;
-
-    @Column
-    private Long protocoloMEId;
-
-    @Column
     private String descricao;
-
-    @Column
     private String uploadPor;
 
-    @Column(name = "data_upload", nullable = false, updatable = false)
+    // =========================
+    // CONTROLE
+    // =========================
+
+    @Column(nullable = false, updatable = false)
     private LocalDateTime dataUpload;
 
-    @Column(name = "data_criacao", nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 
-    // Construtores
-    public AnexoDocumento() {}
+    private LocalDateTime dataAtualizacao;
 
-    public AnexoDocumento(String nomeArquivo, String caminhoArquivo, String tipoMime, 
-                         Long tamanhoBytes, String tipoAnexo, String descricao, String uploadPor) {
-        this.nomeArquivo = nomeArquivo;
-        this.caminhoArquivo = caminhoArquivo;
-        this.tipoMime = tipoMime;
-        this.tamanhoBytes = tamanhoBytes;
-        this.tipoAnexo = tipoAnexo;
-        this.descricao = descricao;
-        this.uploadPor = uploadPor;
-    }
+    // =========================
+    // LIFECYCLE
+    // =========================
 
     @PrePersist
     protected void onCreate() {
         dataCriacao = LocalDateTime.now();
         dataUpload = LocalDateTime.now();
+        dataAtualizacao = LocalDateTime.now();
     }
 
-    // Getters e Setters
+    @PreUpdate
+    protected void onUpdate() {
+        dataAtualizacao = LocalDateTime.now();
+    }
+
+    // =========================
+    // ENUM
+    // =========================
+
+    public enum TipoAnexo {
+        EXAME,
+        ENTREVISTA,
+        DOCUMENTO_GERAL
+    }
+
+    // =========================
+    // GETTERS E SETTERS
+    // =========================
+
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+
+    public ExameME getExameME() { return exameME; }
+    public void setExameME(ExameME exameME) { this.exameME = exameME; }
+
+    public ProtocoloME getProtocoloME() { return protocoloME; }
+    public void setProtocoloME(ProtocoloME protocoloME) { this.protocoloME = protocoloME; }
 
     public String getNomeArquivo() { return nomeArquivo; }
     public void setNomeArquivo(String nomeArquivo) { this.nomeArquivo = nomeArquivo; }
@@ -80,14 +112,8 @@ public class AnexoDocumento {
     public Long getTamanhoBytes() { return tamanhoBytes; }
     public void setTamanhoBytes(Long tamanhoBytes) { this.tamanhoBytes = tamanhoBytes; }
 
-    public String getTipoAnexo() { return tipoAnexo; }
-    public void setTipoAnexo(String tipoAnexo) { this.tipoAnexo = tipoAnexo; }
-
-    public Long getExameMEId() { return exameMEId; }
-    public void setExameMEId(Long exameMEId) { this.exameMEId = exameMEId; }
-
-    public Long getProtocoloMEId() { return protocoloMEId; }
-    public void setProtocoloMEId(Long protocoloMEId) { this.protocoloMEId = protocoloMEId; }
+    public TipoAnexo getTipoAnexo() { return tipoAnexo; }
+    public void setTipoAnexo(TipoAnexo tipoAnexo) { this.tipoAnexo = tipoAnexo; }
 
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
@@ -96,8 +122,8 @@ public class AnexoDocumento {
     public void setUploadPor(String uploadPor) { this.uploadPor = uploadPor; }
 
     public LocalDateTime getDataUpload() { return dataUpload; }
-    public void setDataUpload(LocalDateTime dataUpload) { this.dataUpload = dataUpload; }
 
     public LocalDateTime getDataCriacao() { return dataCriacao; }
-    public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
+
+    public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }
 }
