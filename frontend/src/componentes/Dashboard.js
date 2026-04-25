@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import apiClient from "../services/apiClient";
 import pacienteService from "../services/pacienteService";
-import { getApiErrorMessage } from "../utils/apiError";
 import "../styles/Dashboard.css";
 
 function Dashboard({ onLogout, theme, setTheme, role }) {
@@ -10,12 +8,6 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
   const [protocolosME, setProtocolosME] = useState([]);
   const [notificacoes, setNotificacoes] = useState([]);
   const [carregando, setCarregando] = useState(false);
-  const [senhaAtual, setSenhaAtual] = useState("");
-  const [novaSenha, setNovaSenha] = useState("");
-  const [confirmarSenha, setConfirmarSenha] = useState("");
-  const [alterandoSenha, setAlterandoSenha] = useState(false);
-  const [mensagemSenha, setMensagemSenha] = useState("");
-  const [erroSenha, setErroSenha] = useState("");
   useEffect(() => {
     let ativo = true;
 
@@ -38,9 +30,9 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
 
         if (role === "MEDICO" || role === "ENFERMEIRO" || role === "CENTRAL_TRANSPLANTES") {
           try {
-            const protocolosResponse = await apiClient.get("/api/pacientes/em-protocolo-me");
+            const protocolosData = await pacienteService.listarEmProtocoloME();
             if (ativo) {
-              setProtocolosME(Array.isArray(protocolosResponse.data) ? protocolosResponse.data : []);
+              setProtocolosME(Array.isArray(protocolosData) ? protocolosData : []);
             }
           } catch (error) {
             console.error("Erro ao carregar protocolos ME:", error);
@@ -132,29 +124,6 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
   const isMedico = role === "MEDICO" || role === "ENFERMEIRO";
   const isCentral = role === "CENTRAL_TRANSPLANTES";
   const isAdmin = role === "ADMIN";
-
-  const alterarSenha = async (e) => {
-    e.preventDefault();
-    setErroSenha("");
-    setMensagemSenha("");
-
-    try {
-      setAlterandoSenha(true);
-      await apiClient.patch("/api/usuarios/minha-senha", {
-        senhaAtual,
-        senhaNova,
-        confirmarSenha,
-      });
-      setMensagemSenha("Senha alterada com sucesso. Use a nova senha no próximo login.");
-      setSenhaAtual("");
-      setNovaSenha("");
-      setConfirmarSenha("");
-    } catch (error) {
-      setErroSenha(getApiErrorMessage(error, "Erro ao alterar senha"));
-    } finally {
-      setAlterandoSenha(false);
-    }
-  };
 
   return (
     <section className="dashboard">

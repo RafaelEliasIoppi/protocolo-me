@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../services/apiClient';
+import { useEffect, useState } from 'react';
+import exameService from '../services/exameService';
 import '../styles/ExameMEManager.css';
 
 const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
@@ -28,8 +28,8 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
   const carregarExames = async () => {
     try {
-      const res = await apiClient.get(`/api/exames-me/protocolo/${protocoloId}`);
-      setExames(res.data);
+      const dados = await exameService.listarPorProtocolo(protocoloId);
+      setExames(dados);
     } catch {
       setErro('Erro ao carregar exames');
     }
@@ -56,9 +56,9 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
         protocoloME: { id: protocoloId }
       };
 
-      const res = await apiClient.post('/api/exames-me', payload);
+      const criado = await exameService.criar(payload);
 
-      setExames([...exames, res.data]);
+      setExames([...exames, criado]);
 
       setNovoExame({
         tipoExame: '',
@@ -78,7 +78,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     if (!ok) return;
 
     try {
-      await apiClient.delete(`/api/exames-me/${id}`);
+      await exameService.deletar(id);
       setExames(exames.filter(e => e.id !== id));
       setSucesso('Exame excluído');
     } catch {
@@ -88,17 +88,9 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
   const salvarResultado = async (exame) => {
     try {
-      const res = await apiClient.post(
-        `/api/exames-me/${exame.id}/resultado`,
-        {},
-        {
-          params: {
-            resultado_positivo: exame.resultado_positivo
-          }
-        }
-      );
+      const atualizado = await exameService.atualizarResultado(exame.id, exame.resultado_positivo);
 
-      setExames(exames.map(e => e.id === exame.id ? res.data : e));
+      setExames(exames.map(e => e.id === exame.id ? atualizado : e));
       setExameSelecionado(null);
       setSucesso('Resultado atualizado');
     } catch {

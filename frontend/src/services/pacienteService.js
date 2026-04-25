@@ -53,7 +53,18 @@ export const pacienteService = {
   },
 
   listarPorStatus: async (status) => {
-    return api.get(`/api/pacientes/status/${status}`);
+    const response = await api.get(`/api/pacientes/status/${status}`);
+    return response.data;
+  },
+
+  buscarPorNome: async (nome) => {
+    const response = await api.get(`/api/pacientes/buscar?nome=${encodeURIComponent(nome)}`);
+    return response.data;
+  },
+
+  listarPorHospitalEStatus: async (hospitalId, status) => {
+    const response = await api.get(`/api/pacientes/hospital/${hospitalId}/status/${status}`);
+    return response.data;
   },
 
   listarEmProtocoloME: async () => {

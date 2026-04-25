@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import apiClient from '../services/apiClient';
-import { formatarCpf } from '../utils/cpf';
 import '../styles/EstatisticasPage.css';
+import { formatarCpf } from '../utils/cpf';
 
 const CAMPOS_ESTATISTICA_PROTOCOLO = [
   { key: 'ofNac', label: 'Of Nac' },
@@ -159,6 +159,7 @@ const EstatisticasPage = () => {
   const [erro, setErro] = useState('');
   const [abas, setAbas] = useState('geral');
   const [filtroNomePaciente, setFiltroNomePaciente] = useState('');
+  const [filtroReceptor, setFiltroReceptor] = useState('');
   const [periodicidade, setPeriodicidade] = useState('ANUAL');
   const [mesSelecionado, setMesSelecionado] = useState('');
   const [estatisticasProtocolo, setEstatisticasProtocolo] = useState([]);
@@ -311,9 +312,30 @@ const EstatisticasPage = () => {
     }
   };
 
-  const pacientesFiltrados = estatisticasPorPaciente.filter((p) =>
-    (p.nomePaciente || '').toLowerCase().includes(filtroNomePaciente.toLowerCase())
-  );
+  const pacientesFiltrados = estatisticasPorPaciente.filter((p) => {
+    const nomePaciente = (p.nomePaciente || '').toLowerCase();
+    const filtroPacienteNormalizado = filtroNomePaciente.toLowerCase();
+    const filtroReceptorNormalizado = filtroReceptor.toLowerCase();
+
+    const correspondePaciente = !filtroPacienteNormalizado
+      || nomePaciente.includes(filtroPacienteNormalizado);
+
+    const listaImplantados = Array.isArray(p.orgaosImplantados) ? p.orgaosImplantados : [];
+    const correspondeReceptor = !filtroReceptorNormalizado
+      || listaImplantados.some((orgao) => {
+        const nomeReceptor = (orgao.nomeReceptor || orgao.pacienteReceptor || '').toLowerCase();
+        const cpfReceptor = String(orgao.cpfReceptor || '').replace(/\D/g, '');
+        const filtroCpf = filtroReceptorNormalizado.replace(/\D/g, '');
+
+        if (filtroCpf && cpfReceptor.includes(filtroCpf)) {
+          return true;
+        }
+
+        return nomeReceptor.includes(filtroReceptorNormalizado);
+      });
+
+    return correspondePaciente && correspondeReceptor;
+  });
 
   const totalOrgaosDisponiveis = estatisticasGerais?.totalOrgaosDisponiveis || 0;
   const orgaosImplantados = estatisticasGerais?.orgaosImplantados || 0;
@@ -499,7 +521,7 @@ const EstatisticasPage = () => {
                       </div>
                     </div>
                     <svg className="pizza-svg" viewBox="0 0 200 200">
-                      <circle cx="100" cy="100" r="90" fill="none" strokeWidth="30" 
+                      <circle cx="100" cy="100" r="90" fill="none" strokeWidth="30"
                         stroke="url(#gradient-pizza)" strokeDasharray={`${
                           percentualPizzaImplantados
                         } 565`} />
@@ -543,6 +565,13 @@ const EstatisticasPage = () => {
                   placeholder="🔍 Filtrar por nome do paciente..."
                   value={filtroNomePaciente}
                   onChange={(e) => setFiltroNomePaciente(e.target.value)}
+                  className="input-filtro"
+                />
+                <input
+                  type="text"
+                  placeholder="🔍 Filtrar por receptor (nome ou CPF)..."
+                  value={filtroReceptor}
+                  onChange={(e) => setFiltroReceptor(e.target.value)}
                   className="input-filtro"
                 />
                 <span className="resultado-filtro">

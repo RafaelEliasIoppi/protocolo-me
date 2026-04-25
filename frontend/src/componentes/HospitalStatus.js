@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../services/apiClient';
-import { formatarTelefone } from '../utils/telefone';
+import { useEffect, useState } from 'react';
+import hospitalService from '../services/hospitalService';
 import '../styles/HospitalStatus.css';
+import { formatarTelefone } from '../utils/telefone';
 
 const HospitalStatus = () => {
   const [hospitais, setHospitais] = useState([]);
@@ -25,8 +25,8 @@ const HospitalStatus = () => {
     setCarregando(true);
     setErro('');
     try {
-      const response = await apiClient.get('/api/hospitais');
-      setHospitais(response.data);
+      const dados = await hospitalService.listar();
+      setHospitais(Array.isArray(dados) ? dados : []);
     } catch (err) {
       setErro('Erro ao carregar hospitais');
     } finally {
@@ -39,15 +39,11 @@ const HospitalStatus = () => {
     setErro('');
 
     try {
-      const response = await apiClient.patch(
-        `/api/hospitais/${hospitalId}/status`,
-        {},
-        { params: { status: novoStatus } }
-      );
+      const atualizado = await hospitalService.atualizarStatus(hospitalId, novoStatus);
 
       // Atualizar lista local
       setHospitais(hospitais.map(h =>
-        h.id === hospitalId ? response.data : h
+        h.id === hospitalId ? atualizado : h
       ));
 
       setSucesso('Status atualizado com sucesso!');

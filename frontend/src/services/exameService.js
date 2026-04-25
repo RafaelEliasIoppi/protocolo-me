@@ -34,6 +34,19 @@ export const exameService = {
     return response.data;
   },
 
+  atualizarResultado: async (id, resultadoPositivo) => {
+    const response = await api.post(
+      `/api/exames-me/${id}/resultado`,
+      {},
+      {
+        params: {
+          resultado_positivo: resultadoPositivo
+        }
+      }
+    );
+    return response.data;
+  },
+
   obterPorPaciente: async (pacienteId) => {
     const protocolosResponse = await api.get('/api/protocolos-me');
     const protocolosDoPaciente = protocolosResponse.data.filter((protocolo) => {

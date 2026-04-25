@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
-import apiClient from "../services/apiClient";
-import OrgaoDoadoManager from "./OrgaoDoadoManager";
-import { formatarCpf } from "../utils/cpf";
+import { useEffect, useState } from "react";
+import hospitalService from "../services/hospitalService";
+import pacienteService from "../services/pacienteService";
+import protocoloService from "../services/protocoloService";
 import "../styles/PacientesProtocoloMEPage.css";
+import { formatarCpf } from "../utils/cpf";
+import OrgaoDoadoManager from "./OrgaoDoadoManager";
 
 function PacientesProtocoloMEPage() {
   const [pacientes, setPacientes] = useState([]);
@@ -17,12 +19,10 @@ function PacientesProtocoloMEPage() {
     setCarregando(true);
     setErro("");
     try {
-      let endpoint = "/api/pacientes/em-protocolo-me";
-      if (hospitalId) {
-        endpoint = `/api/pacientes/em-protocolo-me/hospital/${hospitalId}`;
-      }
-      const response = await apiClient.get(endpoint);
-      setPacientes(response.data);
+      const dados = hospitalId
+        ? await pacienteService.listarEmProtocoloMEPorHospital(hospitalId)
+        : await pacienteService.listarEmProtocoloME();
+      setPacientes(Array.isArray(dados) ? dados : []);
     } catch (err) {
       setErro("Erro ao carregar pacientes em protocolo de ME");
       console.error("Erro:", err);
@@ -34,8 +34,8 @@ function PacientesProtocoloMEPage() {
   // Carregar lista de hospitais para filtro
   const carregarHospitais = async () => {
     try {
-      const response = await apiClient.get("/api/hospitais");
-      setHospitais(response.data);
+      const dados = await hospitalService.listar();
+      setHospitais(Array.isArray(dados) ? dados : []);
     } catch (err) {
       console.error("Erro ao carregar hospitais:", err);
     }
@@ -91,7 +91,7 @@ function PacientesProtocoloMEPage() {
     }
 
     try {
-      await apiClient.put(`/api/protocolos-me/${protocolo.id}`, {
+      await protocoloService.atualizar(protocolo.id, {
         numeroProtocolo: numeroNovo.trim(),
         diagnosticoBasico: protocolo.diagnosticoBasico,
         causaMorte: protocolo.causaMorte,

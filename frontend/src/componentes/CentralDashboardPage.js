@@ -1,8 +1,16 @@
-import React, { useEffect, useState } from "react";
-import apiClient from "../services/apiClient";
-import CentralPacienteEditForm from "./CentralPacienteEditForm";
-import { formatarCpf } from "../utils/cpf";
+import { useEffect, useState } from "react";
+import {
+  STATUS_ATIVOS,
+  centralDashboardService,
+  construirMapaCidadesHospitais,
+  mapearProtocolosParaPacientes,
+  obterCidadeHospitalNotificante,
+  obterExamesPendentes,
+  obterNomeHospital
+} from "../services/centralDashboardService";
 import "../styles/CentralDashboardPage.css";
+import { formatarCpf } from "../utils/cpf";
+import CentralPacientesPainel from "./CentralPacientesPainel";
 
 const CHAVE_CONFIG_ESTATISTICA_CENTRAL = "central_dashboard_estatisticas_campos";
 const CHAVE_CONFIG_TELAO = "central_dashboard_telao_config";
@@ -104,9 +112,8 @@ function CentralDashboardPage({ telaoMode = false }) {
   const [carregandoRelatorio, setCarregandoRelatorio] = useState(false);
   const [mostrarConfigEstatistica, setMostrarConfigEstatistica] = useState(false);
   const [camposVisiveis, setCamposVisiveis] = useState(() => carregarConfiguracaoCampos());
-  const [mostrarEditarPaciente, setMostrarEditarPaciente] = useState(false);
-  const [pacienteParaEditar, setPacienteParaEditar] = useState(null);
   const [relatorioTextoPorProtocolo, setRelatorioTextoPorProtocolo] = useState({});
+  const [cidadesHospitaisPorNome, setCidadesHospitaisPorNome] = useState({});
   const [mostrarOpcoesTelao, setMostrarOpcoesTelao] = useState(false);
   const [filtroHospitalTelao, setFiltroHospitalTelao] = useState("TODOS");
   const [filtroStatusTelao, setFiltroStatusTelao] = useState("TODOS");
@@ -134,55 +141,19 @@ function CentralDashboardPage({ telaoMode = false }) {
     { chave: "tabelaOrgaosTecidos", label: "Tabela de órgãos e tecidos" }
   ];
 
-  const statusAtivos = [
-    "NOTIFICADO",
-    "EM_PROCESSO",
-    "MORTE_CEREBRAL_CONFIRMADA",
-    "ENTREVISTA_FAMILIAR",
-    "DOACAO_AUTORIZADA",
-    "FAMILIA_RECUSOU",
-    "CONTRAINDICADO",
-    "FINALIZADO"
-  ];
-
-  const obterNomeHospital = (paciente, protocolo) => {
-    return (
-      paciente?.hospital?.nomeHospital ||
-      paciente?.hospital?.nome ||
-      protocolo?.hospitalOrigem ||
-      paciente?.hospitalOrigem ||
-      "N/A"
-    );
-  };
-
-  const mapearProtocolosParaPacientes = (protocolos) => {
-    if (!Array.isArray(protocolos)) {
-      return [];
-    }
-
-    return protocolos
-      .filter((protocolo) => protocolo?.paciente?.id)
-      .filter((protocolo) => statusAtivos.includes(protocolo?.status))
-      .map((protocolo) => {
-        const paciente = protocolo.paciente;
-        return {
-          ...paciente,
-          protocolosME: [protocolo]
-        };
-      });
-  };
+  const statusAtivos = STATUS_ATIVOS;
 
   const carregarPacientesDoEstado = async () => {
     try {
       setCarregando(true);
-      const [responseProtocolos, responseEstatisticas] = await Promise.all([
-        apiClient.get("/api/protocolos-me"),
-        apiClient.get("/api/centrais-transplantes/estatisticas/doadores-receptores")
-      ]);
+      const { protocolos, estatisticas: estatisticasApi, hospitais } = await centralDashboardService.carregarDadosPainel();
 
-      const dados = mapearProtocolosParaPacientes(responseProtocolos.data);
+      const dados = mapearProtocolosParaPacientes(protocolos, statusAtivos);
+      const mapaCidades = construirMapaCidadesHospitais(hospitais);
+
       setPacientes(dados);
-      setEstatisticas(responseEstatisticas.data || estatisticasIniciais);
+      setCidadesHospitaisPorNome(mapaCidades);
+      setEstatisticas(estatisticasApi || estatisticasIniciais);
       setUltimaAtualizacao(new Date());
       setErro("");
     } catch (e) {
@@ -192,6 +163,7 @@ function CentralDashboardPage({ telaoMode = false }) {
         setErro("Erro ao atualizar painel da central.");
       }
       setPacientes([]);
+      setCidadesHospitaisPorNome({});
       setEstatisticas(estatisticasIniciais);
     } finally {
       setCarregando(false);
@@ -276,127 +248,6 @@ function CentralDashboardPage({ telaoMode = false }) {
     } catch (_) {
       setErroTelaCheia("Não foi possível sair do modo tela cheia.");
     }
-  };
-
-  const obterResultadoPositivo = (exame) => {
-    if (typeof exame?.resultadoPositivo === "boolean") {
-      return exame.resultadoPositivo;
-    }
-
-    if (typeof exame?.resultado_positivo === "boolean") {
-      return exame.resultado_positivo;
-    }
-
-    return null;
-  };
-
-  const obterExamesPendentes = (protocolo) => {
-    if (!protocolo) {
-      return ["Teste clínico 1", "Teste clínico 2", "Exames complementares"];
-    }
-
-    // Quando os exames vierem no payload, calcula pendências pela execução real.
-    if (Array.isArray(protocolo.exames) && protocolo.exames.length > 0) {
-      const clinicosRealizados = protocolo.exames.filter(
-        (e) => e?.categoria === "CLINICO" && !!e?.dataRealizacao,
-      ).length;
-      const complementaresRealizados = protocolo.exames.filter(
-        (e) => e?.categoria === "COMPLEMENTAR" && !!e?.dataRealizacao,
-      ).length;
-
-      const pendentes = [];
-      // Mesma regra usada no backend para status automático.
-      if (clinicosRealizados < 1) pendentes.push("Teste clínico 1");
-      if (clinicosRealizados < 2) pendentes.push("Teste clínico 2");
-      if (complementaresRealizados < 1) pendentes.push("Exames complementares");
-      return pendentes;
-    }
-
-    const pendentes = [];
-    if (!protocolo.testeClinico1Realizado) pendentes.push("Teste clínico 1");
-    if (!protocolo.testeClinico2Realizado) pendentes.push("Teste clínico 2");
-    if (!protocolo.testesComplementaresRealizados) pendentes.push("Exames complementares");
-    return pendentes;
-  };
-
-  const obterExamesConcluidos = (protocolo) => {
-    if (!protocolo) return 0;
-
-    if (Array.isArray(protocolo.exames) && protocolo.exames.length > 0) {
-      let concluidos = 0;
-      const clinicosRealizados = protocolo.exames.filter(
-        (e) => e?.categoria === "CLINICO" && !!e?.dataRealizacao,
-      ).length;
-      const complementaresRealizados = protocolo.exames.filter(
-        (e) => e?.categoria === "COMPLEMENTAR" && !!e?.dataRealizacao,
-      ).length;
-
-      // Mesma regra usada no backend para status automático.
-      if (clinicosRealizados >= 1) concluidos += 1;
-      if (clinicosRealizados >= 2) concluidos += 1;
-      if (complementaresRealizados >= 1) concluidos += 1;
-      return concluidos;
-    }
-
-    let concluidos = 0;
-    if (protocolo.testeClinico1Realizado) concluidos += 1;
-    if (protocolo.testeClinico2Realizado) concluidos += 1;
-    if (protocolo.testesComplementaresRealizados) concluidos += 1;
-    return concluidos;
-  };
-
-  const obterExamesRealizadosDetalhados = (protocolo) => {
-    if (!protocolo || !Array.isArray(protocolo.exames)) {
-      return [];
-    }
-
-    return protocolo.exames.filter((exame) => {
-      const temResultadoTexto = exame?.resultado && exame.resultado.trim() !== "";
-      const resultadoPositivo = obterResultadoPositivo(exame);
-      const temResultadoBooleano = resultadoPositivo !== null;
-      const temData = !!exame?.dataRealizacao;
-      return temResultadoTexto || temResultadoBooleano || temData;
-    });
-  };
-
-  const obterResumoStatusExames = (protocolo) => {
-    const exames = Array.isArray(protocolo?.exames) ? protocolo.exames : [];
-    const positivos = exames.filter((exame) => obterResultadoPositivo(exame) === true).length;
-    const negativos = exames.filter((exame) => obterResultadoPositivo(exame) === false).length;
-    const semResultado = exames.filter((exame) => {
-      const resultadoPositivo = obterResultadoPositivo(exame);
-      const temResultadoTexto = exame?.resultado && exame.resultado.trim() !== "";
-      return resultadoPositivo === null && !temResultadoTexto;
-    }).length;
-
-    const concluidos = obterExamesConcluidos(protocolo);
-    const pendentes = Math.max(3 - concluidos, 0);
-
-    return {
-      positivos,
-      negativos,
-      semResultado,
-      concluidos,
-      pendentes
-    };
-  };
-
-  const formatarResultadoExame = (exame) => {
-    if (exame?.resultado && exame.resultado.trim() !== "") {
-      return exame.resultado;
-    }
-
-    const resultadoPositivo = obterResultadoPositivo(exame);
-
-    if (resultadoPositivo === true) {
-      return "Positivo";
-    }
-
-    if (resultadoPositivo === false) {
-      return "Negativo";
-    }
-
-    return "Sem resultado informado";
   };
 
   const hospitaisTelao = [
@@ -492,38 +343,6 @@ function CentralDashboardPage({ telaoMode = false }) {
     setPaginaAtualTelao((paginaAnterior) => (paginaAnterior + 1) % totalPaginasTelao);
   };
 
-  const obterCorStatus = (status) => {
-    switch (status) {
-      case "NOTIFICADO":
-        return "warning";
-      case "EM_PROCESSO":
-        return "processing";
-      case "MORTE_CEREBRAL_CONFIRMADA":
-        return "confirmed";
-      case "ENTREVISTA_FAMILIAR":
-        return "interview";
-      case "DOACAO_AUTORIZADA":
-        return "authorized";
-      case "FAMILIA_RECUSOU":
-        return "rejected";
-      case "FINALIZADO":
-        return "finalized";
-      default:
-        return "default";
-    }
-  };
-
-  const formatarStatusEntrevista = (status) => {
-    const mapa = {
-      NAO_INICIADA: "Não iniciada",
-      EM_ANDAMENTO: "Em andamento",
-      AUTORIZADA: "Autorizada",
-      RECUSADA: "Recusada"
-    };
-
-    return mapa[status] || status || "Não iniciada";
-  };
-
   const abrirVisualizacaoSomenteLeitura = (paciente, protocolo) => {
     if (!protocolo) return;
     setRelatorioFinalPaciente(null);
@@ -532,31 +351,20 @@ function CentralDashboardPage({ telaoMode = false }) {
       nome: paciente.nome,
       cpf: paciente.cpf,
       hospital: obterNomeHospital(paciente, protocolo),
-      cidade: paciente.hospital?.cidade || "N/A",
+      cidade: obterCidadeHospitalNotificante(paciente, protocolo, cidadesHospitaisPorNome),
       statusEntrevistaFamiliar: paciente.statusEntrevistaFamiliar,
       protocolo
     });
-  };
-
-  const abrirEditarPaciente = (paciente) => {
-    setPacienteParaEditar(paciente.id);
-    setMostrarEditarPaciente(true);
-  };
-
-  const fecharEditarPaciente = () => {
-    setMostrarEditarPaciente(false);
-    setPacienteParaEditar(null);
-    carregarPacientesDoEstado();
   };
 
   const carregarRelatorioFinalPaciente = async (pacienteId) => {
     if (!pacienteId) return;
     try {
       setCarregandoRelatorio(true);
-      const response = await apiClient.get(`/api/pacientes/${pacienteId}/relatorio-final`);
-      setRelatorioFinalPaciente(response.data);
+      const relatorio = await centralDashboardService.obterRelatorioFinalPaciente(pacienteId);
+      setRelatorioFinalPaciente(relatorio);
       const textos = {};
-      (response.data?.protocolos || []).forEach((p) => {
+      (relatorio?.protocolos || []).forEach((p) => {
         textos[p.protocoloId] = p.relatorioFinalEditavel || "";
       });
       setRelatorioTextoPorProtocolo(textos);
@@ -723,7 +531,7 @@ function CentralDashboardPage({ telaoMode = false }) {
   const salvarConclusaoProtocolo = async (protocoloId) => {
     const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
     try {
-      await apiClient.patch(`/api/protocolos-me/${protocoloId}/relatorio-final`, {
+      await centralDashboardService.salvarRelatorioFinalProtocolo(protocoloId, {
         textoRelatorio: relatorioTextoPorProtocolo[protocoloId] || "",
         atualizadoPor: usuario?.nome || usuario?.email || "central"
       });
@@ -1035,272 +843,28 @@ function CentralDashboardPage({ telaoMode = false }) {
       </div>
       )}
 
-      {/* Lista de Pacientes */}
-      <div className="panel pacientes-painel">
-        <header className="painel-header">
-          <div>
-            <h2>👥 Pacientes com Protocolo de ME Iniciado ({pacientes.length})</h2>
-            <p className="note">
-              {ultimaAtualizacao
-                ? `🔄 Atualizado em: ${ultimaAtualizacao.toLocaleTimeString("pt-BR")}`
-                : "Carregando..."}
-            </p>
-            <p className="note central-note-readonly">Status clínico em tempo real para apoio à decisão da Central.</p>
-            {modoTelao && pacientesFiltrados.length > 0 && (
-              <p className="note telao-page-indicator">
-                Página {paginaAtualTelao + 1}/{totalPaginasTelao} • {pacientesExibidos.length} paciente(s) nesta tela
-              </p>
-            )}
-          </div>
-        </header>
-
-        {carregando ? (
-          <p className="loading-message">⏳ Atualizando painel em tempo real...</p>
-        ) : pacientesFiltrados.length === 0 ? (
-          <p className="no-data-message">✓ Nenhum paciente em protocolo de ME no momento.</p>
-        ) : (
-          <div className="pacientes-tabela-wrapper">
-            <table className="tabela-pacientes">
-              <thead>
-                <tr>
-                  <th className="col-nome">Nome</th>
-                  <th className="col-cpf">CPF</th>
-                  <th className="col-hospital">Hospital</th>
-                  <th className="col-cidade">Cidade</th>
-                  <th className="col-data">Data Notificação</th>
-                  <th className="col-exames">Exames (Concluídos)</th>
-                  <th className="col-status-exames">Status dos Exames</th>
-                  <th className="col-faltantes">Exames Faltantes</th>
-                  <th className="col-status">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pacientesExibidos.map((paciente) => {
-                  const protocolo = paciente.protocolosME?.[0];
-                  const examesPendentes = obterExamesPendentes(protocolo);
-                  const examesConcluidos = obterExamesConcluidos(protocolo);
-                  const resumoStatusExames = obterResumoStatusExames(protocolo);
-                  return (
-                    <tr 
-                      key={paciente.id} 
-                      className={`row-status-${obterCorStatus(protocolo?.status)}`}
-                      onClick={() => !modoTelao && abrirVisualizacaoSomenteLeitura(paciente, protocolo)}
-                      style={{ cursor: protocolo && !modoTelao ? "pointer" : "default" }}
-                    >
-                      <td className="col-nome" data-label="Nome">
-                        <strong>{paciente.nome}</strong>
-                      </td>
-                      <td className="col-cpf" data-label="CPF">{formatarCpf(paciente.cpf)}</td>
-                      <td className="col-hospital" data-label="Hospital">{obterNomeHospital(paciente, protocolo)}</td>
-                      <td className="col-cidade" data-label="Cidade">{paciente.hospital?.cidade || "N/A"}</td>
-                      <td className="col-data" data-label="Data Notificação">
-                        {protocolo?.dataNotificacao
-                          ? new Date(protocolo.dataNotificacao).toLocaleDateString("pt-BR")
-                          : "N/A"}
-                      </td>
-                      <td className="col-exames" data-label="Exames (Concluídos)">
-                        <strong>{examesConcluidos}/3</strong>
-                      </td>
-                      <td className="col-status-exames" data-label="Status dos Exames">
-                        <div className="status-exames-resumo">
-                          <span className="badge-exame badge-exame-positivo">+ {resumoStatusExames.positivos}</span>
-                          <span className="badge-exame badge-exame-negativo">- {resumoStatusExames.negativos}</span>
-                          <span className="badge-exame badge-exame-pendente">⏳ {resumoStatusExames.pendentes}</span>
-                        </div>
-                      </td>
-                      <td className="col-faltantes" data-label="Exames Faltantes">
-                        {examesPendentes.length === 0 ? (
-                          <span className="pendencia-ok">Todos concluídos</span>
-                        ) : (
-                          <ul className="lista-faltantes">
-                            {examesPendentes.map((item) => (
-                              <li key={`${paciente.id}-${item}`}>{item}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </td>
-                      <td className="col-status" data-label="Status">
-                        <span
-                          className={`status-badge status-${obterCorStatus(protocolo?.status)}`}
-                        >
-                          {protocolo?.status?.replace(/_/g, " ") || "SEM STATUS"}
-                        </span>
-                        <div className="status-subinfo">
-                          Entrevista: {formatarStatusEntrevista(paciente.statusEntrevistaFamiliar)}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Modal de Detalhes do Protocolo */}
-      {!modoTelao && pacienteSelecionado && (
-        <div className="modal-overlay" onClick={() => setPacienteSelecionado(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Verificação de Exames (Somente Leitura)</h2>
-              <button className="modal-close" onClick={() => setPacienteSelecionado(null)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <div className="readonly-alert">
-                🔒 Perfil Central: sem permissão para alterar resultados, status ou entrevista.
-              </div>
-
-              <div className="readonly-grid">
-                <div>
-                  <strong>Paciente:</strong> {pacienteSelecionado.nome}
-                </div>
-                <div>
-                  <strong>CPF:</strong> {formatarCpf(pacienteSelecionado.cpf)}
-                </div>
-                <div>
-                  <strong>Hospital:</strong> {pacienteSelecionado.hospital}
-                </div>
-                <div>
-                  <strong>Cidade:</strong> {pacienteSelecionado.cidade}
-                </div>
-                <div>
-                  <strong>Status:</strong>{" "}
-                  <span className={`status-badge status-${obterCorStatus(pacienteSelecionado.protocolo?.status)}`}>
-                    {pacienteSelecionado.protocolo?.status?.replace(/_/g, " ") || "SEM STATUS"}
-                  </span>
-                </div>
-                <div>
-                  <strong>Exames Concluídos:</strong> {obterExamesConcluidos(pacienteSelecionado.protocolo)}/3
-                </div>
-                <div>
-                  <strong>Resumo da Entrevista:</strong> {formatarStatusEntrevista(pacienteSelecionado.statusEntrevistaFamiliar)}
-                </div>
-              </div>
-
-              <div className="action-row" style={{ justifyContent: "flex-start", margin: "1rem 0" }}>
-                <button
-                  className="secondary-button"
-                  onClick={() => carregarRelatorioFinalPaciente(pacienteSelecionado.id)}
-                  disabled={carregandoRelatorio}
-                >
-                  {carregandoRelatorio ? "Gerando relatório..." : "Gerar Relatório Final"}
-                </button>
-              </div>
-
-              {relatorioFinalPaciente && (
-                <div className="readonly-pendencias">
-                  <h3>Relatório Final do Paciente</h3>
-                  <div className="action-row relatorio-actions">
-                    <button className="modal-report-button" onClick={exportarRelatorioCSV}>Exportar CSV</button>
-                    <button className="modal-report-button" onClick={exportarRelatorioPDF}>Exportar PDF</button>
-                  </div>
-                  <div className="readonly-grid">
-                    <div><strong>Paciente:</strong> {relatorioFinalPaciente.nomePaciente}</div>
-                    <div><strong>CPF:</strong> {formatarCpf(relatorioFinalPaciente.cpf)}</div>
-                    <div><strong>Status Paciente:</strong> {relatorioFinalPaciente.statusPaciente}</div>
-                    <div><strong>Status Final Protocolo:</strong> {relatorioFinalPaciente.statusFinalProtocolo}</div>
-                    <div><strong>Total Protocolos:</strong> {relatorioFinalPaciente.totalProtocolos}</div>
-                    <div><strong>Entrevista:</strong> {formatarStatusEntrevista(relatorioFinalPaciente.statusEntrevistaFamiliar)}</div>
-                  </div>
-                  <p className="note" style={{ marginTop: "0.75rem" }}>
-                    <strong>Conclusão:</strong> {relatorioFinalPaciente.conclusaoFinal}
-                  </p>
-                  {Array.isArray(relatorioFinalPaciente.protocolos) && relatorioFinalPaciente.protocolos.length > 0 && (
-                    <ul className="lista-faltantes">
-                      {relatorioFinalPaciente.protocolos.map((protocoloResumo) => (
-                        <li key={`relatorio-protocolo-${protocoloResumo.protocoloId}`}>
-                          <strong>{protocoloResumo.numeroProtocolo || `Protocolo ${protocoloResumo.protocoloId}`}</strong>
-                          {` - ${protocoloResumo.statusProtocolo}`}
-                          {` | Exames: ${protocoloResumo.examesRealizados}/${protocoloResumo.totalExames}`}
-                          {` | Clínicos: ${protocoloResumo.examesClinicosRealizados}`}
-                          {` | Complementares: ${protocoloResumo.examesComplementaresRealizados}`}
-                          {` | Laboratoriais: ${protocoloResumo.examesLaboratoriaisRealizados}`}
-                          <div style={{ marginTop: "0.5rem" }}>
-                            <textarea
-                              value={relatorioTextoPorProtocolo[protocoloResumo.protocoloId] || ""}
-                              onChange={(e) => setRelatorioTextoPorProtocolo((prev) => ({
-                                ...prev,
-                                [protocoloResumo.protocoloId]: e.target.value
-                              }))}
-                              placeholder="Conclusão final editável para este protocolo"
-                              rows={3}
-                              style={{ width: "100%" }}
-                            />
-                            <button
-                              className="modal-report-button"
-                              onClick={() => salvarConclusaoProtocolo(protocoloResumo.protocoloId)}
-                            >
-                              Salvar conclusão
-                            </button>
-                          </div>
-                          {Array.isArray(protocoloResumo.anexos) && protocoloResumo.anexos.length > 0 && (
-                            <ul className="lista-faltantes" style={{ marginTop: "0.5rem" }}>
-                              {protocoloResumo.anexos.map((anexo) => (
-                                <li key={`anexo-relatorio-${anexo.id}`}>
-                                  {anexo.nomeArquivo} ({anexo.tipoAnexo || "ANEXO"})
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-
-              <div className="readonly-checklist">
-                <h3>Checklist de Exames</h3>
-                <ul>
-                  <li>
-                    {pacienteSelecionado.protocolo?.testeClinico1Realizado ? "✅" : "⏳"} Teste clínico 1
-                  </li>
-                  <li>
-                    {pacienteSelecionado.protocolo?.testeClinico2Realizado ? "✅" : "⏳"} Teste clínico 2
-                  </li>
-                  <li>
-                    {pacienteSelecionado.protocolo?.testesComplementaresRealizados ? "✅" : "⏳"} Exames complementares
-                  </li>
-                </ul>
-              </div>
-
-              <div className="readonly-pendencias">
-                <h3>Exames Faltantes</h3>
-                {obterExamesPendentes(pacienteSelecionado.protocolo).length === 0 ? (
-                  <p className="pendencia-ok">Todos concluídos.</p>
-                ) : (
-                  <ul className="lista-faltantes">
-                    {obterExamesPendentes(pacienteSelecionado.protocolo).map((item) => (
-                      <li key={`pendente-${pacienteSelecionado.id}-${item}`}>{item}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              <div className="readonly-pendencias">
-                <h3>Exames Realizados (com resultado)</h3>
-                {obterExamesRealizadosDetalhados(pacienteSelecionado.protocolo).length === 0 ? (
-                  <p className="note">Nenhum exame com resultado registrado até o momento.</p>
-                ) : (
-                  <ul className="lista-faltantes">
-                    {obterExamesRealizadosDetalhados(pacienteSelecionado.protocolo).map((exame) => (
-                      <li key={`realizado-${pacienteSelecionado.id}-${exame.id}`}>
-                        <strong>{exame.descricao || exame.tipoExame}</strong>
-                        {` - ${formatarResultadoExame(exame)}`}
-                        {exame.responsavel ? ` (Resp.: ${exame.responsavel})` : ""}
-                        {exame.dataRealizacao
-                          ? ` - ${new Date(exame.dataRealizacao).toLocaleString("pt-BR")}`
-                          : ""}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <CentralPacientesPainel
+        modoTelao={modoTelao}
+        pacientes={pacientes}
+        pacientesFiltrados={pacientesFiltrados}
+        pacientesExibidos={pacientesExibidos}
+        paginaAtualTelao={paginaAtualTelao}
+        totalPaginasTelao={totalPaginasTelao}
+        ultimaAtualizacao={ultimaAtualizacao}
+        cidadesHospitaisPorNome={cidadesHospitaisPorNome}
+        carregando={carregando}
+        abrirVisualizacaoSomenteLeitura={abrirVisualizacaoSomenteLeitura}
+        pacienteSelecionado={pacienteSelecionado}
+        setPacienteSelecionado={setPacienteSelecionado}
+        carregandoRelatorio={carregandoRelatorio}
+        carregarRelatorioFinalPaciente={carregarRelatorioFinalPaciente}
+        relatorioFinalPaciente={relatorioFinalPaciente}
+        exportarRelatorioCSV={exportarRelatorioCSV}
+        exportarRelatorioPDF={exportarRelatorioPDF}
+        relatorioTextoPorProtocolo={relatorioTextoPorProtocolo}
+        setRelatorioTextoPorProtocolo={setRelatorioTextoPorProtocolo}
+        salvarConclusaoProtocolo={salvarConclusaoProtocolo}
+      />
     </section>
   );
 }

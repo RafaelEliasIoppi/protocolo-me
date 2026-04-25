@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../services/apiClient";
+import pacienteService from "../services/pacienteService";
 import PacienteForm from "./PacienteForm";
 
 function PacientesPage() {
@@ -14,8 +14,8 @@ function PacientesPage() {
     const carregarEstatisticas = async () => {
       try {
         setCarregandoEstatisticas(true);
-        const response = await apiClient.get("/api/pacientes/estatisticas/resumo");
-        setEstatisticas(response.data || {});
+        const data = await pacienteService.obterEstatisticas();
+        setEstatisticas(data || {});
       } catch (error) {
         console.error("Erro ao carregar estatísticas de pacientes:", error);
         setEstatisticas({});

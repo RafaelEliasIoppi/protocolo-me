@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../services/apiClient';
-import { formatarTelefone } from '../utils/telefone';
-import { getApiErrorMessage } from '../utils/apiError';
+import { useEffect, useState } from 'react';
+import hospitalService from '../services/hospitalService';
 import '../styles/HospitalForm.css';
+import { getApiErrorMessage } from '../utils/apiError';
+import { formatarTelefone } from '../utils/telefone';
 
 const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
   const [formData, setFormData] = useState({
@@ -90,14 +90,14 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
         cnpj: formData.cnpj.replace(/\D/g, '')
       };
 
-      let response;
+      let resultado;
       if (hospitalParaEditar?.id) {
         // Atualizar
-        response = await apiClient.put(`/api/hospitais/${hospitalParaEditar.id}`, dados);
+        resultado = await hospitalService.atualizar(hospitalParaEditar.id, dados);
         setSucesso('Hospital atualizado com sucesso!');
       } else {
         // Criar
-        response = await apiClient.post('/api/hospitais', dados);
+        resultado = await hospitalService.criar(dados);
         setSucesso('Hospital cadastrado com sucesso!');
         setFormData({
           nome: '',
@@ -112,7 +112,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
       }
 
       if (onSuccess) {
-        onSuccess(response.data);
+        onSuccess(resultado);
       }
 
       setTimeout(() => setSucesso(''), 3000);

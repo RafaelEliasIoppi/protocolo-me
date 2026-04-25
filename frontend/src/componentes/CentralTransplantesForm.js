@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../services/apiClient';
-import { formatarTelefone } from '../utils/telefone';
-import { getApiErrorMessage } from '../utils/apiError';
+import { useEffect, useState } from 'react';
+import centralTransplantesService from '../services/centralTransplantesService';
 import '../styles/CentralTransplantesForm.css';
+import { getApiErrorMessage } from '../utils/apiError';
+import { formatarTelefone } from '../utils/telefone';
 
 const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
   const [formData, setFormData] = useState({
@@ -87,10 +87,10 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
 
       let response;
       if (centralParaEditar?.id) {
-        response = await apiClient.put(`/api/centrais-transplantes/${centralParaEditar.id}`, dados);
+        response = await centralTransplantesService.atualizar(centralParaEditar.id, dados);
         setSucesso('Central atualizada com sucesso!');
       } else {
-        response = await apiClient.post('/api/centrais-transplantes', dados);
+        response = await centralTransplantesService.criar(dados);
         setSucesso('Central de Transplantes cadastrada com sucesso!');
         setFormData({
           nome: '',
@@ -110,7 +110,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
       }
 
       if (onSuccess) {
-        onSuccess(response.data);
+        onSuccess(response?.data ?? response);
       }
 
       setTimeout(() => setSucesso(''), 3000);

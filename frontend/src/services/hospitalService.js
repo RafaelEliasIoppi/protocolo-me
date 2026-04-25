@@ -21,6 +21,13 @@ export const hospitalService = {
     return response.data;
   },
 
+  atualizarStatus: async (id, status) => {
+    const response = await api.patch(`/api/hospitais/${id}/status`, {}, {
+      params: { status }
+    });
+    return response.data;
+  },
+
   deletar: async (id) => {
     const response = await api.delete(`/api/hospitais/${id}`);
     return response.data;

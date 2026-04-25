@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../services/apiClient';
-import { formatarTelefone } from '../utils/telefone';
-import { getApiErrorMessage } from '../utils/apiError';
+import { useEffect, useState } from 'react';
+import hospitalService from '../services/hospitalService';
+import pacienteService from '../services/pacienteService';
 import '../styles/CentralPacienteEditForm.css';
+import { getApiErrorMessage } from '../utils/apiError';
+import { formatarTelefone } from '../utils/telefone';
 
 const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -44,19 +45,18 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
   const carregarPacienteEHospitais = async () => {
     try {
       setCarregando(true);
-      
+
       // Carregar hospitais
-      const hospitaisResponse = await apiClient.get('/api/hospitais');
-      const listaHospitais = Array.isArray(hospitaisResponse.data) 
-        ? hospitaisResponse.data 
-        : hospitaisResponse.data?.content || [];
+      const hospitaisDados = await hospitalService.listar();
+      const listaHospitais = Array.isArray(hospitaisDados)
+        ? hospitaisDados
+        : hospitaisDados?.content || [];
       setHospitais(listaHospitais);
 
       // Carregar paciente se tiver ID
       if (pacienteId) {
-        const pacienteResponse = await apiClient.get(`/api/pacientes/${pacienteId}`);
-        const paciente = pacienteResponse.data;
-        
+        const paciente = await pacienteService.obter(pacienteId);
+
         setFormData({
           nome: paciente.nome || '',
           cpf: paciente.cpf || '',
@@ -120,9 +120,9 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
         hospital: { id: parseInt(formData.hospitalId) }
       };
 
-      await apiClient.put(`/api/pacientes/${pacienteId}`, dados);
+      await pacienteService.atualizar(pacienteId, dados);
       setMensagem({ tipo: 'sucesso', texto: 'Paciente atualizado com sucesso!' });
-      
+
       if (onSave) {
         setTimeout(() => onSave(), 1000);
       }

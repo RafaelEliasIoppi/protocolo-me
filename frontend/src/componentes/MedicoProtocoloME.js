@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
-import apiClient from "../services/apiClient";
-import ExameMEManager from "./ExameMEManager";
-import EntrevistaFamiliarManager from "./EntrevistaFamiliarManager";
-import { formatarCpf } from "../utils/cpf";
-import { getApiErrorMessage } from "../utils/apiError";
+import { useEffect, useState } from "react";
+import centralTransplantesService from "../services/centralTransplantesService";
+import pacienteService from "../services/pacienteService";
+import protocoloService from "../services/protocoloService";
 import "../styles/MedicoProtocoloME.css";
+import { getApiErrorMessage } from "../utils/apiError";
+import { formatarCpf } from "../utils/cpf";
+import EntrevistaFamiliarManager from "./EntrevistaFamiliarManager";
+import ExameMEManager from "./ExameMEManager";
 
 function MedicoProtocoloME() {
   const [pacientesProtocolo, setPacientesProtocolo] = useState([]);
@@ -108,9 +110,9 @@ function MedicoProtocoloME() {
 
   const carregarStatusCentrais = async () => {
     try {
-      const response = await apiClient.get("/api/centrais-transplantes");
-      const lista = Array.isArray(response.data) ? response.data : [];
-      const naoPossuiCentrais = lista.length === 0;
+      const lista = await centralTransplantesService.listarDados();
+      const centrais = Array.isArray(lista) ? lista : [];
+      const naoPossuiCentrais = centrais.length === 0;
 
       setSemCentraisCadastradas(naoPossuiCentrais);
       setAlertaCentral(
@@ -126,8 +128,8 @@ function MedicoProtocoloME() {
 
   const carregarPacientesProtocolo = async () => {
     try {
-      const response = await apiClient.get("/api/protocolos-me");
-      const pacientesMapeados = mapearProtocolosParaPacientes(response.data);
+      const protocolos = await protocoloService.listar();
+      const pacientesMapeados = mapearProtocolosParaPacientes(protocolos);
       setPacientesProtocolo(pacientesMapeados);
       setErro("");
       return pacientesMapeados;
@@ -155,9 +157,9 @@ function MedicoProtocoloME() {
 
   const carregarPacientesDisponiveis = async () => {
     try {
-      const response = await apiClient.get("/api/pacientes/status/INTERNADO");
-      const lista = Array.isArray(response.data) ? response.data : [];
-      const semProtocolo = lista.filter((p) => !Array.isArray(p.protocolosME) || p.protocolosME.length === 0);
+      const lista = await pacienteService.listarPorStatus("INTERNADO");
+      const pacientes = Array.isArray(lista) ? lista : [];
+      const semProtocolo = pacientes.filter((p) => !Array.isArray(p.protocolosME) || p.protocolosME.length === 0);
       setPacientesDisponiveis(semProtocolo);
     } catch (e) {
       console.error("Erro ao carregar pacientes disponíveis:", e);
@@ -182,7 +184,7 @@ function MedicoProtocoloME() {
 
     try {
       setCarregando(true);
-      await apiClient.post("/api/protocolos-me", {
+      await protocoloService.criar({
         pacienteId: parseInt(pacienteSelecionado, 10),
         diagnosticoBasico: diagnostico,
         status: "NOTIFICADO"
@@ -192,11 +194,11 @@ function MedicoProtocoloME() {
       setMostraFormularioProtocolo(false);
       setPacienteSelecionado("");
       setDiagnostico("");
-      
+
       // Recarregar listas
       await carregarPacientesProtocolo();
       await carregarPacientesDisponiveis();
-      
+
       setTimeout(() => setSucesso(""), 3000);
     } catch (e) {
       setErro(getApiErrorMessage(e, "Erro ao iniciar protocolo ME"));
@@ -303,7 +305,7 @@ function MedicoProtocoloME() {
           <h1>🏥 Meu Protocolo de Morte Encefálica (ME)</h1>
           <p>Gerencia pacientes em protocolo ME, adiciona exames e acompanha o status</p>
         </div>
-        <button 
+        <button
           className="btn-primary"
           onClick={() => setMostraFormularioProtocolo(!mostraFormularioProtocolo)}
           disabled={semCentraisCadastradas}
@@ -364,7 +366,7 @@ function MedicoProtocoloME() {
               <button type="submit" className="btn-save" disabled={carregando || semCentraisCadastradas}>
                 {carregando ? "⏳ Iniciando..." : "✅ Iniciar Protocolo"}
               </button>
-              <button 
+              <button
                 type="button"
                 className="btn-cancel"
                 onClick={() => setMostraFormularioProtocolo(false)}
@@ -395,7 +397,7 @@ function MedicoProtocoloME() {
         {pacientesProtocolo.length === 0 ? (
           <div className="vazio">
             <p>Nenhum paciente em protocolo ME no momento.</p>
-            <button 
+            <button
               className="btn-primary"
               onClick={() => setMostraFormularioProtocolo(true)}
             >

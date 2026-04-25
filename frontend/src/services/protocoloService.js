@@ -56,6 +56,36 @@ export const protocoloService = {
 
     const response = await api.post(endpoint);
     return response.data;
+  },
+
+  registrarTesteClinico1: async (protocoloId) => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/teste-clinico-1`);
+    return response.data;
+  },
+
+  registrarTesteClinico2: async (protocoloId) => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/teste-clinico-2`);
+    return response.data;
+  },
+
+  confirmarMorteCerebral: async (protocoloId) => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/confirmar-morte-cerebral`);
+    return response.data;
+  },
+
+  registrarNotificacaoFamilia: async (protocoloId) => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/notificar-familia`);
+    return response.data;
+  },
+
+  registrarPreservacaoOrgaos: async (protocoloId) => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/preservacao-orgaos`);
+    return response.data;
+  },
+
+  atualizarStatus: async (protocoloId, status) => {
+    const response = await api.patch(`/api/protocolos-me/${protocoloId}/status`, { status });
+    return response.data;
   }
 };
 

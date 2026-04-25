@@ -1,6 +1,11 @@
 import api from './apiClient';
 
 export const centralTransplantesService = {
+  listarDados: async () => {
+    const response = await api.get('/api/centrais-transplantes');
+    return response.data;
+  },
+
   listar: async () => {
     return api.get('/api/centrais-transplantes');
   },

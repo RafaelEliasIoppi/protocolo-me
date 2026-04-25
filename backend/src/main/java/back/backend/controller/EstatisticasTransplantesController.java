@@ -34,9 +34,11 @@ public class EstatisticasTransplantesController {
 
     @GetMapping("/por-paciente")
     public ResponseEntity<List<EstatisticasTransplantesService.PacienteDoacaoInfo>> obterEstatisticasPorPaciente(
-            @RequestParam(required = false) Integer ano) {
+            @RequestParam(required = false) Integer ano,
+            @RequestParam(required = false) String nomePaciente,
+            @RequestParam(required = false) String receptor) {
 
-        return ResponseEntity.ok(estatisticasService.obterEstatisticasPorPaciente(ano));
+        return ResponseEntity.ok(estatisticasService.obterEstatisticasPorPaciente(ano, nomePaciente, receptor));
     }
 
     @GetMapping("/anos-disponiveis")

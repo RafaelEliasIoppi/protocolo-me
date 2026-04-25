@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../services/apiClient';
-import OrgaoDoadoManager from './OrgaoDoadoManager';
+import { useEffect, useState } from 'react';
+import protocoloService from '../services/protocoloService';
 import '../styles/ProtocoloMEManager.css';
+import OrgaoDoadoManager from './OrgaoDoadoManager';
 
 const ProtocoloMEManager = () => {
   const [protocolos, setProtocolos] = useState([]);
@@ -43,8 +43,8 @@ const ProtocoloMEManager = () => {
   const carregarProtocolos = async () => {
     setCarregando(true);
     try {
-      const response = await apiClient.get('/api/protocolos-me');
-      setProtocolos(response.data);
+      const dados = await protocoloService.listar();
+      setProtocolos(Array.isArray(dados) ? dados : []);
     } catch (err) {
       setErro('Erro ao carregar protocolos');
     } finally {
@@ -77,8 +77,8 @@ const ProtocoloMEManager = () => {
         observacoes: formProtocolo.observacoes
       };
 
-      const response = await apiClient.post('/api/protocolos-me', payload);
-      setProtocolos([...protocolos, response.data]);
+      const criado = await protocoloService.criar(payload);
+      setProtocolos([...protocolos, criado]);
       setFormProtocolo({
         numeroProtocolo: '',
         hospitalOrigem: '',
@@ -100,8 +100,8 @@ const ProtocoloMEManager = () => {
 
   const registrarTesteClinco1 = async (protocoloId) => {
     try {
-      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/teste-clinico-1`);
-      atualizarProtocoloNaLista(protocoloId, response.data);
+      const atualizado = await protocoloService.registrarTesteClinico1(protocoloId);
+      atualizarProtocoloNaLista(protocoloId, atualizado);
       setSucesso('Teste clínico 1 registrado!');
     } catch (err) {
       setErro('Erro ao registrar teste');
@@ -110,8 +110,8 @@ const ProtocoloMEManager = () => {
 
   const registrarTesteClinco2 = async (protocoloId) => {
     try {
-      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/teste-clinico-2`);
-      atualizarProtocoloNaLista(protocoloId, response.data);
+      const atualizado = await protocoloService.registrarTesteClinico2(protocoloId);
+      atualizarProtocoloNaLista(protocoloId, atualizado);
       setSucesso('Teste clínico 2 registrado!');
     } catch (err) {
       setErro('Erro ao registrar teste');
@@ -120,8 +120,8 @@ const ProtocoloMEManager = () => {
 
   const confirmarMorteCerebral = async (protocoloId) => {
     try {
-      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/confirmar-morte-cerebral`);
-      atualizarProtocoloNaLista(protocoloId, response.data);
+      const atualizado = await protocoloService.confirmarMorteCerebral(protocoloId);
+      atualizarProtocoloNaLista(protocoloId, atualizado);
       setSucesso('Morte cerebral confirmada!');
     } catch (err) {
       setErro('Erro ao confirmar morte cerebral');
@@ -130,8 +130,8 @@ const ProtocoloMEManager = () => {
 
   const registrarNotificacaoFamilia = async (protocoloId) => {
     try {
-      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/notificar-familia`);
-      atualizarProtocoloNaLista(protocoloId, response.data);
+      const atualizado = await protocoloService.registrarNotificacaoFamilia(protocoloId);
+      atualizarProtocoloNaLista(protocoloId, atualizado);
       setSucesso('Notificação da família registrada!');
     } catch (err) {
       setErro('Erro ao registrar notificação');
@@ -140,8 +140,8 @@ const ProtocoloMEManager = () => {
 
   const registrarPreservacaoOrgaos = async (protocoloId) => {
     try {
-      const response = await apiClient.post(`/api/protocolos-me/${protocoloId}/preservacao-orgaos`);
-      atualizarProtocoloNaLista(protocoloId, response.data);
+      const atualizado = await protocoloService.registrarPreservacaoOrgaos(protocoloId);
+      atualizarProtocoloNaLista(protocoloId, atualizado);
       setSucesso('Preservação de órgãos registrada!');
     } catch (err) {
       setErro('Erro ao registrar preservação');
@@ -150,11 +150,8 @@ const ProtocoloMEManager = () => {
 
   const alterarStatus = async (protocoloId, novoStatus) => {
     try {
-      const response = await apiClient.patch(
-        `/api/protocolos-me/${protocoloId}/status`,
-        { status: novoStatus }
-      );
-      atualizarProtocoloNaLista(protocoloId, response.data);
+      const atualizado = await protocoloService.atualizarStatus(protocoloId, novoStatus);
+      atualizarProtocoloNaLista(protocoloId, atualizado);
       setSucesso('Status atualizado!');
     } catch (err) {
       setErro('Erro ao alterar status');

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import apiClient from "../services/apiClient";
-import { getApiErrorMessage } from "../utils/apiError";
+import { useState } from "react";
+import usuarioService from "../services/usuarioService";
 import "../styles/Dashboard.css";
+import { getApiErrorMessage } from "../utils/apiError";
 
 function AlterarSenhaPage() {
   const [senhaAtual, setSenhaAtual] = useState("");
@@ -32,7 +32,7 @@ function AlterarSenhaPage() {
 
     try {
       setAlterandoSenha(true);
-      await apiClient.patch("/api/usuarios/minha-senha", {
+      await usuarioService.alterarMinhaSenha({
         senhaAtual,
         senhaNova: novaSenha,
         confirmarSenha,

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import apiClient from '../services/apiClient';
+import { useEffect, useState } from 'react';
+import hospitalService from '../services/hospitalService';
+import pacienteService from '../services/pacienteService';
+import '../styles/PacienteForm.css';
+import { getApiErrorMessage } from '../utils/apiError';
 import { formatarCpf } from '../utils/cpf';
 import { formatarTelefone } from '../utils/telefone';
-import { getApiErrorMessage } from '../utils/apiError';
-import '../styles/PacienteForm.css';
 
 const PacienteForm = ({
   paciente,
@@ -98,8 +99,8 @@ const PacienteForm = ({
 
   const carregarHospitais = async () => {
     try {
-      const response = await apiClient.get('/api/hospitais');
-      setHospitais(normalizarLista(response.data));
+      const dados = await hospitalService.listar();
+      setHospitais(normalizarLista(dados));
     } catch (error) {
       console.error('Erro ao carregar hospitais:', error);
       setHospitais([]);
@@ -112,17 +113,37 @@ const PacienteForm = ({
       let url = '/api/pacientes';
 
       if (busca) {
-        url = `/api/pacientes/buscar?nome=${busca}`;
+        const dados = await pacienteService.buscarPorNome(busca);
+        const listaPacientes = normalizarLista(dados);
+        setPacientes(listaPacientes);
+        const total = listaPacientes.length;
+        setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
+        return;
       } else if (filtroStatus && filtroHospital) {
-        url = `/api/pacientes/hospital/${filtroHospital}/status/${filtroStatus}`;
+        const dados = await pacienteService.listarPorHospitalEStatus(filtroHospital, filtroStatus);
+        const listaPacientes = normalizarLista(dados);
+        setPacientes(listaPacientes);
+        const total = listaPacientes.length;
+        setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
+        return;
       } else if (filtroStatus) {
-        url = `/api/pacientes/status/${filtroStatus}`;
+        const dados = await pacienteService.listarPorStatus(filtroStatus);
+        const listaPacientes = normalizarLista(dados);
+        setPacientes(listaPacientes);
+        const total = listaPacientes.length;
+        setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
+        return;
       } else if (filtroHospital) {
-        url = `/api/pacientes/hospital/${filtroHospital}`;
+        const dados = await pacienteService.listarPorHospital(filtroHospital);
+        const listaPacientes = normalizarLista(dados);
+        setPacientes(listaPacientes);
+        const total = listaPacientes.length;
+        setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
+        return;
       }
 
-      const response = await apiClient.get(url);
-      const listaPacientes = normalizarLista(response.data);
+      const dados = await pacienteService.listar();
+      const listaPacientes = normalizarLista(dados);
       setPacientes(listaPacientes);
       const total = listaPacientes.length;
       setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
@@ -137,8 +158,8 @@ const PacienteForm = ({
 
   const carregarEstatisticas = async () => {
     try {
-      const response = await apiClient.get('/api/pacientes/estatisticas/resumo');
-      setEstatisticas(response.data);
+      const dados = await pacienteService.obterEstatisticas();
+      setEstatisticas(dados);
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error);
     }
@@ -192,13 +213,13 @@ const PacienteForm = ({
       };
 
       if (editandoId) {
-        await apiClient.put(`/api/pacientes/${editandoId}`, dadosPaciente);
+        await pacienteService.atualizar(editandoId, dadosPaciente);
         setMensagem({ tipo: 'sucesso', texto: 'Paciente atualizado com sucesso!' });
         if (onSave) onSave(dadosPaciente);
       } else {
-        const response = await apiClient.post('/api/pacientes', dadosPaciente);
+        const response = await pacienteService.criar(dadosPaciente);
         setMensagem({ tipo: 'sucesso', texto: 'Paciente criado com sucesso!' });
-        if (onSave) onSave(response.data);
+        if (onSave) onSave(response);
       }
 
       limparFormulario();
@@ -239,7 +260,7 @@ const PacienteForm = ({
   const deletar = async (id) => {
     if (window.confirm('Tem certeza que deseja deletar este paciente?')) {
       try {
-        await apiClient.delete(`/api/pacientes/${id}`);
+        await pacienteService.deletar(id);
         setMensagem({ tipo: 'sucesso', texto: 'Paciente deletado com sucesso!' });
         carregarPacientes();
         carregarEstatisticas();
@@ -656,6 +677,6 @@ const PacienteForm = ({
   );
 };
 
-  
+
 
 export default PacienteForm;
