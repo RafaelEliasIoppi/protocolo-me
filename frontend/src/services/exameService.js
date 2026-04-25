@@ -34,13 +34,18 @@ export const exameService = {
     return response.data;
   },
 
-  atualizarResultado: async (id, resultadoPositivo) => {
+  atualizarResultado: async (id, resultadoPositivo, responsavel = '') => {
+    // O backend espera 'resultado' (String) e 'resultado_positivo' (Boolean)
+    const resultado = resultadoPositivo ? 'POSITIVO' : 'NEGATIVO';
+    
     const response = await api.post(
       `/api/exames-me/${id}/resultado`,
       {},
       {
         params: {
-          resultado_positivo: resultadoPositivo
+          resultado: resultado,
+          resultado_positivo: resultadoPositivo,
+          responsavel: responsavel
         }
       }
     );

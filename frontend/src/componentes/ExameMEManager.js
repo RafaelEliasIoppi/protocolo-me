@@ -19,7 +19,13 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   const tiposExame = [
     { valor: 'REFLEXO_PUPILAR', label: 'Reflexo Pupilar' },
     { valor: 'REFLEXO_CORNEAL', label: 'Reflexo Corneal' },
-    { valor: 'APNEIA_TEST', label: 'Teste de Apneia' }
+    { valor: 'APNEIA_TEST', label: 'Teste de Apneia' },
+    { valor: 'RESPOSTA_ESTIMULO_DORO', label: 'Resposta ao Estímulo Doloroso' },
+    { valor: 'REFLEXO_VESTIBULO_OCULAR', label: 'Reflexo Vestibulo-Ocular' },
+    { valor: 'REFLEXO_TOSSE', label: 'Reflexo de Tosse' },
+    { valor: 'ANGIOGRAFIA_CEREBRAL', label: 'Angiografia Cerebral' },
+    { valor: 'TOMOGRAFIA_CRANIO', label: 'Tomografia de Crânio' },
+    { valor: 'ELETROENCEFALOGRAMA', label: 'EEG' }
   ];
 
   useEffect(() => {
@@ -43,6 +49,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   const criarExame = async (e) => {
     e.preventDefault();
     setErro('');
+    setSucesso('');
 
     if (!novoExame.tipoExame || novoExame.resultado_positivo === '') {
       setErro('Preencha todos os campos obrigatórios');
@@ -68,6 +75,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
       });
 
       setSucesso('Exame criado com sucesso');
+      if (onAtualizacao) onAtualizacao();
     } catch {
       setErro('Erro ao criar exame');
     }
@@ -81,6 +89,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
       await exameService.deletar(id);
       setExames(exames.filter(e => e.id !== id));
       setSucesso('Exame excluído');
+      if (onAtualizacao) onAtualizacao();
     } catch {
       setErro('Erro ao excluir');
     }
@@ -88,11 +97,16 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
   const salvarResultado = async (exame) => {
     try {
-      const atualizado = await exameService.atualizarResultado(exame.id, exame.resultado_positivo);
+      const atualizado = await exameService.atualizarResultado(
+        exame.id, 
+        exame.resultado_positivo,
+        exame.responsavel
+      );
 
       setExames(exames.map(e => e.id === exame.id ? atualizado : e));
       setExameSelecionado(null);
       setSucesso('Resultado atualizado');
+      if (onAtualizacao) onAtualizacao();
     } catch {
       setErro('Erro ao salvar resultado');
     }
@@ -172,14 +186,15 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
               </span>
             </div>
 
-            <p>{exame.responsavel}</p>
+            <p><strong>Responsável:</strong> {exame.responsavel || 'Não informado'}</p>
+            {exame.observacoes && <p className="obs"><strong>Obs:</strong> {exame.observacoes}</p>}
 
             {/* BOTÕES */}
             <div className="acoes">
 
               <button
                 className="btn-editar"
-                onClick={() => setExameSelecionado(exame)}
+                onClick={() => setExameSelecionado({...exame})}
               >
                 Editar
               </button>
@@ -197,18 +212,33 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
             {exameSelecionado?.id === exame.id && (
               <div className="edit-box">
 
-                <select
-                  value={exameSelecionado.resultado_positivo ? 'true' : 'false'}
-                  onChange={(e) =>
-                    setExameSelecionado({
+                <div className="form-group">
+                  <label>Resultado:</label>
+                  <select
+                    value={exameSelecionado.resultado_positivo ? 'true' : 'false'}
+                    onChange={(e) =>
+                      setExameSelecionado({
+                        ...exameSelecionado,
+                        resultado_positivo: e.target.value === 'true'
+                      })
+                    }
+                  >
+                    <option value="true">Positivo</option>
+                    <option value="false">Negativo</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Responsável:</label>
+                  <input 
+                    type="text"
+                    value={exameSelecionado.responsavel || ''}
+                    onChange={(e) => setExameSelecionado({
                       ...exameSelecionado,
-                      resultado_positivo: e.target.value === 'true'
-                    })
-                  }
-                >
-                  <option value="true">Positivo</option>
-                  <option value="false">Negativo</option>
-                </select>
+                      responsavel: e.target.value
+                    })}
+                  />
+                </div>
 
                 <div className="acoes-edit">
                   <button

@@ -15,14 +15,15 @@ const ProtocoloMEManager = () => {
     causaMorte: '',
     observacoes: '',
     orgaosDisponiveis: '',
-    centralTransplantesId: ''
+    centralTransplantesId: '',
+    autopsiaAutorizada: false,
+    preservacaoOrgaos: false
   });
 
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
-  const [protocoloSelecionado, setProtocoloSelecionado] = useState(null);
   const [protocolosExpandidos, setProtocolosExpandidos] = useState(new Set());
 
   const statusOpcoes = [
@@ -53,10 +54,10 @@ const ProtocoloMEManager = () => {
   };
 
   const handleChangeForm = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormProtocolo(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
@@ -74,7 +75,13 @@ const ProtocoloMEManager = () => {
       const payload = {
         pacienteId: parseInt(formProtocolo.pacienteId, 10),
         diagnosticoBasico: formProtocolo.diagnosticoBasico,
-        observacoes: formProtocolo.observacoes
+        numeroProtocolo: formProtocolo.numeroProtocolo,
+        hospitalOrigem: formProtocolo.hospitalOrigem,
+        medicoResponsavel: formProtocolo.medicoResponsavel,
+        observacoes: formProtocolo.observacoes,
+        orgaosDisponiveis: formProtocolo.orgaosDisponiveis,
+        autopsiaAutorizada: formProtocolo.autopsiaAutorizada,
+        preservacaoOrgaos: formProtocolo.preservacaoOrgaos
       };
 
       const criado = await protocoloService.criar(payload);
@@ -89,7 +96,9 @@ const ProtocoloMEManager = () => {
         causaMorte: '',
         observacoes: '',
         orgaosDisponiveis: '',
-        centralTransplantesId: ''
+        centralTransplantesId: '',
+        autopsiaAutorizada: false,
+        preservacaoOrgaos: false
       });
       setSucesso('Protocolo criado com sucesso!');
       setTimeout(() => setSucesso(''), 3000);
@@ -209,14 +218,14 @@ const ProtocoloMEManager = () => {
             <input
               type="text"
               name="numeroProtocolo"
-              placeholder="Número do Protocolo (opcional)"
+              placeholder="Número do Protocolo"
               value={formProtocolo.numeroProtocolo}
               onChange={handleChangeForm}
             />
             <input
               type="text"
               name="hospitalOrigem"
-              placeholder="Hospital Origem (opcional)"
+              placeholder="Hospital Origem"
               value={formProtocolo.hospitalOrigem}
               onChange={handleChangeForm}
             />
@@ -243,6 +252,24 @@ const ProtocoloMEManager = () => {
               value={formProtocolo.orgaosDisponiveis}
               onChange={handleChangeForm}
             />
+          </div>
+          <div className="form-row checkboxes">
+            <label>
+              <input
+                type="checkbox"
+                name="autopsiaAutorizada"
+                checked={formProtocolo.autopsiaAutorizada}
+                onChange={handleChangeForm}
+              /> Autópsia Autorizada
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="preservacaoOrgaos"
+                checked={formProtocolo.preservacaoOrgaos}
+                onChange={handleChangeForm}
+              /> Preservação de Órgãos
+            </label>
           </div>
           <button type="submit" className="btn-criar">Criar Protocolo</button>
         </form>
@@ -276,8 +303,8 @@ const ProtocoloMEManager = () => {
             <div key={protocolo.id} className="protocolo-card">
               <div className="protocolo-header">
                 <div>
-                  <h4>{protocolo.numeroProtocolo}</h4>
-                  <p className="hospital">{protocolo.hospitalOrigem}</p>
+                  <h4>{protocolo.numeroProtocolo || `ID: ${protocolo.id}`}</h4>
+                  <p className="hospital">{protocolo.hospitalOrigem || 'Hospital não informado'}</p>
                 </div>
                 <span className={`status-badge status-${obterCorStatus(protocolo.status)}`}>
                   {obterLabelStatus(protocolo.status)}
@@ -285,7 +312,7 @@ const ProtocoloMEManager = () => {
               </div>
 
               <div className="protocolo-info">
-                <p><strong>Paciente ID:</strong> {protocolo.pacienteId || 'N/A'}</p>
+                <p><strong>Paciente ID:</strong> {protocolo.pacienteId || (protocolo.paciente && protocolo.paciente.id) || 'N/A'}</p>
                 <p><strong>Médico:</strong> {protocolo.medicoResponsavel || 'N/A'}</p>
                 <p><strong>Diagnóstico:</strong> {protocolo.diagnosticoBasico || 'N/A'}</p>
                 <p><strong>Órgãos:</strong> {protocolo.orgaosDisponiveis || 'N/A'}</p>
@@ -333,8 +360,12 @@ const ProtocoloMEManager = () => {
 
               <div className="protocolo-actions">
                 <div className="actions-row">
-                  <button onClick={() => confirmarMorteCerebral(protocolo.id)} className="btn-acao btn-confirmacao">
-                    ✓ Confirmar Morte Cerebral
+                  <button 
+                    onClick={() => confirmarMorteCerebral(protocolo.id)} 
+                    className="btn-acao btn-confirmacao"
+                    disabled={protocolo.dataConfirmacaoME != null}
+                  >
+                    {protocolo.dataConfirmacaoME ? '✓ ME Confirmada' : '✓ Confirmar Morte Cerebral'}
                   </button>
                 </div>
                 <div className="actions-row">
