@@ -1,6 +1,7 @@
 package back.backend.controller;
 
 import back.backend.dto.EstatisticaProtocoloMEDTO;
+import back.backend.dto.ProtocoloSemEstatisticaDTO;
 import back.backend.service.EstatisticaProtocoloMEService;
 import back.backend.service.EstatisticasTransplantesService;
 
@@ -98,7 +99,7 @@ public class EstatisticasTransplantesController {
 
     // 🔹 Auditoria: protocolos sem estatística
     @GetMapping("/protocolo-me/auditoria")
-    public ResponseEntity<List<EstatisticaProtocoloMEService.ProtocoloSemEstatisticaDTO>> listarProtocolosSemEstatistica(
+    public ResponseEntity<List<ProtocoloSemEstatisticaDTO>> listarProtocolosSemEstatistica(
             @RequestParam(required = false) Integer ano) {
 
         return ResponseEntity.ok(
