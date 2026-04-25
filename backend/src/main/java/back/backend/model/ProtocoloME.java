@@ -87,6 +87,15 @@ public class ProtocoloME {
     private LocalDateTime dataNotificacaoFamilia;
 
     // =========================
+    // AUTOPSIA E PRESERVAÇÃO
+    // =========================
+
+    private Boolean autopsiaAutorizada = false;
+    private Boolean preservacaoOrgaos = false;
+    private LocalDateTime dataPreservacao;
+    private String orgaosDisponiveis;
+
+    // =========================
     // CONTROLE
     // =========================
 
@@ -214,4 +223,16 @@ public class ProtocoloME {
     public void setStatus(StatusProtocoloME status) { this.status = status; }
 
     public LocalDateTime getDataConfirmacaoME() { return dataConfirmacaoME; }
+
+    public Boolean getAutopsiaAutorizada() { return autopsiaAutorizada; }
+    public void setAutopsiaAutorizada(Boolean autopsiaAutorizada) { this.autopsiaAutorizada = autopsiaAutorizada; }
+
+    public Boolean getPreservacaoOrgaos() { return preservacaoOrgaos; }
+    public void setPreservacaoOrgaos(Boolean preservacaoOrgaos) { this.preservacaoOrgaos = preservacaoOrgaos; }
+
+    public LocalDateTime getDataPreservacao() { return dataPreservacao; }
+    public void setDataPreservacao(LocalDateTime dataPreservacao) { this.dataPreservacao = dataPreservacao; }
+
+    public String getOrgaosDisponiveis() { return orgaosDisponiveis; }
+    public void setOrgaosDisponiveis(String orgaosDisponiveis) { this.orgaosDisponiveis = orgaosDisponiveis; }
 }

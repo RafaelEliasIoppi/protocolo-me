@@ -38,8 +38,8 @@ public class DadosIniciaisConfig {
             Usuario admin = new Usuario();
             admin.setEmail(adminEmail.trim().toLowerCase());
 
-            // 🔐 CORREÇÃO: senha criptografada
-            admin.setSenha(passwordEncoder.encode(adminPassword));
+            // ⚠️ IMPORTANTE: Não codificar aqui! UsuarioService.registrar() já codifica
+            admin.setSenha(adminPassword);
 
             admin.setNome(adminNome);
             admin.setRole(Role.ADMIN);

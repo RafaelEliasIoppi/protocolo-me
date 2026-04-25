@@ -127,6 +127,102 @@ public class PacienteService {
                 .toList();
     }
 
+    public List<PacienteDTO> listarPorHospital(Long hospitalId) {
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException("Hospital não encontrado"));
+        return pacienteRepository.findByHospital(hospital)
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
+    public List<PacienteDTO> listarPorStatus(String status) {
+        try {
+            Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
+            return pacienteRepository.findByStatus(statusEnum)
+                    .stream()
+                    .map(this::toDTO)
+                    .toList();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Status inválido: " + status);
+        }
+    }
+
+    public List<PacienteDTO> listarPorHospitalEStatus(Long hospitalId, String status) {
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException("Hospital não encontrado"));
+        try {
+            Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
+            return pacienteRepository.findByHospitalAndStatus(hospital, statusEnum)
+                    .stream()
+                    .map(this::toDTO)
+                    .toList();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Status inválido: " + status);
+        }
+    }
+
+    public List<PacienteEmProtocoloDTO> listarEmProtocoloME() {
+        return pacienteRepository.findPacientesEmProtocoloME()
+                .stream()
+                .map(p -> new PacienteEmProtocoloDTO(
+                        p.getId(),
+                        p.getNome(),
+                        p.getCpf(),
+                        p.getHospital() != null ? p.getHospital().getId() : null,
+                        p.getHospital() != null ? p.getHospital().getNome() : null,
+                        p.getLeito(),
+                        p.getStatus().name()
+                ))
+                .toList();
+    }
+
+    public List<PacienteEmProtocoloDTO> listarEmProtocoloMEPorHospital(Long hospitalId) {
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException("Hospital não encontrado"));
+        return pacienteRepository.findPacientesEmProtocoloMEPorHospital(hospital)
+                .stream()
+                .map(p -> new PacienteEmProtocoloDTO(
+                        p.getId(),
+                        p.getNome(),
+                        p.getCpf(),
+                        p.getHospital() != null ? p.getHospital().getId() : null,
+                        p.getHospital() != null ? p.getHospital().getNome() : null,
+                        p.getLeito(),
+                        p.getStatus().name()
+                ))
+                .toList();
+    }
+
+    public PacienteRelatorioFinalDTO obterRelatorioFinal(Long id) {
+        Paciente paciente = buscarPacienteEntityPorId(id);
+        return new PacienteRelatorioFinalDTO(
+                paciente.getId(),
+                paciente.getNome(),
+                paciente.getCpf(),
+                paciente.getDataNascimento(),
+                paciente.getGenero().name(),
+                paciente.getHospital() != null ? paciente.getHospital().getNome() : null,
+                paciente.getLeito(),
+                paciente.getDiagnosticoPrincipal(),
+                paciente.getHistoricoMedico(),
+                paciente.getStatus().name()
+        );
+    }
+
+    public PacienteStatisticas obterEstatisticas() {
+        long total = pacienteRepository.count();
+        long internados = pacienteRepository.countByStatus(Paciente.StatusPaciente.INTERNADO);
+        long emProtocolo = pacienteRepository.countByStatus(Paciente.StatusPaciente.EM_PROTOCOLO_ME);
+        long aptos = pacienteRepository.countByStatus(Paciente.StatusPaciente.APTO_TRANSPLANTE);
+        long naoAptos = pacienteRepository.countByStatus(Paciente.StatusPaciente.NAO_APTO);
+
+        return new PacienteStatisticas(total, internados, emProtocolo, aptos, naoAptos);
+    }
+
     // ================= DELETE =================
 
     public void deletarPaciente(Long id) {
@@ -191,6 +287,24 @@ public class PacienteService {
         }
     }
 
+    private void preencherHospital(Paciente paciente) {
+        // Preenchimento automático se necessário
+    }
+
+    private void copiarCampos(Paciente destino, Paciente origem) {
+        if (origem.getNome() != null) destino.setNome(origem.getNome());
+        if (origem.getDataNascimento() != null) destino.setDataNascimento(origem.getDataNascimento());
+        if (origem.getGenero() != null) destino.setGenero(origem.getGenero());
+        if (origem.getLeito() != null) destino.setLeito(origem.getLeito());
+        if (origem.getDataInternacao() != null) destino.setDataInternacao(origem.getDataInternacao());
+        if (origem.getDiagnosticoPrincipal() != null) destino.setDiagnosticoPrincipal(origem.getDiagnosticoPrincipal());
+        if (origem.getHistoricoMedico() != null) destino.setHistoricoMedico(origem.getHistoricoMedico());
+        if (origem.getNomeResponsavel() != null) destino.setNomeResponsavel(origem.getNomeResponsavel());
+        if (origem.getTelefoneResponsavel() != null) destino.setTelefoneResponsavel(origem.getTelefoneResponsavel());
+        if (origem.getEmailResponsavel() != null) destino.setEmailResponsavel(origem.getEmailResponsavel());
+        if (origem.getStatus() != null) destino.setStatus(origem.getStatus());
+    }
+
     private Paciente buscarPacienteEntityPorId(Long id) {
         return pacienteRepository.findById(id)
                 .orElseThrow(() ->
@@ -215,5 +329,23 @@ public class PacienteService {
 
         return n.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})",
                 "$1.$2.$3-$4");
+    }
+
+    // ================= INNER CLASS =================
+
+    public static class PacienteStatisticas {
+        public long total;
+        public long internados;
+        public long emProtocolo;
+        public long aptos;
+        public long naoAptos;
+
+        public PacienteStatisticas(long total, long internados, long emProtocolo, long aptos, long naoAptos) {
+            this.total = total;
+            this.internados = internados;
+            this.emProtocolo = emProtocolo;
+            this.aptos = aptos;
+            this.naoAptos = naoAptos;
+        }
     }
 }

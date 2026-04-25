@@ -166,6 +166,26 @@ public class ProtocoloMEService {
                 .toList();
     }
 
+    public List<ProtocoloMEDTO> listarPorCentralEStatus(Long centralId, String status) {
+        CentralTransplantes c = centralRepository.findById(centralId)
+                .orElseThrow(() ->
+                        new RecursoNaoEncontradoException("Central não encontrada"));
+
+        ProtocoloME.StatusProtocoloME statusEnum = parseStatus(status);
+
+        return protocoloRepository.findByCentralTransplantesAndStatus(c, statusEnum)
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
+    public List<ProtocoloMEDTO> listarPorHospitalOrigem(String hospital) {
+        return protocoloRepository.findByHospitalOrigem(hospital)
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
     // ================= UPDATE =================
 
     public ProtocoloMEDTO atualizarProtocolo(Long id, ProtocoloME novo) {
@@ -190,12 +210,53 @@ public class ProtocoloMEService {
         return toDTO(salvar(p));
     }
 
+    public ProtocoloMEDTO atualizarRelatorioFinal(Long id, String textoRelatorio, String atualizadoPor) {
+        ProtocoloME p = buscarOuFalhar(id);
+        p.setRelatorioFinalEditavel(textoRelatorio);
+        p.setRelatorioFinalAtualizadoPor(atualizadoPor);
+        p.setRelatorioFinalAtualizadoEm(LocalDateTime.now());
+        return toDTO(salvar(p));
+    }
+
+    public ProtocoloMEDTO alterarStatus(Long id, String novoStatus) {
+        ProtocoloME p = buscarOuFalhar(id);
+        p.setStatus(parseStatus(novoStatus));
+        return toDTO(salvar(p));
+    }
+
     // ================= ACTIONS =================
 
     public ProtocoloMEDTO confirmarMorteCerebral(Long id) {
         return executar(id, p -> {
             p.setStatus(ProtocoloME.StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA);
             p.setDataConfirmacaoME(LocalDateTime.now());
+        });
+    }
+
+    public ProtocoloMEDTO registrarTesteClinico1(Long id) {
+        return executar(id, p -> {
+            p.setTesteClinico1Realizado(true);
+            p.setDataTesteClinico1(LocalDateTime.now());
+        });
+    }
+
+    public ProtocoloMEDTO registrarTesteClinico2(Long id) {
+        return executar(id, p -> {
+            p.setTesteClinico2Realizado(true);
+            p.setDataTesteClinico2(LocalDateTime.now());
+        });
+    }
+
+    public ProtocoloMEDTO marcarEntrevistaFamiliar(Long id) {
+        return executar(id, p -> {
+            p.setStatus(ProtocoloME.StatusProtocoloME.ENTREVISTA_FAMILIAR);
+        });
+    }
+
+    public ProtocoloMEDTO registrarNotificacaoFamilia(Long id) {
+        return executar(id, p -> {
+            p.setFamiliaNotificada(true);
+            p.setDataNotificacaoFamilia(LocalDateTime.now());
         });
     }
 
@@ -214,6 +275,26 @@ public class ProtocoloMEService {
                 : ProtocoloME.StatusProtocoloME.FAMILIA_RECUSOU);
 
         return toDTO(salvar(protocolo));
+    }
+
+    public ProtocoloMEDTO autorizarAutopsia(Long id) {
+        return executar(id, p -> {
+            p.setAutopsiaAutorizada(true);
+        });
+    }
+
+    public ProtocoloMEDTO registrarPreservacaoOrgaos(Long id) {
+        return executar(id, p -> {
+            p.setPreservacaoOrgaos(true);
+            p.setDataPreservacao(LocalDateTime.now());
+        });
+    }
+
+    public ProtocoloMEDTO atualizarStatusAutomatico(Long id) {
+        ProtocoloME p = buscarOuFalhar(id);
+        ProtocoloME.StatusProtocoloME novoStatus = p.calcularStatusAutomatico();
+        p.setStatus(novoStatus);
+        return toDTO(salvar(p));
     }
 
     // ================= CORE =================
