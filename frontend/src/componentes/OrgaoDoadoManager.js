@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import apiClient from '../services/apiClient';
-import { formatarCpf } from '../utils/cpf';
 import '../styles/OrgaoDoadoManager.css';
+import { formatarCpf } from '../utils/cpf';
 
 const OrgaoDoadoManager = ({ protocoloId }) => {
   const [orgaos, setOrgaos] = useState([]);
@@ -22,6 +22,15 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
   const [orgaoEditando, setOrgaoEditando] = useState(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [estatisticas, setEstatisticas] = useState(null);
+  const [modalAcao, setModalAcao] = useState({
+    aberto: false,
+    tipo: null,
+    orgaoId: null,
+    nomeOrgao: '',
+    hospitalReceptor: '',
+    pacienteReceptor: '',
+    motivo: ''
+  });
 
   const statusOpcoes = [
     { valor: 'AGUARDANDO_IMPLANTACAO', label: 'Aguardando Implantação' },
@@ -191,31 +200,85 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     }
   };
 
-  const handleRegistrarImplantacao = async (id) => {
-    const hospitalReceptor = prompt('Hospital receptor:');
-    if (!hospitalReceptor) return;
-
-    const pacienteReceptor = prompt('Nome do paciente receptor:');
-    if (!pacienteReceptor) return;
-
-    try {
-      await apiClient.post(`/api/orgaos-doados/${id}/implantar?hospitalReceptor=${hospitalReceptor}&pacienteReceptor=${pacienteReceptor}`);
-      setSucesso('Implantação registrada com sucesso');
-      carregarOrgaos();
-      carregarEstatisticas();
-    } catch (err) {
-      setErro('Erro ao registrar implantação');
-      console.error(err);
-    }
+  const abrirModalImplantacao = (orgao) => {
+    setModalAcao({
+      aberto: true,
+      tipo: 'IMPLANTAR',
+      orgaoId: orgao.id,
+      nomeOrgao: orgao.nomeOrgao,
+      hospitalReceptor: orgao.hospitalReceptor || '',
+      pacienteReceptor: orgao.pacienteReceptor || '',
+      motivo: ''
+    });
   };
 
-  const handleRegistrarDescarte = async (id) => {
-    const motivo = prompt('Motivo do descarte:');
-    if (!motivo) return;
+  const abrirModalDescarte = (orgao) => {
+    setModalAcao({
+      aberto: true,
+      tipo: 'DESCARTAR',
+      orgaoId: orgao.id,
+      nomeOrgao: orgao.nomeOrgao,
+      hospitalReceptor: '',
+      pacienteReceptor: '',
+      motivo: orgao.motivoDescarte || ''
+    });
+  };
+
+  const fecharModalAcao = () => {
+    setModalAcao({
+      aberto: false,
+      tipo: null,
+      orgaoId: null,
+      nomeOrgao: '',
+      hospitalReceptor: '',
+      pacienteReceptor: '',
+      motivo: ''
+    });
+  };
+
+  const confirmarModalAcao = async () => {
+    if (!modalAcao.orgaoId || !modalAcao.tipo) return;
+
+    setErro('');
+    setSucesso('');
+
+    if (modalAcao.tipo === 'IMPLANTAR') {
+      if (!modalAcao.hospitalReceptor.trim() || !modalAcao.pacienteReceptor.trim()) {
+        setErro('Informe hospital e paciente receptor para registrar implantação.');
+        return;
+      }
+
+      try {
+        await apiClient.post(`/api/orgaos-doados/${modalAcao.orgaoId}/implantar`, null, {
+          params: {
+            hospitalReceptor: modalAcao.hospitalReceptor.trim(),
+            pacienteReceptor: modalAcao.pacienteReceptor.trim()
+          }
+        });
+        setSucesso('Implantação registrada com sucesso');
+        fecharModalAcao();
+        carregarOrgaos();
+        carregarEstatisticas();
+      } catch (err) {
+        setErro('Erro ao registrar implantação');
+        console.error(err);
+      }
+      return;
+    }
+
+    if (!modalAcao.motivo.trim()) {
+      setErro('Informe o motivo para registrar descarte.');
+      return;
+    }
 
     try {
-      await apiClient.post(`/api/orgaos-doados/${id}/descartar?motivo=${encodeURIComponent(motivo)}`);
+      await apiClient.post(`/api/orgaos-doados/${modalAcao.orgaoId}/descartar`, null, {
+        params: {
+          motivo: modalAcao.motivo.trim()
+        }
+      });
       setSucesso('Descarte registrado com sucesso');
+      fecharModalAcao();
       carregarOrgaos();
       carregarEstatisticas();
     } catch (err) {
@@ -446,14 +509,14 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                       <>
                         <button
                           className="btn-small btn-success"
-                          onClick={() => handleRegistrarImplantacao(orgao.id)}
+                          onClick={() => abrirModalImplantacao(orgao)}
                           title="Registrar implantação"
                         >
                           ✓ Implantar
                         </button>
                         <button
                           className="btn-small btn-danger"
-                          onClick={() => handleRegistrarDescarte(orgao.id)}
+                          onClick={() => abrirModalDescarte(orgao)}
                           title="Registrar descarte"
                         >
                           ✗ Descartar
@@ -543,6 +606,61 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                 </div>
               </details>
             ))}
+          </div>
+        </div>
+      )}
+
+      {modalAcao.aberto && (
+        <div className="orgao-acao-modal-overlay" onClick={fecharModalAcao}>
+          <div className="orgao-acao-modal" onClick={(e) => e.stopPropagation()}>
+            <h4>
+              {modalAcao.tipo === 'IMPLANTAR' ? 'Registrar Implantação' : 'Registrar Descarte'}
+            </h4>
+            <p className="orgao-acao-modal-subtitle">
+              Órgão: <strong>{modalAcao.nomeOrgao || 'N/A'}</strong>
+            </p>
+
+            {modalAcao.tipo === 'IMPLANTAR' ? (
+              <div className="orgao-acao-modal-fields">
+                <label htmlFor="modal-hospital-receptor">Hospital receptor</label>
+                <input
+                  id="modal-hospital-receptor"
+                  type="text"
+                  value={modalAcao.hospitalReceptor}
+                  onChange={(e) => setModalAcao((prev) => ({ ...prev, hospitalReceptor: e.target.value }))}
+                  placeholder="Nome do hospital"
+                />
+
+                <label htmlFor="modal-paciente-receptor">Paciente receptor</label>
+                <input
+                  id="modal-paciente-receptor"
+                  type="text"
+                  value={modalAcao.pacienteReceptor}
+                  onChange={(e) => setModalAcao((prev) => ({ ...prev, pacienteReceptor: e.target.value }))}
+                  placeholder="Nome do paciente"
+                />
+              </div>
+            ) : (
+              <div className="orgao-acao-modal-fields">
+                <label htmlFor="modal-motivo-descarte">Motivo do descarte</label>
+                <textarea
+                  id="modal-motivo-descarte"
+                  rows={3}
+                  value={modalAcao.motivo}
+                  onChange={(e) => setModalAcao((prev) => ({ ...prev, motivo: e.target.value }))}
+                  placeholder="Descreva o motivo"
+                />
+              </div>
+            )}
+
+            <div className="orgao-acao-modal-actions">
+              <button type="button" className="btn-cancelar" onClick={fecharModalAcao}>
+                Cancelar
+              </button>
+              <button type="button" className="btn-salvar" onClick={confirmarModalAcao}>
+                Confirmar
+              </button>
+            </div>
           </div>
         </div>
       )}

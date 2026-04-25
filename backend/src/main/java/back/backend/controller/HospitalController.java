@@ -5,7 +5,7 @@ import back.backend.dto.HospitalRequestDTO;
 import back.backend.mapper.HospitalRequestMapper;
 import back.backend.model.Hospital;
 import back.backend.service.HospitalService;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

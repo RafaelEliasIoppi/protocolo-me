@@ -1,6 +1,6 @@
 package back.backend.dto;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 import java.io.Serializable;
 
 public class CentralTransplantesDTO implements Serializable {

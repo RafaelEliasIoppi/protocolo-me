@@ -3,7 +3,7 @@ package back.backend.controller;
 import back.backend.dto.OrgaoDoadoDTO;
 import back.backend.dto.OrgaoDoadoRequestDTO;
 import back.backend.mapper.OrgaoDoadoRequestMapper;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import back.backend.service.OrgaoDoadoService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

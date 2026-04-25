@@ -1,271 +1,273 @@
 .exame-manager-container {
-  max-width: 1200px;
-  margin: 30px auto;
-  padding: 30px;
-  background-color: #f4f6f8;
-  border-radius: 10px;
+  --ex-card-bg: #ffffff;
+  --ex-page-bg: #f8fafc;
+  --ex-border: #e2e8f0;
+  --ex-border-strong: #cbd5e1;
+  --ex-text: #0f172a;
+  --ex-muted: #475569;
+  --ex-primary: #2563eb;
+  --ex-primary-hover: #1d4ed8;
+
+  max-width: 980px;
+  margin: 24px auto;
+  padding: 24px;
+  background: var(--ex-page-bg);
+  border: 1px solid var(--ex-border);
+  border-radius: 12px;
+}
+
+.exame-manager-container .exame-header {
+  margin-bottom: 14px;
 }
 
 .exame-manager-container h2 {
-  color: #2c3e50;
-  margin-bottom: 25px;
-  font-size: 26px;
+  margin: 0 0 4px 0;
+  color: var(--ex-text);
+  font-size: 1.4rem;
   font-weight: 700;
 }
 
-/* ================= RESUMO ================= */
-.resumo-exames {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.card-resumo {
-  background: white;
-  padding: 18px;
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-  border-left: 5px solid #3498db;
-  transition: 0.2s;
-}
-
-.card-resumo:hover {
-  transform: translateY(-2px);
-}
-
-.card-resumo h4 {
+.exame-manager-container .exame-subtitulo {
   margin: 0;
-  color: #7f8c8d;
-  font-size: 12px;
-  text-transform: uppercase;
+  color: var(--ex-muted);
+  font-size: 0.92rem;
 }
 
-.card-resumo .valor {
-  font-size: 30px;
-  font-weight: bold;
-  color: #2c3e50;
-  margin-top: 8px;
-}
-
-/* ================= FORM ================= */
-.novo-exame-section {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 25px;
-  border-left: 5px solid #e74c3c;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.novo-exame-section h3 {
-  margin-top: 0;
-  color: #2c3e50;
-}
-
-.form-group label {
-  font-weight: 600;
-  font-size: 13px;
-  margin-bottom: 6px;
-  display: block;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  padding: 10px;
-  border: 2px solid #e0e0e0;
+.exame-manager-container .alerta {
+  margin-bottom: 12px;
+  padding: 10px 12px;
   border-radius: 8px;
-  font-size: 14px;
-  transition: 0.2s;
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  border-color: #e74c3c;
+.exame-manager-container .alerta.erro {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.exame-manager-container .alerta.sucesso {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.exame-manager-container .card-form {
+  background: var(--ex-card-bg);
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.exame-manager-container .card-form h3 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.exame-manager-container .card-form form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.exame-manager-container .card-form textarea,
+.exame-manager-container .card-form .btn-primario {
+  grid-column: 1 / -1;
+}
+
+.exame-manager-container .card-form .campo-largo {
+  grid-column: 1 / -1;
+}
+
+.exame-manager-container select,
+.exame-manager-container input,
+.exame-manager-container textarea {
+  width: 100%;
+  border: 1px solid var(--ex-border-strong);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.92rem;
+  color: var(--ex-text);
+  background: var(--ex-card-bg);
+  box-sizing: border-box;
+}
+
+.exame-manager-container textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.exame-manager-container select:focus,
+.exame-manager-container input:focus,
+.exame-manager-container textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
   outline: none;
 }
 
-/* ================= BOTÕES ================= */
-.btn-adicionar {
-  background: #e74c3c;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 8px;
+.exame-manager-container .btn-primario,
+.exame-manager-container .btn-editar,
+.exame-manager-container .btn-excluir,
+.exame-manager-container .btn-salvar,
+.exame-manager-container .btn-cancelar {
   border: none;
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
 }
 
-.btn-adicionar:hover {
-  background: #c0392b;
+.exame-manager-container .btn-primario {
+  background: var(--ex-primary);
+  color: #ffffff;
 }
 
-.btn-recarregar {
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
+.exame-manager-container .btn-primario:hover {
+  background: var(--ex-primary-hover);
 }
 
-.btn-recarregar:hover {
-  background: #2980b9;
-}
-
-/* ================= LISTA ================= */
-.exames-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.exame-item {
-  background: white;
-  padding: 18px;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
-  border-left: 5px solid #3498db;
-  transition: 0.2s;
-}
-
-.exame-item:hover {
-  transform: translateY(-2px);
-}
-
-/* STATUS */
-.realizado {
-  background: #d4edda;
-  color: #155724;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-.pendente {
-  background: #fff3cd;
-  color: #856404;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-weight: 600;
-}
-
-/* ================= AÇÕES ================= */
-.exame-actions {
-  display: flex;
+.exame-manager-container .lista-exames {
+  display: grid;
   gap: 10px;
-  margin-top: 12px;
 }
 
-.btn-resultado {
-  flex: 1;
-  background: #3498db;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
+.exame-manager-container .estado-vazio {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  color: #64748b;
+  text-align: center;
+  padding: 18px 14px;
+  font-weight: 600;
 }
 
-.btn-resultado:hover {
-  background: #2980b9;
+.exame-manager-container .card-exame {
+  background: var(--ex-card-bg);
+  border: 1px solid var(--ex-border);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 }
 
-.btn-deletar {
-  background: #e74c3c;
-  color: white;
-  border: none;
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.btn-deletar:hover {
-  background: #c0392b;
-}
-
-/* ================= MODAL (NOVO IMPORTANTE) ================= */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
+.exame-manager-container .header-exame {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.exame-manager-container .header-exame strong {
+  color: var(--ex-text);
+}
+
+.exame-manager-container .positivo,
+.exame-manager-container .negativo {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  z-index: 9999;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
-.modal-content {
-  background: white;
-  width: 420px;
-  max-width: 95%;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  animation: pop 0.2s ease-in-out;
+.exame-manager-container .positivo {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
 }
 
-@keyframes pop {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+.exame-manager-container .negativo {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
 }
 
-.modal-content h3 {
-  margin-top: 0;
-  color: #2c3e50;
+.exame-manager-container .card-exame p {
+  margin: 0 0 10px 0;
+  color: var(--ex-muted);
+  font-size: 0.9rem;
 }
 
-/* BOTÕES MODAL */
-.modal-actions {
+.exame-manager-container .acoes,
+.exame-manager-container .acoes-edit {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 15px;
+  gap: 8px;
 }
 
-.btn-confirmar {
-  background: #27ae60;
-  color: white;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: none;
+.exame-manager-container .acoes button,
+.exame-manager-container .acoes-edit button {
+  flex: 1;
 }
 
-.btn-confirmar:hover {
-  background: #1e8449;
+.exame-manager-container .btn-editar {
+  background: #0ea5e9;
+  color: #ffffff;
 }
 
-.btn-cancelar {
-  background: #95a5a6;
-  color: white;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: none;
+.exame-manager-container .btn-editar:hover {
+  background: #0284c7;
 }
 
-.btn-cancelar:hover {
-  background: #7f8c8d;
+.exame-manager-container .btn-excluir {
+  background: #ef4444;
+  color: #ffffff;
 }
 
-/* ================= ALERTAS ================= */
-.alerta {
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+.exame-manager-container .btn-excluir:hover {
+  background: #dc2626;
 }
 
-.alerta-sucesso {
-  background: #d4edda;
-  color: #155724;
+.exame-manager-container .edit-box {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--ex-border-strong);
 }
 
-.alerta-erro {
-  background: #f8d7da;
-  color: #721c24;
+.exame-manager-container .btn-salvar {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.exame-manager-container .btn-salvar:hover {
+  background: #15803d;
+}
+
+.exame-manager-container .btn-cancelar {
+  background: #94a3b8;
+  color: #ffffff;
+}
+
+.exame-manager-container .btn-cancelar:hover {
+  background: #64748b;
+}
+
+@media (max-width: 760px) {
+  .exame-manager-container {
+    margin: 12px;
+    padding: 14px;
+  }
+
+  .exame-manager-container .card-form form {
+    grid-template-columns: 1fr;
+  }
+
+  .exame-manager-container .header-exame {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .exame-manager-container .acoes,
+  .exame-manager-container .acoes-edit {
+    flex-direction: column;
+  }
 }

@@ -5,7 +5,7 @@ import back.backend.dto.CentralTransplantesRequestDTO;
 import back.backend.model.CentralTransplantes;
 import back.backend.service.CentralTransplantesService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

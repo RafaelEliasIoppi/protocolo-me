@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
     formatarResultadoExame,
     formatarStatusEntrevista,
@@ -10,6 +11,60 @@ import {
     obterResumoStatusExames,
 } from "../services/centralDashboardService";
 import { formatarCpf } from "../utils/cpf";
+
+const cabecalhoSecao = "## [SECAO] ";
+
+const parseSecoesRelatorio = (texto) => {
+  const conteudo = String(texto || "").trim();
+
+  if (!conteudo) {
+    return [{ titulo: "Conclusao", conteudo: "" }];
+  }
+
+  const linhas = conteudo.split("\n");
+  const secoes = [];
+  let secaoAtual = null;
+
+  linhas.forEach((linha) => {
+    if (linha.startsWith(cabecalhoSecao)) {
+      if (secaoAtual) {
+        secaoAtual.conteudo = secaoAtual.conteudo.join("\n").trim();
+        secoes.push(secaoAtual);
+      }
+
+      secaoAtual = {
+        titulo: linha.replace(cabecalhoSecao, "").trim() || "Secao sem titulo",
+        conteudo: []
+      };
+      return;
+    }
+
+    if (!secaoAtual) {
+      secaoAtual = { titulo: "Conclusao", conteudo: [] };
+    }
+
+    secaoAtual.conteudo.push(linha);
+  });
+
+  if (secaoAtual) {
+    secaoAtual.conteudo = secaoAtual.conteudo.join("\n").trim();
+    secoes.push(secaoAtual);
+  }
+
+  return secoes.length > 0 ? secoes : [{ titulo: "Conclusao", conteudo: "" }];
+};
+
+const serializarSecoesRelatorio = (secoes) => {
+  const lista = Array.isArray(secoes) ? secoes : [];
+  return lista
+    .map((secao, indice) => {
+      const titulo = String(secao?.titulo || `Secao ${indice + 1}`).trim() || `Secao ${indice + 1}`;
+      const conteudo = String(secao?.conteudo || "").trim();
+      return `${cabecalhoSecao}${titulo}\n${conteudo}`.trim();
+    })
+    .filter(Boolean)
+    .join("\n\n");
+};
 
 function CentralPacientesPainel({
   modoTelao,
@@ -33,6 +88,108 @@ function CentralPacientesPainel({
   setRelatorioTextoPorProtocolo,
   salvarConclusaoProtocolo,
 }) {
+  const [secoesPorProtocolo, setSecoesPorProtocolo] = useState({});
+
+  useEffect(() => {
+    if (!relatorioFinalPaciente?.protocolos) {
+      setSecoesPorProtocolo({});
+      return;
+    }
+
+    const mapa = {};
+    relatorioFinalPaciente.protocolos.forEach((protocoloResumo) => {
+      const protocoloId = protocoloResumo.protocoloId;
+      const textoAtual = relatorioTextoPorProtocolo?.[protocoloId] ?? protocoloResumo.relatorioFinalEditavel ?? "";
+      mapa[protocoloId] = parseSecoesRelatorio(textoAtual);
+    });
+    setSecoesPorProtocolo(mapa);
+  }, [relatorioFinalPaciente, relatorioTextoPorProtocolo]);
+
+  const atualizarSecoesDoProtocolo = (protocoloId, atualizador) => {
+    setSecoesPorProtocolo((prev) => {
+      const base = Array.isArray(prev[protocoloId])
+        ? prev[protocoloId]
+        : parseSecoesRelatorio(relatorioTextoPorProtocolo?.[protocoloId] || "");
+      const proximo = atualizador(base);
+      const textoSerializado = serializarSecoesRelatorio(proximo);
+
+      setRelatorioTextoPorProtocolo((estadoAnterior) => ({
+        ...estadoAnterior,
+        [protocoloId]: textoSerializado
+      }));
+
+      return {
+        ...prev,
+        [protocoloId]: proximo
+      };
+    });
+  };
+
+  const adicionarSecao = (protocoloId) => {
+    atualizarSecoesDoProtocolo(protocoloId, (secoesAtuais) => ([
+      ...secoesAtuais,
+      {
+        titulo: `Nova Secao ${secoesAtuais.length + 1}`,
+        conteudo: ""
+      }
+    ]));
+  };
+
+  const removerSecao = (protocoloId, indiceRemocao) => {
+    atualizarSecoesDoProtocolo(protocoloId, (secoesAtuais) => {
+      const atualizado = secoesAtuais.filter((_, indice) => indice !== indiceRemocao);
+      return atualizado.length > 0 ? atualizado : [{ titulo: "Conclusao", conteudo: "" }];
+    });
+  };
+
+  const atualizarCampoSecao = (protocoloId, indiceSecao, campo, valor) => {
+    atualizarSecoesDoProtocolo(protocoloId, (secoesAtuais) =>
+      secoesAtuais.map((secao, indice) =>
+        indice === indiceSecao
+          ? {
+              ...secao,
+              [campo]: valor
+            }
+          : secao
+      )
+    );
+  };
+
+  const imprimirRelatorioProtocolo = (protocoloResumo, secoes) => {
+    const janela = window.open("", "_blank");
+    if (!janela) {
+      return;
+    }
+
+    const secoesHtml = (Array.isArray(secoes) ? secoes : []).map((secao) => `
+      <section style="margin-bottom: 14px;">
+        <h3 style="margin: 0 0 6px 0; color: #1f2937; font-size: 15px;">${secao.titulo || "Secao"}</h3>
+        <p style="margin: 0; white-space: pre-wrap; line-height: 1.5; color: #111827;">${secao.conteudo || "(sem conteudo)"}</p>
+      </section>
+    `).join("");
+
+    janela.document.write(`
+      <!doctype html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="UTF-8" />
+          <title>Relatorio Final - ${protocoloResumo.numeroProtocolo || protocoloResumo.protocoloId}</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; padding: 18px; color: #0f172a;">
+          <h1 style="margin: 0 0 12px 0; font-size: 20px;">Relatorio Final - Protocolo ME</h1>
+          <p style="margin: 0 0 8px 0;"><strong>Protocolo:</strong> ${protocoloResumo.numeroProtocolo || protocoloResumo.protocoloId}</p>
+          <p style="margin: 0 0 8px 0;"><strong>Status:</strong> ${protocoloResumo.statusProtocolo || "-"}</p>
+          <p style="margin: 0 0 16px 0;"><strong>Exames:</strong> ${protocoloResumo.examesRealizados || 0}/${protocoloResumo.totalExames || 0}</p>
+          ${secoesHtml || "<p>Nenhuma secao cadastrada.</p>"}
+        </body>
+      </html>
+    `);
+
+    janela.document.close();
+    janela.focus();
+    janela.print();
+  };
+
   return (
     <>
       <div className="panel pacientes-painel">
@@ -217,21 +374,70 @@ function CentralPacientesPainel({
                           {` | Complementares: ${protocoloResumo.examesComplementaresRealizados}`}
                           {` | Laboratoriais: ${protocoloResumo.examesLaboratoriaisRealizados}`}
                           <div style={{ marginTop: "0.5rem" }}>
-                            <textarea
-                              value={relatorioTextoPorProtocolo[protocoloResumo.protocoloId] || ""}
-                              onChange={(e) => setRelatorioTextoPorProtocolo((prev) => ({
-                                ...prev,
-                                [protocoloResumo.protocoloId]: e.target.value
-                              }))}
-                              placeholder="Conclusão final editável para este protocolo"
-                              rows={3}
-                              style={{ width: "100%" }}
-                            />
+                            <div className="relatorio-secoes-header">
+                              <strong>Partes do relatório final</strong>
+                              <div className="action-row relatorio-secoes-acoes">
+                                <button
+                                  className="modal-report-button"
+                                  type="button"
+                                  onClick={() => adicionarSecao(protocoloResumo.protocoloId)}
+                                >
+                                  + Adicionar parte
+                                </button>
+                                <button
+                                  className="modal-report-button"
+                                  type="button"
+                                  onClick={() => imprimirRelatorioProtocolo(
+                                    protocoloResumo,
+                                    secoesPorProtocolo[protocoloResumo.protocoloId]
+                                  )}
+                                >
+                                  Imprimir protocolo
+                                </button>
+                              </div>
+                            </div>
+
+                            {(secoesPorProtocolo[protocoloResumo.protocoloId] || []).map((secao, indiceSecao) => (
+                              <div key={`secao-${protocoloResumo.protocoloId}-${indiceSecao}`} className="relatorio-secao-item">
+                                <div className="relatorio-secao-meta">
+                                  <input
+                                    className="relatorio-secao-titulo"
+                                    value={secao.titulo || ""}
+                                    onChange={(e) => atualizarCampoSecao(
+                                      protocoloResumo.protocoloId,
+                                      indiceSecao,
+                                      "titulo",
+                                      e.target.value
+                                    )}
+                                    placeholder="Titulo da parte"
+                                  />
+                                  <button
+                                    className="secondary-button relatorio-secao-remover"
+                                    type="button"
+                                    onClick={() => removerSecao(protocoloResumo.protocoloId, indiceSecao)}
+                                  >
+                                    Remover
+                                  </button>
+                                </div>
+                                <textarea
+                                  value={secao.conteudo || ""}
+                                  onChange={(e) => atualizarCampoSecao(
+                                    protocoloResumo.protocoloId,
+                                    indiceSecao,
+                                    "conteudo",
+                                    e.target.value
+                                  )}
+                                  placeholder="Descreva esta parte do relatório"
+                                  rows={4}
+                                  style={{ width: "100%" }}
+                                />
+                              </div>
+                            ))}
                             <button
                               className="modal-report-button"
                               onClick={() => salvarConclusaoProtocolo(protocoloResumo.protocoloId)}
                             >
-                              Salvar conclusão
+                              Salvar relatório
                             </button>
                           </div>
                           {Array.isArray(protocoloResumo.anexos) && protocoloResumo.anexos.length > 0 && (

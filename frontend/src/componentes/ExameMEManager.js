@@ -100,8 +100,10 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
   return (
     <div className="exame-manager-container">
-
-      <h2>Exames do Protocolo</h2>
+      <div className="exame-header">
+        <h2>Exames do Protocolo</h2>
+        <p className="exame-subtitulo">Cadastro e revisão dos exames clínicos do protocolo de ME.</p>
+      </div>
 
       {erro && <div className="alerta erro">{erro}</div>}
       {sucesso && <div className="alerta sucesso">{sucesso}</div>}
@@ -137,6 +139,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
           />
 
           <textarea
+            className="campo-largo"
             name="observacoes"
             placeholder="Observações"
             value={novoExame.observacoes}
@@ -152,6 +155,11 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
       {/* ================= LISTA ================= */}
       <div className="lista-exames">
+        {exames.length === 0 && (
+          <div className="estado-vazio">
+            Nenhum exame registrado para este protocolo.
+          </div>
+        )}
 
         {exames.map(exame => (
           <div key={exame.id} className="card-exame">

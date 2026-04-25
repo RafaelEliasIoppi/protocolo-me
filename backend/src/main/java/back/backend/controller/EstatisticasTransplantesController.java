@@ -4,7 +4,7 @@ import back.backend.dto.EstatisticaProtocoloMEDTO;
 import back.backend.service.EstatisticaProtocoloMEService;
 import back.backend.service.EstatisticasTransplantesService;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

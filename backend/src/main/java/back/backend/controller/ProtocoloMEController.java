@@ -9,7 +9,7 @@ import back.backend.model.ProtocoloME;
 import back.backend.mapper.ProtocoloRequestMapper;
 import back.backend.service.ProtocoloMEService;
 import lombok.RequiredArgsConstructor;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

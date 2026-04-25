@@ -20,7 +20,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
-.central-dashboard .dashboard-header > div:first-child {
+.central-dashboard .dashboard-header>div:first-child {
   flex: 1 1 320px;
   min-width: 0;
 }
@@ -187,6 +187,7 @@
   font-size: 0.95rem;
   font-weight: 600;
   transition: all 0.3s ease;
+
   hover {
     background-color: rgba(255, 255, 255, 0.25);
     border-color: rgba(255, 255, 255, 0.6);
@@ -506,6 +507,47 @@
   background-color: #fadbd8;
   color: #78281f;
   border: 1px solid #f5b7b1;
+}
+
+.relatorio-secoes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.relatorio-secoes-acoes {
+  gap: 0.5rem;
+}
+
+.relatorio-secao-item {
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+  border-radius: 8px;
+  padding: 0.65rem;
+  margin-bottom: 0.6rem;
+}
+
+.relatorio-secao-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.relatorio-secao-titulo {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.9rem;
+}
+
+.relatorio-secao-remover {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.82rem;
 }
 
 .estatisticas-central-panel {
@@ -1244,6 +1286,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
