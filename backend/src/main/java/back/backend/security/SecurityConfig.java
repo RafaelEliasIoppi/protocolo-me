@@ -143,7 +143,7 @@ public class SecurityConfig {
 
     private static final List<String> DEFAULT_CORS_PATTERNS = List.of(
         "http://localhost:*",
-        "http://127.0.0.1:*",cd 
+        "http://127.0.0.1:*",
         "https://*.github.dev",
         "https://*.app.github.dev"
     );
