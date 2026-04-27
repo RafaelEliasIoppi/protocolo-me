@@ -12,4 +12,6 @@ public interface HospitalRepository extends JpaRepository<Hospital, Long> {
     List<Hospital> findByStatus(Hospital.StatusHospital status);
     List<Hospital> findByCidade(String cidade);
     List<Hospital> findByEstado(String estado);
+    List<Hospital> findByCidadeIgnoreCase(String cidade);
+    List<Hospital> findByEstadoIgnoreCase(String estado);
 }

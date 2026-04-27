@@ -12,6 +12,9 @@ public interface CentralTransplantesRequestMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "statusOperacional", ignore = true)
     @Mapping(target = "hospitaisNotificantes", ignore = true)
+    @Mapping(target = "hospitaisParceados", ignore = true)
+    @Mapping(target = "protocolosME", ignore = true)
+    @Mapping(target = "doacoes", ignore = true)
     @Mapping(target = "dataCriacao", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     CentralTransplantes toEntity(CentralTransplantesRequestDTO dto);

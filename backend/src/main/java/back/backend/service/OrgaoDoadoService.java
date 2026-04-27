@@ -124,7 +124,7 @@ public class OrgaoDoadoService {
     }
 
     public List<OrgaoDoadoDTO> listarPorProtocolo(Long protocoloId) {
-        return orgaoDoadoRepository.findByProtocoloMEId(protocoloId)
+        return orgaoDoadoRepository.findByDoacao_ProtocoloME_Id(protocoloId)
                 .stream()
                 .map(this::toDTO)
                 .toList();

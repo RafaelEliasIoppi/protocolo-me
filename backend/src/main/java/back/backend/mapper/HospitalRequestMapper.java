@@ -11,6 +11,7 @@ public interface HospitalRequestMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "tipo", ignore = true)
     @Mapping(target = "dataCriacao", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     Hospital toEntity(HospitalRequestDTO dto);

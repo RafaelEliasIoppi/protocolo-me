@@ -167,15 +167,7 @@ public class PacienteService {
     public List<PacienteEmProtocoloDTO> listarEmProtocoloME() {
         return pacienteRepository.findPacientesEmProtocoloME()
                 .stream()
-                .map(p -> new PacienteEmProtocoloDTO(
-                        p.getId(),
-                        p.getNome(),
-                        p.getCpf(),
-                        p.getHospital() != null ? p.getHospital().getId() : null,
-                        p.getHospital() != null ? p.getHospital().getNome() : null,
-                        p.getLeito(),
-                        p.getStatus().name()
-                ))
+            .map(this::toPacienteEmProtocoloDTO)
                 .toList();
     }
 
@@ -185,32 +177,20 @@ public class PacienteService {
                         new RecursoNaoEncontradoException("Hospital não encontrado"));
         return pacienteRepository.findPacientesEmProtocoloMEPorHospital(hospital)
                 .stream()
-                .map(p -> new PacienteEmProtocoloDTO(
-                        p.getId(),
-                        p.getNome(),
-                        p.getCpf(),
-                        p.getHospital() != null ? p.getHospital().getId() : null,
-                        p.getHospital() != null ? p.getHospital().getNome() : null,
-                        p.getLeito(),
-                        p.getStatus().name()
-                ))
+            .map(this::toPacienteEmProtocoloDTO)
                 .toList();
     }
 
     public PacienteRelatorioFinalDTO obterRelatorioFinal(Long id) {
         Paciente paciente = buscarPacienteEntityPorId(id);
-        return new PacienteRelatorioFinalDTO(
-                paciente.getId(),
-                paciente.getNome(),
-                paciente.getCpf(),
-                paciente.getDataNascimento(),
-                paciente.getGenero().name(),
-                paciente.getHospital() != null ? paciente.getHospital().getNome() : null,
-                paciente.getLeito(),
-                paciente.getDiagnosticoPrincipal(),
-                paciente.getHistoricoMedico(),
-                paciente.getStatus().name()
-        );
+        PacienteRelatorioFinalDTO dto = new PacienteRelatorioFinalDTO();
+        dto.setPacienteId(paciente.getId());
+        dto.setNomePaciente(paciente.getNome());
+        dto.setCpf(paciente.getCpf());
+        dto.setHospital(paciente.getHospital() != null ? paciente.getHospital().getNome() : null);
+        dto.setStatusPaciente(paciente.getStatus() != null ? paciente.getStatus().name() : null);
+        dto.setStatusEntrevistaFamiliar(paciente.getStatusEntrevistaFamiliar());
+        return dto;
     }
 
     public PacienteStatisticas obterEstatisticas() {
@@ -257,6 +237,25 @@ public class PacienteService {
     }
 
     // ================= HELPERS =================
+
+    private PacienteEmProtocoloDTO toPacienteEmProtocoloDTO(Paciente paciente) {
+        PacienteEmProtocoloDTO dto = new PacienteEmProtocoloDTO();
+        dto.setId(paciente.getId());
+        dto.setNome(paciente.getNome());
+        dto.setCpf(paciente.getCpf());
+        dto.setLeito(paciente.getLeito());
+        dto.setStatus(paciente.getStatus() != null ? paciente.getStatus().name() : null);
+        dto.setStatusEntrevistaFamiliar(paciente.getStatusEntrevistaFamiliar());
+
+        if (paciente.getHospital() != null) {
+            dto.setHospital(new PacienteEmProtocoloDTO.HospitalResumoDTO(
+                    paciente.getHospital().getId(),
+                    paciente.getHospital().getNome()
+            ));
+        }
+
+        return dto;
+    }
 
     private void validarPaciente(Paciente paciente) {
 

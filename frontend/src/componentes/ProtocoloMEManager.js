@@ -75,13 +75,7 @@ const ProtocoloMEManager = () => {
       const payload = {
         pacienteId: parseInt(formProtocolo.pacienteId, 10),
         diagnosticoBasico: formProtocolo.diagnosticoBasico,
-        numeroProtocolo: formProtocolo.numeroProtocolo,
-        hospitalOrigem: formProtocolo.hospitalOrigem,
-        medicoResponsavel: formProtocolo.medicoResponsavel,
-        observacoes: formProtocolo.observacoes,
-        orgaosDisponiveis: formProtocolo.orgaosDisponiveis,
-        autopsiaAutorizada: formProtocolo.autopsiaAutorizada,
-        preservacaoOrgaos: formProtocolo.preservacaoOrgaos
+        numeroProtocolo: formProtocolo.numeroProtocolo
       };
 
       const criado = await protocoloService.criar(payload);
@@ -360,8 +354,8 @@ const ProtocoloMEManager = () => {
 
               <div className="protocolo-actions">
                 <div className="actions-row">
-                  <button 
-                    onClick={() => confirmarMorteCerebral(protocolo.id)} 
+                  <button
+                    onClick={() => confirmarMorteCerebral(protocolo.id)}
                     className="btn-acao btn-confirmacao"
                     disabled={protocolo.dataConfirmacaoME != null}
                   >

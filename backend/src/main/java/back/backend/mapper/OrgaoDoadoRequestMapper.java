@@ -11,7 +11,11 @@ import org.mapstruct.NullValueCheckStrategy;
 public interface OrgaoDoadoRequestMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "doacao", ignore = true)
     @Mapping(target = "protocoloME", expression = "java(toProtocolo(dto.getProtocoloId()))")
+    @Mapping(target = "tipo", expression = "java(toTipo(dto.getNomeOrgao()))")
+    @Mapping(target = "lado", ignore = true)
+    @Mapping(target = "subtipo", ignore = true)
     @Mapping(target = "status", expression = "java(dto.getStatus() != null ? OrgaoDoado.StatusOrgaoDoado.valueOf(dto.getStatus().toUpperCase()) : null)")
     @Mapping(target = "dataCriacao", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
@@ -28,5 +32,12 @@ public interface OrgaoDoadoRequestMapper {
         ProtocoloME protocolo = new ProtocoloME();
         protocolo.setId(protocoloId);
         return protocolo;
+    }
+
+    default OrgaoDoado.TipoOrgao toTipo(String nomeOrgao) {
+        if (nomeOrgao == null || nomeOrgao.isBlank()) {
+            return null;
+        }
+        return OrgaoDoado.TipoOrgao.valueOf(nomeOrgao.trim().toUpperCase());
     }
 }

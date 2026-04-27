@@ -46,31 +46,25 @@ public class ExameMEService {
     }
 
     public List<ExameMEDTO> listarExamesClinico(Long protocoloId) {
-        return exameRepository.findByProtocoloME_IdAndCategoria(
-                        protocoloId,
-                        ExameME.CategoriaExame.CLINICO
-                )
-                .stream()
+        return exameRepository.findByProtocoloME_Id(protocoloId)
+            .stream()
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO)
                 .map(this::toDTO)
                 .toList();
     }
 
     public List<ExameMEDTO> listarExamesComplementares(Long protocoloId) {
-        return exameRepository.findByProtocoloME_IdAndCategoria(
-                        protocoloId,
-                        ExameME.CategoriaExame.COMPLEMENTAR
-                )
-                .stream()
+        return exameRepository.findByProtocoloME_Id(protocoloId)
+            .stream()
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR)
                 .map(this::toDTO)
                 .toList();
     }
 
     public List<ExameMEDTO> listarExamesLaboratoriais(Long protocoloId) {
-        return exameRepository.findByProtocoloME_IdAndCategoria(
-                        protocoloId,
-                        ExameME.CategoriaExame.LABORATORIAL
-                )
-                .stream()
+        return exameRepository.findByProtocoloME_Id(protocoloId)
+            .stream()
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL)
                 .map(this::toDTO)
                 .toList();
     }
@@ -88,7 +82,6 @@ public class ExameMEService {
         ExameME exame = buscarEntity(id);
 
         if (dados.getDescricao() != null) exame.setDescricao(dados.getDescricao());
-        if (dados.getCategoria() != null) exame.setCategoria(dados.getCategoria());
         if (dados.getTipoExame() != null) exame.setTipoExame(dados.getTipoExame());
         if (dados.getObservacoes() != null) exame.setObservacoes(dados.getObservacoes());
         if (dados.getDataRealizacao() != null) exame.setDataRealizacao(dados.getDataRealizacao());
@@ -109,8 +102,8 @@ public class ExameMEService {
 
         ExameME exame = buscarEntity(id);
 
-        exame.setResultado(resultado);
-        exame.setResultado_positivo(resultadoPositivo);
+        ExameME.ResultadoExame resultadoEnum = parseResultado(resultado, resultadoPositivo);
+        exame.setResultado(resultadoEnum);
         exame.setResponsavel(responsavel);
         exame.setDataRealizacao(LocalDateTime.now());
         exame.setDataAtualizacao(LocalDateTime.now());
@@ -197,6 +190,16 @@ public class ExameMEService {
 
     private ExameMEDTO toDTO(ExameME exame) {
         return exameMapper.toDTO(exame);
+    }
+
+    private ExameME.ResultadoExame parseResultado(String resultado, Boolean resultadoPositivo) {
+        if (resultado != null && !resultado.isBlank()) {
+            return ExameME.ResultadoExame.valueOf(resultado.toUpperCase());
+        }
+        if (resultadoPositivo == null) {
+            return null;
+        }
+        return resultadoPositivo ? ExameME.ResultadoExame.POSITIVO : ExameME.ResultadoExame.NEGATIVO;
     }
 
     // ================= DTO INTERNO =================

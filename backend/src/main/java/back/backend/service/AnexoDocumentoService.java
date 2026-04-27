@@ -4,6 +4,8 @@ import back.backend.dto.AnexoDocumentoDTO;
 import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.mapper.AnexoDocumentoMapper;
 import back.backend.model.AnexoDocumento;
+import back.backend.model.ExameME;
+import back.backend.model.ProtocoloME;
 import back.backend.repository.AnexoDocumentoRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -74,9 +76,17 @@ public class AnexoDocumentoService {
         anexo.setCaminhoArquivo(destino.toString());
         anexo.setTipoMime(file.getContentType());
         anexo.setTamanhoBytes(file.getSize());
-        anexo.setTipoAnexo(tipo);
-        anexo.setExameMEId(exameId);
-        anexo.setProtocoloMEId(protocoloId);
+        anexo.setTipoAnexo(AnexoDocumento.TipoAnexo.valueOf(tipo));
+        if (exameId != null) {
+            ExameME exame = new ExameME();
+            exame.setId(exameId);
+            anexo.setExameME(exame);
+        }
+        if (protocoloId != null) {
+            ProtocoloME protocolo = new ProtocoloME();
+            protocolo.setId(protocoloId);
+            anexo.setProtocoloME(protocolo);
+        }
         anexo.setDescricao(descricao);
         anexo.setUploadPor(uploadPor);
 

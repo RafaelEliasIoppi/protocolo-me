@@ -78,8 +78,6 @@ public class OrgaoDoado {
     // VALIDAÇÕES
     // =========================
 
-    @PrePersist
-    @PreUpdate
     private void validarEstado() {
 
         // Não pode criar órgão se doação recusada
@@ -123,12 +121,14 @@ public class OrgaoDoado {
 
     @PrePersist
     protected void onCreate() {
+        validarEstado();
         dataCriacao = LocalDateTime.now();
         dataAtualizacao = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
+        validarEstado();
         dataAtualizacao = LocalDateTime.now();
     }
 

@@ -127,7 +127,8 @@ public class EstatisticaProtocoloMEService {
         }
 
         return estatisticaRepository.findAll().stream()
-                .filter(e -> periodicidade == null || e.getPeriodicidade().equalsIgnoreCase(periodicidade))
+            .filter(e -> periodicidade == null ||
+                (e.getPeriodicidade() != null && e.getPeriodicidade().name().equalsIgnoreCase(periodicidade)))
                 .filter(e -> ano == null || Objects.equals(e.getAnoCompetencia(), ano))
                 .filter(e -> mes == null || Objects.equals(e.getMesCompetencia(), mes))
                 .map(e -> toDTO(e, e.getProtocoloME()))
@@ -256,7 +257,9 @@ public class EstatisticaProtocoloMEService {
         dto.setNomeDoador(getStringField(estatistica, "nomeDoador"));
         dto.setAnoCompetencia(estatistica.getAnoCompetencia());
         dto.setMesCompetencia(estatistica.getMesCompetencia());
-        dto.setPeriodicidade(estatistica.getPeriodicidade());
+        dto.setPeriodicidade(estatistica.getPeriodicidade() != null
+            ? estatistica.getPeriodicidade().name()
+            : null);
 
         Map<String, String> campos = new LinkedHashMap<>();
 

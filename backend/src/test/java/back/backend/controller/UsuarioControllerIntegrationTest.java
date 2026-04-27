@@ -16,6 +16,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -245,7 +247,7 @@ public class UsuarioControllerIntegrationTest {
         System.out.println("Response: " + loginResponse);
 
         // Extrair token
-        Map<String, Object> loginMap = objectMapper.readValue(loginResponse, Map.class);
+                Map<String, Object> loginMap = objectMapper.readValue(loginResponse, new TypeReference<Map<String, Object>>() {});
         String token = (String) loginMap.get("token");
         System.out.println("✓ Token gerado: " + token.substring(0, 20) + "...");
     }

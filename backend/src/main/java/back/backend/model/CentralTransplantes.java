@@ -50,6 +50,9 @@ public class CentralTransplantes {
 
     private Integer capacidadeProcessamento;
 
+    @Column(length = 2000)
+    private String especialidadesOrgaos;
+
     /**
      * 🔥 MELHORIA:
      * Hospitais que notificam a central
@@ -132,6 +135,10 @@ public class CentralTransplantes {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getNome() {
         return nome;
     }
@@ -184,7 +191,15 @@ public class CentralTransplantes {
         return capacidadeProcessamento;
     }
 
+    public String getEspecialidadesOrgaos() {
+        return especialidadesOrgaos;
+    }
+
     public List<Hospital> getHospitaisNotificantes() {
+        return hospitaisNotificantes;
+    }
+
+    public List<Hospital> getHospitaisParceados() {
         return hospitaisNotificantes;
     }
 
@@ -256,8 +271,16 @@ public class CentralTransplantes {
         this.capacidadeProcessamento = capacidadeProcessamento;
     }
 
+    public void setEspecialidadesOrgaos(String especialidadesOrgaos) {
+        this.especialidadesOrgaos = especialidadesOrgaos;
+    }
+
     public void setHospitaisNotificantes(List<Hospital> hospitaisNotificantes) {
         this.hospitaisNotificantes = hospitaisNotificantes;
+    }
+
+    public void setHospitaisParceados(List<Hospital> hospitaisParceados) {
+        this.hospitaisNotificantes = hospitaisParceados;
     }
 
     public void setProtocolosME(List<ProtocoloME> protocolosME) {

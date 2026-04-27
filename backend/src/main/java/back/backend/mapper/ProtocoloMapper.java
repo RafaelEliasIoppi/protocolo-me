@@ -17,6 +17,7 @@ public interface ProtocoloMapper {
     @Mapping(target = "centralTransplantesId", expression = "java(getCentralTransplantesId(entity.getCentralTransplantes()))")
     @Mapping(target = "centralTransplantesNome", expression = "java(getCentralTransplantesNome(entity.getCentralTransplantes()))")
     @Mapping(target = "paciente", expression = "java(toPacienteResumo(entity.getPaciente()))")
+    @Mapping(target = "orgaosDoados", ignore = true)
     ProtocoloMEDTO toDTO(ProtocoloME entity);
 
     default Long getCentralTransplantesId(CentralTransplantes centralTransplantes) {

@@ -83,6 +83,41 @@ public class CentralTransplantesService {
         return centralRepository.findAll().stream().map(mapper::toDTO).toList();
     }
 
+    public CentralTransplantesDTO buscarPorCnpjOuFalhar(String cnpj) {
+        return mapper.toDTO(
+                centralRepository.findByCnpj(cnpj.trim())
+                        .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"))
+        );
+    }
+
+    public CentralTransplantesDTO buscarPorNomeOuFalhar(String nome) {
+        return mapper.toDTO(
+                centralRepository.findByNomeIgnoreCase(nome.trim())
+                        .orElseThrow(() -> new RecursoNaoEncontradoException("Central não encontrada"))
+        );
+    }
+
+    public List<CentralTransplantesDTO> listarPorCidade(String cidade) {
+        return centralRepository.findByCidadeIgnoreCase(cidade.trim())
+                .stream()
+                .map(mapper::toDTO)
+                .toList();
+    }
+
+    public List<CentralTransplantesDTO> listarPorEstado(String estado) {
+        return centralRepository.findByEstadoIgnoreCase(estado.trim())
+                .stream()
+                .map(mapper::toDTO)
+                .toList();
+    }
+
+    public List<CentralTransplantesDTO> listarPorStatus(String status) {
+        return centralRepository.findByStatusOperacional(parseStatus(status))
+                .stream()
+                .map(mapper::toDTO)
+                .toList();
+    }
+
     public CentralTransplantesDTO buscarPorIdOuFalhar(Long id) {
         return mapper.toDTO(getCentral(id));
     }

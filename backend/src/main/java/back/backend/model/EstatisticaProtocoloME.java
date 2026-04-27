@@ -48,6 +48,7 @@ public class EstatisticaProtocoloME {
     private String rgctDoador;
     private String nomeDoador;
     private String hospitalNotif;
+    private String dataOf;
     private String municipio;
     private String faixaEtariaDoad;
     private String sexoDoad;
@@ -177,6 +178,9 @@ public class EstatisticaProtocoloME {
 
     public String getAtualizadoPor() { return atualizadoPor; }
     public void setAtualizadoPor(String atualizadoPor) { this.atualizadoPor = atualizadoPor; }
+
+    public String getDataOf() { return dataOf; }
+    public void setDataOf(String dataOf) { this.dataOf = dataOf; }
 
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public LocalDateTime getDataAtualizacao() { return dataAtualizacao; }

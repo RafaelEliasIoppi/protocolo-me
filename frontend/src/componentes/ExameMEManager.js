@@ -7,9 +7,10 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
   const [novoExame, setNovoExame] = useState({
     tipoExame: '',
+    descricao: '',
     responsavel: '',
     observacoes: '',
-    resultado_positivo: ''
+    resultadoPositivo: ''
   });
 
   const [exameSelecionado, setExameSelecionado] = useState(null);
@@ -27,6 +28,33 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     { valor: 'TOMOGRAFIA_CRANIO', label: 'Tomografia de Crânio' },
     { valor: 'ELETROENCEFALOGRAMA', label: 'EEG' }
   ];
+
+  const obterCategoriaExame = (tipoExame) => {
+    const clinicos = new Set([
+      'REFLEXO_PUPILAR',
+      'REFLEXO_CORNEAL',
+      'APNEIA_TEST',
+      'RESPOSTA_ESTIMULO_DORO',
+      'REFLEXO_VESTIBULO_OCULAR',
+      'REFLEXO_TOSSE'
+    ]);
+
+    const complementares = new Set([
+      'ANGIOGRAFIA_CEREBRAL',
+      'TOMOGRAFIA_CRANIO',
+      'ELETROENCEFALOGRAMA'
+    ]);
+
+    if (clinicos.has(tipoExame)) {
+      return 'CLINICO';
+    }
+
+    if (complementares.has(tipoExame)) {
+      return 'COMPLEMENTAR';
+    }
+
+    return 'LABORATORIAL';
+  };
 
   useEffect(() => {
     if (protocoloId) carregarExames();
@@ -51,16 +79,21 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     setErro('');
     setSucesso('');
 
-    if (!novoExame.tipoExame || novoExame.resultado_positivo === '') {
+    if (!novoExame.tipoExame || !novoExame.descricao.trim() || novoExame.resultadoPositivo === '') {
       setErro('Preencha todos os campos obrigatórios');
       return;
     }
 
     try {
       const payload = {
-        ...novoExame,
-        resultado_positivo: novoExame.resultado_positivo === 'true',
-        protocoloME: { id: protocoloId }
+        protocoloId,
+        categoria: obterCategoriaExame(novoExame.tipoExame),
+        tipoExame: novoExame.tipoExame,
+        descricao: novoExame.descricao.trim(),
+        responsavel: novoExame.responsavel,
+        observacoes: novoExame.observacoes,
+        resultadoPositivo: novoExame.resultadoPositivo === 'true',
+        resultado: novoExame.resultadoPositivo === 'true' ? 'POSITIVO' : 'NEGATIVO'
       };
 
       const criado = await exameService.criar(payload);
@@ -69,9 +102,10 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
       setNovoExame({
         tipoExame: '',
+        descricao: '',
         responsavel: '',
         observacoes: '',
-        resultado_positivo: ''
+        resultadoPositivo: ''
       });
 
       setSucesso('Exame criado com sucesso');
@@ -98,8 +132,8 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   const salvarResultado = async (exame) => {
     try {
       const atualizado = await exameService.atualizarResultado(
-        exame.id, 
-        exame.resultado_positivo,
+        exame.id,
+        exame.resultadoPositivo,
         exame.responsavel
       );
 
@@ -135,9 +169,16 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
             ))}
           </select>
 
+          <input
+            name="descricao"
+            placeholder="Descrição"
+            value={novoExame.descricao}
+            onChange={handleChange}
+          />
+
           <select
-            name="resultado_positivo"
-            value={novoExame.resultado_positivo}
+            name="resultadoPositivo"
+            value={novoExame.resultadoPositivo}
             onChange={handleChange}
           >
             <option value="">Positivo / Negativo</option>
@@ -181,8 +222,8 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
             <div className="header-exame">
               <strong>{exame.tipoExame}</strong>
 
-              <span className={exame.resultado_positivo ? 'positivo' : 'negativo'}>
-                {exame.resultado_positivo ? 'POSITIVO' : 'NEGATIVO'}
+              <span className={exame.resultadoPositivo ? 'positivo' : 'negativo'}>
+                {exame.resultadoPositivo ? 'POSITIVO' : 'NEGATIVO'}
               </span>
             </div>
 
@@ -215,11 +256,11 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
                 <div className="form-group">
                   <label>Resultado:</label>
                   <select
-                    value={exameSelecionado.resultado_positivo ? 'true' : 'false'}
+                    value={exameSelecionado.resultadoPositivo ? 'true' : 'false'}
                     onChange={(e) =>
                       setExameSelecionado({
                         ...exameSelecionado,
-                        resultado_positivo: e.target.value === 'true'
+                        resultadoPositivo: e.target.value === 'true'
                       })
                     }
                   >
@@ -230,7 +271,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
                 <div className="form-group">
                   <label>Responsável:</label>
-                  <input 
+                  <input
                     type="text"
                     value={exameSelecionado.responsavel || ''}
                     onChange={(e) => setExameSelecionado({

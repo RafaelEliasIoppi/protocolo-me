@@ -13,4 +13,7 @@ public interface CentralTransplantesRepository extends JpaRepository<CentralTran
     List<CentralTransplantes> findByCidade(String cidade);
     List<CentralTransplantes> findByEstado(String estado);
     List<CentralTransplantes> findByStatusOperacional(CentralTransplantes.StatusCentral status);
+    List<CentralTransplantes> findByCidadeIgnoreCase(String cidade);
+    List<CentralTransplantes> findByEstadoIgnoreCase(String estado);
+    Optional<CentralTransplantes> findByNomeIgnoreCase(String nome);
 }

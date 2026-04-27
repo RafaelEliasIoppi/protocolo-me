@@ -13,6 +13,7 @@ public interface ExameMapper {
     @Mapping(target = "protocoloNumero", expression = "java(entity.getProtocoloME() != null ? entity.getProtocoloME().getNumeroProtocolo() : null)")
     @Mapping(target = "categoria", expression = "java(entity.getCategoria() != null ? entity.getCategoria().name() : null)")
     @Mapping(target = "tipoExame", expression = "java(entity.getTipoExame() != null ? entity.getTipoExame().name() : null)")
-    @Mapping(target = "resultadoPositivo", expression = "java(entity.getResultado_positivo())")
+    @Mapping(target = "resultado", expression = "java(entity.getResultado() != null ? entity.getResultado().name() : null)")
+    @Mapping(target = "resultadoPositivo", expression = "java(entity.getResultado() != null ? entity.getResultado() == back.backend.model.ExameME.ResultadoExame.POSITIVO : null)")
     ExameMEDTO toDTO(ExameME entity);
 }

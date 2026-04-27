@@ -28,7 +28,7 @@ public interface AnexoDocumentoRepository extends JpaRepository<AnexoDocumento, 
     /**
      * Buscar anexos por tipo (EXAME ou ENTREVISTA)
      */
-    List<AnexoDocumento> findByTipoAnexo(String tipoAnexo);
+    List<AnexoDocumento> findByTipoAnexo(AnexoDocumento.TipoAnexo tipoAnexo);
 
     /**
      * Contar anexos de um exame
@@ -43,8 +43,7 @@ public interface AnexoDocumentoRepository extends JpaRepository<AnexoDocumento, 
     /**
      * Buscar anexos por tipo e ID
      */
-    @Query("SELECT a FROM AnexoDocumento a WHERE a.tipoAnexo = :tipoAnexo AND " +
-           "((a.tipoAnexo = 'EXAME' AND a.exameMEId = :id) OR " +
-           "(a.tipoAnexo = 'ENTREVISTA' AND a.protocoloMEId = :id))")
-    List<AnexoDocumento> findByTipoAnexoAndId(@Param("tipoAnexo") String tipoAnexo, @Param("id") Long id);
+        @Query("SELECT a FROM AnexoDocumento a WHERE a.tipoAnexo = :tipoAnexo " +
+            "AND (a.exameME.id = :id OR a.protocoloME.id = :id)")
+        List<AnexoDocumento> findByTipoAnexoAndId(@Param("tipoAnexo") AnexoDocumento.TipoAnexo tipoAnexo, @Param("id") Long id);
 }

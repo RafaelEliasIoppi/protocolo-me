@@ -37,6 +37,9 @@ public class ExameME {
     @Enumerated(EnumType.STRING)
     private ResultadoExame resultado;
 
+    @Column(length = 1000)
+    private String descricao;
+
     private LocalDateTime dataRealizacao;
     private String responsavel;
 

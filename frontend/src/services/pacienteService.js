@@ -2,13 +2,23 @@ import api from './apiClient';
 
 export const pacienteService = {
   listar: async (filtros = {}) => {
-    let url = '/api/pacientes';
-    const params = new URLSearchParams();
-    if (filtros.busca) params.append('nome', filtros.busca);
-    if (filtros.status) params.append('status', filtros.status);
-    if (filtros.hospitalId) params.append('hospital', filtros.hospitalId);
-    if (params.toString()) url += '?' + params.toString();
-    const response = await api.get(url);
+    if (filtros.busca) {
+      return pacienteService.buscarPorNome(filtros.busca);
+    }
+
+    if (filtros.status && filtros.hospitalId) {
+      return pacienteService.listarPorHospitalEStatus(filtros.hospitalId, filtros.status);
+    }
+
+    if (filtros.status) {
+      return pacienteService.listarPorStatus(filtros.status);
+    }
+
+    if (filtros.hospitalId) {
+      return pacienteService.listarPorHospital(filtros.hospitalId);
+    }
+
+    const response = await api.get('/api/pacientes');
     return response.data;
   },
 

@@ -53,6 +53,8 @@ public class Paciente {
     @Column(columnDefinition = "TEXT")
     private String historicoMedico;
 
+    private String statusEntrevistaFamiliar;
+
     // Responsável
     private String nomeResponsavel;
     private String telefoneResponsavel;

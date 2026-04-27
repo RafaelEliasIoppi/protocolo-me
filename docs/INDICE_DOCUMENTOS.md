@@ -10,7 +10,8 @@
 - [MAPA_VISUAL_DO_SISTEMA.md](MAPA_VISUAL_DO_SISTEMA.md): visão por diagramas.
 - [FLUXO_GUIADO_MEDICO.md](FLUXO_GUIADO_MEDICO.md): fluxo operacional do médico.
 - [CHECKLIST_INTERATIVO_MEDICO.md](CHECKLIST_INTERATIVO_MEDICO.md): validação guiada do fluxo médico.
-- [docs/CHECKLIST_DEBUG_RAPIDO.md](docs/CHECKLIST_DEBUG_RAPIDO.md): diagnóstico rápido de problemas comuns.
+- [RELATORIO_AUDITORIA_TECNICA_BACKEND.md](RELATORIO_AUDITORIA_TECNICA_BACKEND.md): auditoria técnica atual do backend.
+- [CHECKLIST_DEBUG_RAPIDO.md](CHECKLIST_DEBUG_RAPIDO.md): diagnóstico rápido de problemas comuns.
 
 ## Documentos removidos nesta limpeza
 
@@ -27,4 +28,4 @@ Os arquivos abaixo foram removidos por redundância e conteúdo desatualizado em
 
 - Evitar criar novos documentos de "resumo da sessão".
 - Atualizar sempre os documentos principais acima.
-- Manter documentos históricos apenas em `docs/arquivo_legacy/` quando necessário.
+- Manter documentos históricos apenas em `arquivo_legacy/` quando necessário.
