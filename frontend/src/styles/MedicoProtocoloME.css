@@ -688,6 +688,7 @@
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -697,15 +698,26 @@
 .modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 1.5rem 2rem;
   border-bottom: 2px solid #ecf0f1;
-  background-color: #f8f9fa;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
 .modal-header h2 {
   margin: 0;
   color: #2c3e50;
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.modal-header p {
+  margin: 0.5rem 0 0 0;
+  color: #555;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .modal-close {
@@ -715,6 +727,12 @@
   cursor: pointer;
   color: #7f8c8d;
   transition: color 0.2s ease;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-close:hover {

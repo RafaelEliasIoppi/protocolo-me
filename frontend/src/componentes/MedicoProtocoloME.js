@@ -109,6 +109,16 @@ function MedicoProtocoloME() {
     }
   }, [pacientesProtocolo]);
 
+  // Atualizar protocoloSelecionado quando houver mudanças nos pacientes ou exames
+  useEffect(() => {
+    if (protocoloSelecionado && mostraExames) {
+      const paciente = pacientesProtocolo.find(p => p.protocolosME?.[0]?.id === protocoloSelecionado.id);
+      if (paciente?.protocolosME?.[0]) {
+        setProtocoloSelecionado(paciente.protocolosME[0]);
+      }
+    }
+  }, [pacientesProtocolo, atualizacaoExames, mostraExames]);
+
   const carregarStatusCentrais = async () => {
     try {
       const lista = await centralTransplantesService.listarDados();
@@ -594,11 +604,17 @@ function MedicoProtocoloME() {
         <div className="modal-overlay" onClick={() => setMostraExames(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>
-                {abaProtocoloAberta === "entrevista"
-                  ? "Entrevista Familiar - Protocolo ME"
-                  : "Gerenciar Exames - Protocolo ME"}
-              </h2>
+              <div style={{ flex: 1 }}>
+                <h2 style={{ margin: "0 0 0.5rem 0" }}>
+                  {abaProtocoloAberta === "entrevista"
+                    ? "👨‍👩‍👧 Entrevista Familiar - Protocolo ME"
+                    : "🧪 Gerenciar Exames - Protocolo ME"}
+                </h2>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "#666" }}>
+                  <strong>Paciente:</strong> {pacientesProtocolo.find(p => p.protocolosME?.[0]?.id === protocoloSelecionado.id)?.nome || 'N/A'} |
+                  <strong style={{ marginLeft: "1rem" }}>Status:</strong> <span className={`status-badge status-${obterBadgeStatus(protocoloSelecionado.status).cor}`}>{obterBadgeStatus(protocoloSelecionado.status).label}</span>
+                </p>
+              </div>
               <button className="modal-close" onClick={() => setMostraExames(false)}>✕</button>
             </div>
             <div className="action-row" style={{ justifyContent: "flex-start", marginBottom: "1rem" }}>
@@ -606,7 +622,7 @@ function MedicoProtocoloME() {
                 className="secondary-button"
                 onClick={() => setAbaProtocoloAberta("exames")}
               >
-                Exames
+                🧪 Exames
               </button>
               <button
                 className="secondary-button"
@@ -619,7 +635,7 @@ function MedicoProtocoloME() {
                 }}
                 title={!entrevistaLiberada(protocoloSelecionado) ? "Conclua 2 testes clínicos e 1 exame complementar para liberar a entrevista" : ""}
               >
-                Entrevista
+                👨‍👩‍👧 Entrevista
               </button>
             </div>
             <div style={{ marginBottom: "0.8rem" }}>
@@ -636,6 +652,39 @@ function MedicoProtocoloME() {
                 ⚠️ Entrevista bloqueada no momento. Conclua 2 testes clínicos e 1 exame complementar para liberar esta etapa.
               </div>
             )}
+
+            {/* Resumo de Exames em Tempo Real */}
+            {abaProtocoloAberta === "exames" && (
+              <div className="exames-resumo-modal" style={{ marginBottom: "1rem", padding: "1rem", backgroundColor: "#f5f5f5", borderRadius: "8px" }}>
+                <h4 style={{ margin: "0 0 0.8rem 0" }}>📊 Progresso dos Exames</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.8rem" }}>
+                  <div style={{ padding: "0.8rem", backgroundColor: protocoloSelecionado?.testeClinico1Realizado ? "#d4edda" : "#f8f9fa", border: `2px solid ${protocoloSelecionado?.testeClinico1Realizado ? "#28a745" : "#dee2e6"}`, borderRadius: "6px", textAlign: "center" }}>
+                    <div style={{ fontSize: "1.5rem", marginBottom: "0.3rem" }}>
+                      {protocoloSelecionado?.testeClinico1Realizado ? "✅" : "⏳"}
+                    </div>
+                    <strong style={{ fontSize: "0.9rem" }}>Teste Clínico 1</strong>
+                  </div>
+                  <div style={{ padding: "0.8rem", backgroundColor: protocoloSelecionado?.testeClinico2Realizado ? "#d4edda" : "#f8f9fa", border: `2px solid ${protocoloSelecionado?.testeClinico2Realizado ? "#28a745" : "#dee2e6"}`, borderRadius: "6px", textAlign: "center" }}>
+                    <div style={{ fontSize: "1.5rem", marginBottom: "0.3rem" }}>
+                      {protocoloSelecionado?.testeClinico2Realizado ? "✅" : "⏳"}
+                    </div>
+                    <strong style={{ fontSize: "0.9rem" }}>Teste Clínico 2</strong>
+                  </div>
+                  <div style={{ padding: "0.8rem", backgroundColor: protocoloSelecionado?.testesComplementaresRealizados ? "#d4edda" : "#f8f9fa", border: `2px solid ${protocoloSelecionado?.testesComplementaresRealizados ? "#28a745" : "#dee2e6"}`, borderRadius: "6px", textAlign: "center" }}>
+                    <div style={{ fontSize: "1.5rem", marginBottom: "0.3rem" }}>
+                      {protocoloSelecionado?.testesComplementaresRealizados ? "✅" : "⏳"}
+                    </div>
+                    <strong style={{ fontSize: "0.9rem" }}>Complementares</strong>
+                  </div>
+                </div>
+                <div style={{ marginTop: "0.8rem", fontSize: "0.85rem", color: "#666" }}>
+                  <p style={{ margin: 0 }}>
+                    <strong>Progresso:</strong> {[protocoloSelecionado?.testeClinico1Realizado, protocoloSelecionado?.testeClinico2Realizado, protocoloSelecionado?.testesComplementaresRealizados].filter(Boolean).length}/3 concluídos
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="modal-body">
               {abaProtocoloAberta === "entrevista" && (
                 <div className="info-banner entrevista-banner">
