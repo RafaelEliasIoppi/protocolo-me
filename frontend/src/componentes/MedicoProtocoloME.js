@@ -22,6 +22,7 @@ function MedicoProtocoloME() {
   const [abaProtocoloAberta, setAbaProtocoloAberta] = useState("exames");
   const [semCentraisCadastradas, setSemCentraisCadastradas] = useState(false);
   const [alertaCentral, setAlertaCentral] = useState("");
+  const [atualizacaoExames, setAtualizacaoExames] = useState(0);
 
   const statusAtivos = [
     "NOTIFICADO",
@@ -153,6 +154,9 @@ function MedicoProtocoloME() {
     if (pacienteComProtocolo?.protocolosME?.[0]) {
       setProtocoloSelecionado(pacienteComProtocolo.protocolosME[0]);
     }
+
+    // Força re-render de toda a lista para refletir as mudanças no "exames-resumo"
+    setAtualizacaoExames(prev => prev + 1);
   };
 
   const carregarPacientesDisponiveis = async () => {
