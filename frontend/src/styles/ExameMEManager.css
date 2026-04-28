@@ -271,3 +271,25 @@
     flex-direction: column;
   }
 }
+
+.painel-categorias {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.categoria-exames {
+  background: #f1f5f9;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--ex-border);
+}
+
+.titulo-categoria {
+  margin: 0 0 12px 0;
+  font-size: 1.1rem;
+  color: var(--ex-primary);
+  border-bottom: 2px solid var(--ex-primary);
+  padding-bottom: 4px;
+  display: inline-block;
+}

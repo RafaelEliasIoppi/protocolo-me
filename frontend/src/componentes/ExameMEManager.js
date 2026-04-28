@@ -158,6 +158,54 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     }
   };
 
+  // Filtrar exames por categoria
+  const examesClinicos = exames.filter(e => obterCategoriaExame(e.tipoExame) === 'CLINICO');
+  const examesComplementares = exames.filter(e => obterCategoriaExame(e.tipoExame) === 'COMPLEMENTAR');
+  const examesLaboratoriais = exames.filter(e => obterCategoriaExame(e.tipoExame) === 'LABORATORIAL');
+
+  const renderCardExame = (exame) => (
+    <div key={exame.id} className="card-exame">
+      <div className="header-exame">
+        <strong>{tiposExame.find(t => t.valor === exame.tipoExame)?.label || exame.tipoExame}</strong>
+        <span className={exame.resultadoPositivo ? 'positivo' : 'negativo'}>
+          {exame.resultadoPositivo ? 'POSITIVO' : 'NEGATIVO'}
+        </span>
+      </div>
+      <p><strong>Responsável:</strong> {exame.responsavel || 'Não informado'}</p>
+      {exame.observacoes && <p className="obs"><strong>Obs:</strong> {exame.observacoes}</p>}
+      <div className="acoes">
+        <button className="btn-editar" onClick={() => setExameSelecionado({...exame})}>Editar</button>
+        <button className="btn-excluir" onClick={() => deletarExame(exame.id)}>Excluir</button>
+      </div>
+      {exameSelecionado?.id === exame.id && (
+        <div className="edit-box">
+          <div className="form-group">
+            <label>Resultado:</label>
+            <select
+              value={exameSelecionado.resultadoPositivo ? 'true' : 'false'}
+              onChange={(e) => setExameSelecionado({ ...exameSelecionado, resultadoPositivo: e.target.value === 'true' })}
+            >
+              <option value="true">Positivo</option>
+              <option value="false">Negativo</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label>Responsável:</label>
+            <input
+              type="text"
+              value={exameSelecionado.responsavel || ''}
+              onChange={(e) => setExameSelecionado({ ...exameSelecionado, responsavel: e.target.value })}
+            />
+          </div>
+          <div className="acoes-edit">
+            <button className="btn-salvar" onClick={() => salvarResultado(exameSelecionado)}>Salvar</button>
+            <button className="btn-cancelar" onClick={() => setExameSelecionado(null)}>Cancelar</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="exame-manager-container">
       <div className="exame-header">
@@ -168,156 +216,51 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
       {erro && <div className="alerta erro">{erro}</div>}
       {sucesso && <div className="alerta sucesso">{sucesso}</div>}
 
-      {/* ================= FORM ================= */}
       <div className="card-form">
         <h3>Novo Exame</h3>
         <p className="exame-ajuda">Preencha os campos obrigatórios e clique em Salvar exame.</p>
-
-        {/* Formulário de criação do exame */}
         <form onSubmit={criarExame}>
-
           <select name="tipoExame" value={novoExame.tipoExame} onChange={atualizarCampoFormulario}>
             <option value="">Tipo de exame</option>
             {tiposExame.map(t => (
               <option key={t.valor} value={t.valor}>{t.label}</option>
             ))}
           </select>
-
-          <input
-            name="descricao"
-            placeholder="Descrição"
-            value={novoExame.descricao}
-            onChange={atualizarCampoFormulario}
-          />
-
-          <select
-            name="resultadoPositivo"
-            value={novoExame.resultadoPositivo}
-            onChange={atualizarCampoFormulario}
-          >
+          <input name="descricao" placeholder="Descrição" value={novoExame.descricao} onChange={atualizarCampoFormulario} />
+          <select name="resultadoPositivo" value={novoExame.resultadoPositivo} onChange={atualizarCampoFormulario}>
             <option value="">Positivo / Negativo</option>
             <option value="true">Positivo</option>
             <option value="false">Negativo</option>
           </select>
-
-          <input
-            name="responsavel"
-            placeholder="Responsável"
-            value={novoExame.responsavel}
-            onChange={atualizarCampoFormulario}
-          />
-
-          <textarea
-            className="campo-largo"
-            name="observacoes"
-            placeholder="Observações"
-            value={novoExame.observacoes}
-            onChange={atualizarCampoFormulario}
-          />
-
-          <button type="submit" className="btn-primario" title="Salvar exame">
-            Salvar exame
-          </button>
-
+          <input name="responsavel" placeholder="Responsável" value={novoExame.responsavel} onChange={atualizarCampoFormulario} />
+          <textarea className="campo-largo" name="observacoes" placeholder="Observações" value={novoExame.observacoes} onChange={atualizarCampoFormulario} />
+          <button type="submit" className="btn-primario" title="Salvar exame">Salvar exame</button>
         </form>
       </div>
 
-      {/* ================= LISTA ================= */}
-      <div className="lista-exames">
-        {exames.length === 0 && (
-          <div className="estado-vazio">
-            Nenhum exame registrado para este protocolo.
+      <div className="painel-categorias">
+        <section className="categoria-exames">
+          <h3 className="titulo-categoria">Exames Clínicos</h3>
+          <div className="lista-exames">
+            {examesClinicos.length === 0 ? <div className="estado-vazio">Nenhum exame clínico registrado.</div> : examesClinicos.map(renderCardExame)}
           </div>
+        </section>
+
+        <section className="categoria-exames">
+          <h3 className="titulo-categoria">Exames Complementares</h3>
+          <div className="lista-exames">
+            {examesComplementares.length === 0 ? <div className="estado-vazio">Nenhum exame complementar registrado.</div> : examesComplementares.map(renderCardExame)}
+          </div>
+        </section>
+
+        {examesLaboratoriais.length > 0 && (
+          <section className="categoria-exames">
+            <h3 className="titulo-categoria">Exames Laboratoriais</h3>
+            <div className="lista-exames">
+              {examesLaboratoriais.map(renderCardExame)}
+            </div>
+          </section>
         )}
-
-        {exames.map(exame => (
-          <div key={exame.id} className="card-exame">
-
-            {/* Cabeçalho do cartão com tipo e resultado */}
-            <div className="header-exame">
-              <strong>{exame.tipoExame}</strong>
-
-              <span className={exame.resultadoPositivo ? 'positivo' : 'negativo'}>
-                {exame.resultadoPositivo ? 'POSITIVO' : 'NEGATIVO'}
-              </span>
-            </div>
-
-            <p><strong>Responsável:</strong> {exame.responsavel || 'Não informado'}</p>
-            {exame.observacoes && <p className="obs"><strong>Obs:</strong> {exame.observacoes}</p>}
-
-            {/* Ações do cartão */}
-            <div className="acoes">
-
-              <button
-                className="btn-editar"
-                onClick={() => setExameSelecionado({...exame})}
-              >
-                Editar
-              </button>
-
-              <button
-                className="btn-excluir"
-                onClick={() => deletarExame(exame.id)}
-              >
-                Excluir
-              </button>
-
-            </div>
-
-            {/* Edição inline do resultado e do responsável */}
-            {exameSelecionado?.id === exame.id && (
-              <div className="edit-box">
-
-                <div className="form-group">
-                  <label>Resultado:</label>
-                  <select
-                    value={exameSelecionado.resultadoPositivo ? 'true' : 'false'}
-                    onChange={(e) =>
-                      setExameSelecionado({
-                        ...exameSelecionado,
-                        resultadoPositivo: e.target.value === 'true'
-                      })
-                    }
-                  >
-                    <option value="true">Positivo</option>
-                    <option value="false">Negativo</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Responsável:</label>
-                  <input
-                    type="text"
-                    value={exameSelecionado.responsavel || ''}
-                    onChange={(e) => setExameSelecionado({
-                      ...exameSelecionado,
-                      responsavel: e.target.value
-                    })}
-                  />
-                </div>
-
-                <div className="acoes-edit">
-                  <button
-                    className="btn-salvar"
-                    onClick={() => salvarResultado(exameSelecionado)}
-                  >
-                    Salvar
-                  </button>
-
-                  <button
-                    className="btn-cancelar"
-                    onClick={() => setExameSelecionado(null)}
-                  >
-                    Cancelar
-                  </button>
-                </div>
-
-              </div>
-            )}
-
-          </div>
-        ))}
-
       </div>
     </div>
   );
