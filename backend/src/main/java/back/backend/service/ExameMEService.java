@@ -6,10 +6,13 @@ import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.mapper.ExameMapper;
 import back.backend.mapper.ExameResumoMapper;
 import back.backend.model.ExameME;
+import back.backend.model.ProtocoloME;
 import back.backend.repository.ExameMERepository;
+import back.backend.repository.ProtocoloMERepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,6 +23,7 @@ import java.util.List;
 public class ExameMEService {
 
     private final ExameMERepository exameRepository;
+    private final ProtocoloMERepository protocoloRepository;
     private final ExameMapper exameMapper;
     private final ExameResumoMapper exameResumoMapper;
 
@@ -30,8 +34,10 @@ public class ExameMEService {
         exame.setDataAtualizacao(LocalDateTime.now());
 
         ExameME salvo = exameRepository.save(exame);
-
         log.info("Exame criado com ID: {}", salvo.getId());
+
+        // Atualizar indicadores do protocolo
+        atualizarIndicadoresProtocolo(salvo.getProtocoloME().getId());
 
         return toDTO(salvo);
     }
@@ -90,8 +96,10 @@ public class ExameMEService {
         exame.setDataAtualizacao(LocalDateTime.now());
 
         ExameME atualizado = exameRepository.save(exame);
-
         log.info("Exame atualizado ID: {}", id);
+
+        // Atualizar indicadores do protocolo
+        atualizarIndicadoresProtocolo(atualizado.getProtocoloME().getId());
 
         return toDTO(atualizado);
     }
@@ -109,8 +117,10 @@ public class ExameMEService {
         exame.setDataAtualizacao(LocalDateTime.now());
 
         ExameME atualizado = exameRepository.save(exame);
-
         log.info("Resultado registrado para exame ID: {}", id);
+
+        // Atualizar indicadores do protocolo
+        atualizarIndicadoresProtocolo(atualizado.getProtocoloME().getId());
 
         return toDTO(atualizado);
     }
@@ -118,14 +128,14 @@ public class ExameMEService {
     // ================= DELETE =================
 
     public void deletarExame(Long id) {
+        ExameME exame = buscarEntity(id);
+        Long protocoloId = exame.getProtocoloME().getId();
 
-        if (!exameRepository.existsById(id)) {
-            throw new RecursoNaoEncontradoException("Exame não encontrado");
-        }
-
-        exameRepository.deleteById(id);
-
+        exameRepository.delete(exame);
         log.warn("Exame deletado ID: {}", id);
+
+        // Atualizar indicadores do protocolo
+        atualizarIndicadoresProtocolo(protocoloId);
     }
 
     // ================= STATS =================
@@ -190,6 +200,49 @@ public class ExameMEService {
 
     private ExameMEDTO toDTO(ExameME exame) {
         return exameMapper.toDTO(exame);
+    }
+
+    @Transactional
+    protected void atualizarIndicadoresProtocolo(Long protocoloId) {
+        ProtocoloME protocolo = protocoloRepository.findById(protocoloId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado"));
+
+        List<ExameME> exames = exameRepository.findByProtocoloME_Id(protocoloId);
+
+        // Indicador de Teste Clínico 1
+        boolean tc1 = exames.stream()
+                .anyMatch(e -> e.getTipoExame() == ExameME.TipoExame.REFLEXO_PUPILAR && e.getResultado() != null);
+        protocolo.setTesteClinico1Realizado(tc1);
+        if (tc1 && protocolo.getDataTesteClinico1() == null) {
+            protocolo.setDataTesteClinico1(LocalDateTime.now());
+        }
+
+        // Indicador de Teste Clínico 2
+        boolean tc2 = exames.stream()
+                .anyMatch(e -> e.getTipoExame() == ExameME.TipoExame.REFLEXO_CORNEAL && e.getResultado() != null);
+        protocolo.setTesteClinico2Realizado(tc2);
+        if (tc2 && protocolo.getDataTesteClinico2() == null) {
+            protocolo.setDataTesteClinico2(LocalDateTime.now());
+        }
+
+        // Indicador de Testes Complementares
+        boolean comp = exames.stream()
+                .anyMatch(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && e.getResultado() != null);
+        protocolo.setTestesComplementaresRealizados(comp);
+        if (comp && protocolo.getDataTesteComplementar() == null) {
+            protocolo.setDataTesteComplementar(LocalDateTime.now());
+        }
+
+        // Se todos os testes realizados, marcar data de confirmação se ainda não houver
+        if (tc1 && tc2 && comp && protocolo.getDataConfirmacaoME() == null) {
+            protocolo.setDataConfirmacaoME(LocalDateTime.now());
+        }
+
+        // Atualizar status automático se necessário
+        protocolo.setStatus(protocolo.calcularStatusAutomatico());
+
+        protocoloRepository.save(protocolo);
+        log.info("Indicadores do protocolo {} atualizados com sucesso", protocoloId);
     }
 
     private ExameME.ResultadoExame parseResultado(String resultado, Boolean resultadoPositivo) {
