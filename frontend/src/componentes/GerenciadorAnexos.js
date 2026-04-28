@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import anexoService from "../services/anexoService";
 import "../styles/GerenciadorAnexos.css";
 
@@ -39,7 +39,7 @@ function GerenciadorAnexos({ tipoAnexo, idExameOuProtocolo, titulo = "Anexos" })
     }
   };
 
-  const handleArquivoChange = (e) => {
+  const selecionarArquivo = (e) => {
     const arquivo = e.target.files[0];
     if (arquivo) {
       const validacao = anexoService.validarArquivo(arquivo);
@@ -52,11 +52,11 @@ function GerenciadorAnexos({ tipoAnexo, idExameOuProtocolo, titulo = "Anexos" })
     }
   };
 
-  const handleInstanciacao = (e) => {
+  const instanciarExame = (e) => {
     setFormData({ ...formData, uploadPor: e.target.value });
   };
 
-  const handleDescricaoChange = (e) => {
+  const atualizarDescricaoAnexo = (e) => {
     setFormData({ ...formData, descricao: e.target.value });
   };
 
@@ -142,7 +142,7 @@ function GerenciadorAnexos({ tipoAnexo, idExameOuProtocolo, titulo = "Anexos" })
             <label>Arquivo (PDF, DOC, IMG, etc.)</label>
             <input
               type="file"
-              onChange={handleArquivoChange}
+              onChange={selecionarArquivo}
               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.txt,.csv,.zip,.rar"
               className="input-file"
             />
@@ -158,7 +158,7 @@ function GerenciadorAnexos({ tipoAnexo, idExameOuProtocolo, titulo = "Anexos" })
             <input
               type="text"
               value={formData.descricao}
-              onChange={handleDescricaoChange}
+              onChange={atualizarDescricaoAnexo}
               placeholder="Ex: Laudo do exame, Autorização da família, etc."
               className="input-text"
             />
@@ -169,7 +169,7 @@ function GerenciadorAnexos({ tipoAnexo, idExameOuProtocolo, titulo = "Anexos" })
             <input
               type="text"
               value={formData.uploadPor}
-              onChange={handleInstanciacao}
+              onChange={instanciarExame}
               placeholder="Ex: Dr. Silva, Enf. Maria"
               className="input-text"
             />

@@ -1,20 +1,20 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import Login from "./componentes/login";
-import Dashboard from "./componentes/Dashboard";
+import "./App.css";
+import AlterarSenhaPage from "./componentes/AlterarSenhaPage";
 import AppLayout from "./componentes/AppLayout";
-import PacientesPage from "./componentes/PacientesPage";
-import PacienteCadastroPage from "./componentes/PacienteCadastroPage";
-import PacientesProtocoloMEPage from "./componentes/PacientesProtocoloMEPage";
-import HospitaisPage from "./componentes/HospitaisPage";
 import CentraisPage from "./componentes/CentraisPage";
 import CentralDashboardPage from "./componentes/CentralDashboardPage";
+import Dashboard from "./componentes/Dashboard";
 import EstatisticasPage from "./componentes/EstatisticasPage";
-import AlterarSenhaPage from "./componentes/AlterarSenhaPage";
+import HospitaisPage from "./componentes/HospitaisPage";
+import Login from "./componentes/login";
+import MedicoProtocoloME from "./componentes/MedicoProtocoloME";
+import PacienteCadastroPage from "./componentes/PacienteCadastroPage";
+import PacientesPage from "./componentes/PacientesPage";
+import PacientesProtocoloMEPage from "./componentes/PacientesProtocoloMEPage";
 import UsuariosAdminPage from "./componentes/UsuariosAdminPage";
 import autenticarService from "./services/autenticarService";
-import MedicoProtocoloME from "./componentes/MedicoProtocoloME";
-import "./App.css";
 
 function AcessoNegado() {
   return (
@@ -51,12 +51,12 @@ function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  const handleLogin = () => {
+  const completarLogin = () => {
     setIsLogged(true);
     navigate("/dashboard");
   };
 
-  const handleLogout = () => {
+  const desconectar = () => {
     autenticarService.logout();
     setIsLogged(false);
     navigate("/login");
@@ -76,7 +76,7 @@ function App() {
 
         <Route
           path="/login"
-          element={isLogged ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />}
+          element={isLogged ? <Navigate to="/dashboard" replace /> : <Login onLogin={completarLogin} />}
         />
 
         <Route
@@ -87,7 +87,7 @@ function App() {
                 usuario={usuario}
                 theme={theme}
                 setTheme={setTheme}
-                onLogout={handleLogout}
+                onLogout={desconectar}
               />
             </GuardedRoute>
           }
@@ -95,7 +95,7 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route
             path="dashboard"
-            element={<Dashboard onLogout={handleLogout} theme={theme} setTheme={setTheme} role={usuario?.role} />}
+            element={<Dashboard onLogout={desconectar} theme={theme} setTheme={setTheme} role={usuario?.role} />}
           />
           <Route
             path="alterar-senha"

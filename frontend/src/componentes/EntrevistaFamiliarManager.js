@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import apiClient from "../services/apiClient";
-import GerenciadorAnexos from "./GerenciadorAnexos";
-import { getApiErrorMessage } from "../utils/apiError";
 import "../styles/EntrevistaFamiliarManager.css";
+import { getApiErrorMessage } from "../utils/apiError";
+import GerenciadorAnexos from "./GerenciadorAnexos";
 
 function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
   const [protocolo, setProtocolo] = useState(null);
@@ -46,7 +46,7 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
     }
   };
 
-  const handleInputChange = (e) => {
+  const atualizarCampoFormulario = (e) => {
     const { name, value, type, checked } = e.target;
     setFormEntrevista({
       ...formEntrevista,
@@ -223,7 +223,7 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
                     type="checkbox"
                     name="familiaNotificada"
                     checked={formEntrevista.familiaNotificada}
-                    onChange={handleInputChange}
+                    onChange={atualizarCampoFormulario}
                     disabled={salvando || entrevistaFinalizada}
                   />
                   Família foi notificada e participou da entrevista
@@ -267,7 +267,7 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
                   id="observacoes"
                   name="observacoes"
                   value={formEntrevista.observacoes}
-                  onChange={handleInputChange}
+                  onChange={atualizarCampoFormulario}
                   placeholder="Registre detalhes importantes da entrevista..."
                   className="textarea-observacoes"
                   disabled={salvando}

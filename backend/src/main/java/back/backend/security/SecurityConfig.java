@@ -10,6 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.web.filter.CorsFilter;import org.springframework.web.filter.CorsFilter;
 
 import org.springframework.web.cors.*;
 
@@ -40,7 +41,7 @@ public class SecurityConfig {
             // =========================
             // CORS + CSRF
             // =========================
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> {})
             .csrf(csrf -> csrf.disable())
 
             // =========================
@@ -134,57 +135,76 @@ public class SecurityConfig {
     }
 
     // =====================================================
-    // CORS CONFIG
-   @Value("${app.cors.allowed-origins:}")
-    private String allowedOrigins;
+// CORS CONFIG
+// =====================================================
 
-    @Value("${app.cors.debug:false}")
-    private boolean corsDebug;
+@Value("${app.cors.allowed-origins:}")
+private String allowedOrigins;
 
-    private static final List<String> DEFAULT_CORS_PATTERNS = List.of(
-        "http://localhost:*",
-        "http://127.0.0.1:*",
-        "https://*.github.dev",
-        "https://*.app.github.dev"
-    );
+@Value("${app.cors.debug:false}")
+private boolean corsDebug;
 
+@Bean
+public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+
+    List<String> origins = resolveAllowedOrigins();
+
+    // 🔥 CORREÇÃO PRINCIPAL
+    config.setAllowedOrigins(origins);
+
+    // 🔥 garante funcionamento do preflight
+    config.addAllowedMethod("*");
+    config.addAllowedHeader("*");
+
+    config.setAllowCredentials(true);
+    config.setExposedHeaders(List.of("Authorization"));
+    config.setMaxAge(3600L);
+
+    if (corsDebug) {
+        log.info("CORS origins ativos: {}", origins);
+    }
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+
+    return source;
+}
+
+private List<String> resolveAllowedOrigins() {
+    List<String> list = new ArrayList<>();
+
+    if (allowedOrigins != null && !allowedOrigins.isBlank()) {
+        Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .forEach(list::add);
+    }
+
+    return list;
+}
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        List<String> patterns = resolveAllowedOriginPatterns();
-        config.setAllowedOriginPatterns(patterns);
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("Authorization"));
+
+        List<String> origins = resolveAllowedOrigins();
+
+        config.setAllowedOrigins(origins);
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
+        config.setExposedHeaders(List.of("Authorization"));
 
         if (corsDebug) {
-            log.info("CORS patterns ativos: {}", patterns);
+            log.info("CorsFilter ativo para: {}", origins);
         }
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
 
-        return source;
+        return new CorsFilter(source);
     }
-
-    private List<String> resolveAllowedOriginPatterns() {
-        List<String> patterns = new ArrayList<>(DEFAULT_CORS_PATTERNS);
-
-        if (allowedOrigins == null || allowedOrigins.isBlank()) {
-            return patterns;
-        }
-
-        Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isBlank())
-                .filter(s -> !patterns.contains(s))
-                .forEach(patterns::add);
-
-        return patterns;
-    }
-
     // =====================================================
     // HANDLERS
     // =====================================================

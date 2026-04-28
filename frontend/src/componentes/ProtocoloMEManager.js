@@ -53,7 +53,7 @@ const ProtocoloMEManager = () => {
     }
   };
 
-  const handleChangeForm = (e) => {
+  const atualizarCampoFormulario = (e) => {
     const { name, value, type, checked } = e.target;
     setFormProtocolo(prev => ({
       ...prev,
@@ -61,7 +61,7 @@ const ProtocoloMEManager = () => {
     }));
   };
 
-  const handleCriarProtocolo = async (e) => {
+  const criarProtocolo = async (e) => {
     e.preventDefault();
     setErro('');
     setSucesso('');
@@ -199,14 +199,14 @@ const ProtocoloMEManager = () => {
 
       <div className="protocolo-form-section">
         <h3>Novo Protocolo de ME</h3>
-        <form onSubmit={handleCriarProtocolo}>
+        <form onSubmit={criarProtocolo}>
           <div className="form-row">
             <input
               type="number"
               name="pacienteId"
               placeholder="ID do Paciente *"
               value={formProtocolo.pacienteId}
-              onChange={handleChangeForm}
+              onChange={atualizarCampoFormulario}
               required
             />
             <input
@@ -214,21 +214,21 @@ const ProtocoloMEManager = () => {
               name="numeroProtocolo"
               placeholder="Número do Protocolo"
               value={formProtocolo.numeroProtocolo}
-              onChange={handleChangeForm}
+              onChange={atualizarCampoFormulario}
             />
             <input
               type="text"
               name="hospitalOrigem"
               placeholder="Hospital Origem"
               value={formProtocolo.hospitalOrigem}
-              onChange={handleChangeForm}
+              onChange={atualizarCampoFormulario}
             />
             <input
               type="text"
               name="medicoResponsavel"
               placeholder="Médico Responsável"
               value={formProtocolo.medicoResponsavel}
-              onChange={handleChangeForm}
+              onChange={atualizarCampoFormulario}
             />
           </div>
           <div className="form-row">
@@ -237,14 +237,14 @@ const ProtocoloMEManager = () => {
               name="diagnosticoBasico"
               placeholder="Diagnóstico Básico"
               value={formProtocolo.diagnosticoBasico}
-              onChange={handleChangeForm}
+              onChange={atualizarCampoFormulario}
             />
             <input
               type="text"
               name="orgaosDisponiveis"
               placeholder="Órgãos Disponíveis"
               value={formProtocolo.orgaosDisponiveis}
-              onChange={handleChangeForm}
+              onChange={atualizarCampoFormulario}
             />
           </div>
           <div className="form-row checkboxes">
@@ -253,7 +253,7 @@ const ProtocoloMEManager = () => {
                 type="checkbox"
                 name="autopsiaAutorizada"
                 checked={formProtocolo.autopsiaAutorizada}
-                onChange={handleChangeForm}
+                onChange={atualizarCampoFormulario}
               /> Autópsia Autorizada
             </label>
             <label>
@@ -261,7 +261,7 @@ const ProtocoloMEManager = () => {
                 type="checkbox"
                 name="preservacaoOrgaos"
                 checked={formProtocolo.preservacaoOrgaos}
-                onChange={handleChangeForm}
+                onChange={atualizarCampoFormulario}
               /> Preservação de Órgãos
             </label>
           </div>

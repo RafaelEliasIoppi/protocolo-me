@@ -38,6 +38,12 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
 
   const generoOpcoes = ['MASCULINO', 'FEMININO', 'OUTRO'];
 
+  const valorOuNull = (valor) => {
+    if (valor == null) return null;
+    const texto = String(valor).trim();
+    return texto ? texto : null;
+  };
+
   useEffect(() => {
     carregarPacienteEHospitais();
   }, [pacienteId]);
@@ -81,7 +87,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const atualizarCampoFormulario = (e) => {
     const { name, value } = e.target;
 
     if (name === 'cpf') {
@@ -106,7 +112,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
+  const salvarAlteracoesPaciente = async (e) => {
     e.preventDefault();
     if (!pacienteId) {
       setMensagem({ tipo: 'erro', texto: 'ID do paciente não fornecido' });
@@ -117,6 +123,8 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
       setCarregando(true);
       const dados = {
         ...formData,
+        dataNascimento: valorOuNull(formData.dataNascimento),
+        dataInternacao: valorOuNull(formData.dataInternacao),
         hospital: { id: parseInt(formData.hospitalId) }
       };
 
@@ -150,14 +158,14 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="form-grid">
+        <form onSubmit={salvarAlteracoesPaciente} className="form-grid">
           <div className="form-group">
             <label>Nome *</label>
             <input
               type="text"
               name="nome"
               value={formData.nome}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               required
               disabled={carregando}
             />
@@ -169,7 +177,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
               type="text"
               name="cpf"
               value={formData.cpf}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               maxLength={14}
               required
               disabled={carregando}
@@ -182,7 +190,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
               type="date"
               name="dataNascimento"
               value={formData.dataNascimento}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               disabled={carregando}
             />
           </div>
@@ -192,7 +200,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
             <select
               name="genero"
               value={formData.genero}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               disabled={carregando}
             >
               <option value="">Selecione...</option>
@@ -207,7 +215,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
             <select
               name="hospitalId"
               value={formData.hospitalId}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               required
               disabled={carregando}
             >
@@ -224,7 +232,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
               type="text"
               name="leito"
               value={formData.leito}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               disabled={carregando}
             />
           </div>
@@ -235,7 +243,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
               type="date"
               name="dataInternacao"
               value={formData.dataInternacao}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               disabled={carregando}
             />
           </div>
@@ -245,7 +253,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
             <textarea
               name="diagnosticoPrincipal"
               value={formData.diagnosticoPrincipal}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               rows="3"
               disabled={carregando}
             />
@@ -256,7 +264,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
             <textarea
               name="historicoMedico"
               value={formData.historicoMedico}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               rows="3"
               disabled={carregando}
             />
@@ -268,7 +276,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
               type="text"
               name="nomeResponsavel"
               value={formData.nomeResponsavel}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               disabled={carregando}
             />
           </div>
@@ -279,7 +287,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
               type="tel"
               name="telefoneResponsavel"
               value={formData.telefoneResponsavel}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               maxLength={15}
               disabled={carregando}
             />
@@ -291,7 +299,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
               type="email"
               name="emailResponsavel"
               value={formData.emailResponsavel}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               disabled={carregando}
             />
           </div>
@@ -301,7 +309,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
             <select
               name="status"
               value={formData.status}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               required
               disabled={carregando}
             >

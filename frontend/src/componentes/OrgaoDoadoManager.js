@@ -93,7 +93,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     }
   };
 
-  const handleChangeForm = (e) => {
+  const atualizarCampoFormulario = (e) => {
     const { name, value } = e.target;
 
     if (name === 'cpfReceptor') {
@@ -130,7 +130,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     setOrgaoEditando(null);
   };
 
-  const handleCriarOuAtualizarOrgao = async (e) => {
+  const salvarOrgao = async (e) => {
     e.preventDefault();
     setErro('');
     setSucesso('');
@@ -171,7 +171,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     }
   };
 
-  const handleEditar = (orgao) => {
+  const editarOrgao = (orgao) => {
     setFormOrgao({
       nomeOrgao: orgao.nomeOrgao,
       status: orgao.status,
@@ -186,7 +186,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     setMostrarFormulario(true);
   };
 
-  const handleDeletar = async (id) => {
+  const deletarOrgao = async (id) => {
     if (window.confirm('Tem certeza que deseja deletar este órgão doado?')) {
       try {
         await apiClient.delete(`/api/orgaos-doados/${id}`);
@@ -343,14 +343,14 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
       {mostrarFormulario && (
         <div className="orgao-form-section">
           <h4>{orgaoEditando ? 'Editar Órgão Doado' : 'Registrar Novo Órgão Doado'}</h4>
-          <form onSubmit={handleCriarOuAtualizarOrgao} className="orgao-form">
+          <form onSubmit={salvarOrgao} className="orgao-form">
             <div className="form-row">
               <div className="form-group">
                 <label>Órgão/Tecido *</label>
                 <select
                   name="nomeOrgao"
                   value={formOrgao.nomeOrgao}
-                  onChange={handleChangeForm}
+                  onChange={atualizarCampoFormulario}
                   required
                 >
                   <option value="">Selecione um órgão</option>
@@ -365,7 +365,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                 <select
                   name="status"
                   value={formOrgao.status}
-                  onChange={handleChangeForm}
+                  onChange={atualizarCampoFormulario}
                 >
                   {statusOpcoes.map(status => (
                     <option key={status.valor} value={status.valor}>{status.label}</option>
@@ -383,7 +383,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                     name="hospitalReceptor"
                     placeholder="Nome do hospital"
                     value={formOrgao.hospitalReceptor}
-                    onChange={handleChangeForm}
+                    onChange={atualizarCampoFormulario}
                   />
                 </div>
 
@@ -394,7 +394,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                     name="pacienteReceptor"
                     placeholder="Nome do paciente receptor"
                     value={formOrgao.pacienteReceptor}
-                    onChange={handleChangeForm}
+                    onChange={atualizarCampoFormulario}
                   />
                 </div>
 
@@ -405,7 +405,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                     name="cpfReceptor"
                     placeholder="CPF do receptor"
                     value={formOrgao.cpfReceptor}
-                    onChange={handleChangeForm}
+                    onChange={atualizarCampoFormulario}
                     maxLength={14}
                   />
                 </div>
@@ -419,7 +419,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                   <select
                     name="motivoDescarte"
                     value={formOrgao.motivoDescarte}
-                    onChange={handleChangeForm}
+                    onChange={atualizarCampoFormulario}
                   >
                     <option value="">Selecione um motivo</option>
                     {motivoDescarteOpcoes.map(motivo => (
@@ -432,7 +432,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                       name="motivoDescarte"
                       placeholder="Especifique o motivo"
                       value={formOrgao.motivoDescarte}
-                      onChange={handleChangeForm}
+                      onChange={atualizarCampoFormulario}
                       className="motivo-outro"
                     />
                   )}
@@ -448,7 +448,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                   name="motivo"
                   placeholder="Motivo adicional (compatibilidade, transporte, etc)"
                   value={formOrgao.motivo}
-                  onChange={handleChangeForm}
+                  onChange={atualizarCampoFormulario}
                 />
               </div>
             </div>
@@ -460,7 +460,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                   name="observacoes"
                   placeholder="Observações adicionais sobre o órgão"
                   value={formOrgao.observacoes}
-                  onChange={handleChangeForm}
+                  onChange={atualizarCampoFormulario}
                   rows="3"
                 />
               </div>
@@ -525,14 +525,14 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
                     )}
                     <button
                       className="btn-small btn-primary"
-                      onClick={() => handleEditar(orgao)}
+                      onClick={() => editarOrgao(orgao)}
                       title="Editar órgão"
                     >
                       ✎ Editar
                     </button>
                     <button
                       className="btn-small btn-secondary"
-                      onClick={() => handleDeletar(orgao.id)}
+                      onClick={() => deletarOrgao(orgao.id)}
                       title="Deletar órgão"
                     >
                       🗑 Deletar

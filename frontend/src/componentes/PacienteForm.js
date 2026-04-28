@@ -65,6 +65,12 @@ const PacienteForm = ({
     return [];
   };
 
+  const valorOuNull = (valor) => {
+    if (valor == null) return null;
+    const texto = String(valor).trim();
+    return texto ? texto : null;
+  };
+
   // Carregar hospitais e pacientes ao montar
   useEffect(() => {
     carregarHospitais();
@@ -165,7 +171,7 @@ const PacienteForm = ({
     }
   };
 
-  const handleInputChange = (e) => {
+  const atualizarCampoFormulario = (e) => {
     const { name, value } = e.target;
 
     if (name === 'telefoneResponsavel') {
@@ -199,13 +205,19 @@ const PacienteForm = ({
     });
   };
 
-  const handleSubmit = async (e) => {
+  const salvarPaciente = async (e) => {
     e.preventDefault();
     try {
       setCarregando(true);
 
       const dadosPaciente = {
         ...formData,
+        // Normalizar CPF: remover formatação (pontos e traços)
+        // Frontend exibe "123.456.789-10" mas envia "12345678910"
+        cpf: formData.cpf.replace(/\D/g, ''),
+        dataNascimento: valorOuNull(formData.dataNascimento),
+        dataInternacao: valorOuNull(formData.dataInternacao),
+        dataEntrevistaFamiliar: valorOuNull(formData.dataEntrevistaFamiliar),
         status: editandoId ? formData.status : 'INTERNADO',
         hospital: {
           id: parseInt(formData.hospitalId)
@@ -234,7 +246,7 @@ const PacienteForm = ({
     }
   };
 
-  const editar = (pacienteItem) => {
+  const editarPaciente = (pacienteItem) => {
     setFormData({
       nome: pacienteItem.nome,
       cpf: pacienteItem.cpf,
@@ -257,7 +269,7 @@ const PacienteForm = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const deletar = async (id) => {
+  const deletarPaciente = async (id) => {
     if (window.confirm('Tem certeza que deseja deletar este paciente?')) {
       try {
         await pacienteService.deletar(id);
@@ -365,7 +377,7 @@ const PacienteForm = ({
 
       {/* Formulário */}
       {!somenteListagem && (
-      <form onSubmit={handleSubmit} className="paciente-form">
+      <form onSubmit={salvarPaciente} className="paciente-form">
         <h2>{editandoId ? 'Editar Paciente' : 'Novo Paciente'}</h2>
 
         <div className="form-row">
@@ -375,7 +387,7 @@ const PacienteForm = ({
               type="text"
               name="nome"
               value={formData.nome}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               required
               placeholder="Nome completo"
             />
@@ -386,7 +398,7 @@ const PacienteForm = ({
               type="text"
               name="cpf"
               value={formData.cpf}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               maxLength={14}
               required
               placeholder="XXX.XXX.XXX-XX"
@@ -402,7 +414,7 @@ const PacienteForm = ({
               type="date"
               name="dataNascimento"
               value={formData.dataNascimento}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               required
             />
           </div>
@@ -411,7 +423,7 @@ const PacienteForm = ({
             <select
               name="genero"
               value={formData.genero}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               required
             >
               <option value="">Selecione...</option>
@@ -428,7 +440,7 @@ const PacienteForm = ({
             <select
               name="hospitalId"
               value={formData.hospitalId}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               required
             >
               <option value="">Selecione um hospital...</option>
@@ -443,7 +455,7 @@ const PacienteForm = ({
               type="text"
               name="leito"
               value={formData.leito}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Ex: UTI 205"
             />
           </div>
@@ -456,7 +468,7 @@ const PacienteForm = ({
               type="date"
               name="dataInternacao"
               value={formData.dataInternacao}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
             />
           </div>
           <div className="form-group">
@@ -466,7 +478,7 @@ const PacienteForm = ({
                 <select
                   name="status"
                   value={formData.status}
-                  onChange={handleInputChange}
+                  onChange={atualizarCampoFormulario}
                   disabled={formData.status === 'EM_PROTOCOLO_ME'}
                 >
                   {statusOpcoesManuais.map(s => (
@@ -512,7 +524,7 @@ const PacienteForm = ({
           <textarea
             name="diagnosticoPrincipal"
             value={formData.diagnosticoPrincipal}
-            onChange={handleInputChange}
+            onChange={atualizarCampoFormulario}
             placeholder="Descreva o diagnóstico principal..."
             rows="3"
           />
@@ -523,7 +535,7 @@ const PacienteForm = ({
           <textarea
             name="historicoMedico"
             value={formData.historicoMedico}
-            onChange={handleInputChange}
+            onChange={atualizarCampoFormulario}
             placeholder="Descreva o histórico médico..."
             rows="3"
           />
@@ -537,7 +549,7 @@ const PacienteForm = ({
               type="text"
               name="nomeResponsavel"
               value={formData.nomeResponsavel}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Nome"
             />
           </div>
@@ -547,7 +559,7 @@ const PacienteForm = ({
               type="tel"
               name="telefoneResponsavel"
               value={formData.telefoneResponsavel}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               maxLength={15}
               placeholder="(XX) XXXXX-XXXX"
             />
@@ -558,7 +570,7 @@ const PacienteForm = ({
               type="email"
               name="emailResponsavel"
               value={formData.emailResponsavel}
-              onChange={handleInputChange}
+              onChange={atualizarCampoFormulario}
               placeholder="email@example.com"
             />
           </div>
@@ -656,7 +668,7 @@ const PacienteForm = ({
                             onEditarPaciente(pItem);
                             return;
                           }
-                          editar(pItem);
+                          editarPaciente(pItem);
                         }}
                       >
                         Editar
@@ -664,7 +676,7 @@ const PacienteForm = ({
                       <span className="status-badge-listagem">
                         {formatarStatus(pItem.status)}
                       </span>
-                      <button className="btn-deletar" onClick={() => deletar(pItem.id)}>Deletar</button>
+                      <button className="btn-deletar" onClick={() => deletarPaciente(pItem.id)}>Deletar</button>
                     </div>
                   </div>
                 ))}

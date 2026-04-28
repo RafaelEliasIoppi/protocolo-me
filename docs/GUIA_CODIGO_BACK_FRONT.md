@@ -16,6 +16,200 @@ Para acompanhar o medico em formato guiado e sequencial, consulte: [FLUXO_GUIADO
 ## Checklist interativa
 Para praticar marcando etapa por etapa, consulte: [CHECKLIST_INTERATIVO_MEDICO.md](CHECKLIST_INTERATIVO_MEDICO.md)
 
+## Manual Completo de Paciente
+
+Se você quer entender **o caminho inteiro** de salvar um paciente, este guia reúne o fluxo do front ao backend com exemplos reais.
+
+### 1) Frontend: onde o fluxo começa
+
+- Arquivo principal: [frontend/src/componentes/PacienteForm.js](../frontend/src/componentes/PacienteForm.js)
+- Função principal: `salvarPaciente()`
+- O que ela faz:
+  - lê os campos do formulário
+  - normaliza CPF para enviar apenas dígitos
+  - converte datas vazias para `null`
+  - decide entre criar ou atualizar
+  - chama o serviço HTTP
+
+#### Exemplo de payload enviado pelo frontend
+
+```json
+{
+  "nome": "rafael elias",
+  "cpf": "33333333333",
+  "dataNascimento": "1980-11-02",
+  "genero": "MASCULINO",
+  "hospitalId": "1",
+  "leito": "100",
+  "dataInternacao": "2026-04-09",
+  "diagnosticoPrincipal": "avc",
+  "historicoMedico": "teste",
+  "nomeResponsavel": "",
+  "telefoneResponsavel": "",
+  "emailResponsavel": "",
+  "status": "INTERNADO",
+  "statusEntrevistaFamiliar": "",
+  "observacoesEntrevistaFamiliar": "",
+  "dataEntrevistaFamiliar": null,
+  "hospital": { "id": 1 }
+}
+```
+
+#### Exemplo do trecho que prepara o envio
+
+```javascript
+const dadosPaciente = {
+  ...formData,
+  cpf: formData.cpf.replace(/\D/g, ''),
+  dataNascimento: valorOuNull(formData.dataNascimento),
+  dataInternacao: valorOuNull(formData.dataInternacao),
+  dataEntrevistaFamiliar: valorOuNull(formData.dataEntrevistaFamiliar),
+  status: editandoId ? formData.status : 'INTERNADO',
+  hospital: { id: parseInt(formData.hospitalId) }
+};
+```
+
+### 2) Serviço HTTP: a ponte entre frontend e backend
+
+- Arquivo: [frontend/src/services/pacienteService.js](../frontend/src/services/pacienteService.js)
+- O serviço traduz a ação do formulário em requisição REST.
+
+#### Exemplos de chamadas
+
+```javascript
+await pacienteService.criar(dadosPaciente);      // POST /api/pacientes
+await pacienteService.atualizar(id, dadosPaciente); // PUT /api/pacientes/{id}
+await pacienteService.listar();                 // GET /api/pacientes
+await pacienteService.obter(id);                // GET /api/pacientes/{id}
+await pacienteService.deletar(id);              // DELETE /api/pacientes/{id}
+```
+
+### 3) Backend: controller que recebe a requisição
+
+- Arquivo: [backend/src/main/java/back/backend/controller/PacienteController.java](../backend/src/main/java/back/backend/controller/PacienteController.java)
+- Endpoints principais:
+  - `POST /api/pacientes` → `criar()`
+  - `PUT /api/pacientes/{id}` → `atualizar()`
+  - `GET /api/pacientes` → `listarTodos()`
+  - `GET /api/pacientes/{id}` → `obterPorId()`
+  - `GET /api/pacientes/cpf/{cpf}` → `obterPorCpf()`
+  - `DELETE /api/pacientes/{id}` → `deletar()`
+  - `PATCH /api/pacientes/{id}/status` → `atualizarStatus()`
+  - `GET /api/pacientes/estatisticas/resumo` → `obterEstatisticas()`
+
+#### Exemplo de criação
+
+```java
+@Transactional
+@PostMapping
+public ResponseEntity<PacienteDTO> criar(@Valid @RequestBody PacienteRequestDTO request) {
+    return ResponseEntity.status(201).body(
+        pacienteService.criarPaciente(pacienteRequestMapper.toEntity(request))
+    );
+}
+```
+
+### 4) Mapper: converte DTO em entidade
+
+- Arquivo: [backend/src/main/java/back/backend/mapper/PacienteRequestMapper.java](../backend/src/main/java/back/backend/mapper/PacienteRequestMapper.java)
+- Responsabilidade:
+  - transformar `PacienteRequestDTO` em `Paciente`
+  - converter strings como `genero` e `status` para enums
+  - montar o objeto `Hospital` usando `hospitalId`
+
+#### Exemplo do que ele faz
+
+```java
+@Mapping(target = "hospital", expression = "java(toHospital(dto.getHospitalId()))")
+@Mapping(target = "status", expression = "java(toStatus(dto.getStatus()))")
+Paciente toEntity(PacienteRequestDTO dto);
+```
+
+### 5) Service: regra de negócio e validação
+
+- Arquivo: [backend/src/main/java/back/backend/service/PacienteService.java](../backend/src/main/java/back/backend/service/PacienteService.java)
+- O que acontece antes de salvar:
+  - CPF é normalizado
+  - status padrão é definido
+  - hospital é validado
+  - paciente é persistido
+
+#### Exemplo do fluxo de criação
+
+```java
+public PacienteDTO criarPaciente(Paciente paciente) {
+    paciente.setCpf(normalizarCpf(paciente.getCpf()));
+
+    if (paciente.getStatus() == null ||
+        paciente.getStatus() == Paciente.StatusPaciente.EM_PROTOCOLO_ME) {
+        paciente.setStatus(Paciente.StatusPaciente.INTERNADO);
+    }
+
+    preencherHospital(paciente);
+    validarPaciente(paciente);
+
+    return toDTO(pacienteRepository.save(paciente));
+}
+```
+
+#### Exemplo da normalização de CPF
+
+```java
+private String normalizarCpf(String cpf) {
+    if (cpf == null || cpf.isBlank()) {
+        throw new IllegalArgumentException("CPF obrigatório");
+    }
+
+    String n = cpf.replaceAll("\\D", "");
+
+    if (n.length() != 11) {
+        throw new IllegalArgumentException("CPF inválido");
+    }
+
+    return n;
+}
+```
+
+### 6) Exemplo prático de erro e correção
+
+#### Antes da correção
+
+```json
+{
+  "cpf": "123.456.789-10"
+}
+```
+
+#### Depois da correção
+
+```json
+{
+  "cpf": "12345678910"
+}
+```
+
+#### O que isso evita
+
+- `ConstraintViolationException`
+- HTTP 500 ao salvar paciente
+- CPF com tamanho diferente de 11 no banco
+
+### 7) Quando usar este manual
+
+- quando o formulário de paciente não salva
+- quando o backend retorna 500 ao criar ou editar paciente
+- quando você quer ver o caminho completo front → service → controller → mapper → service → banco
+
+---
+
+## Fluxos Detalhados com Código Comentado
+
+Para aprofundar em outros fluxos do sistema, use os guias gerais abaixo:
+
+- [RELATORIO_AUDITORIA_TECNICA_BACKEND.md](RELATORIO_AUDITORIA_TECNICA_BACKEND.md): arquitetura completa e riscos técnicos.
+- [GUIA_CLASSE_METODO_V2.md](GUIA_CLASSE_METODO_V2.md): leitura classe a classe e método a método.
+- [MAPA_VISUAL_DO_SISTEMA.md](MAPA_VISUAL_DO_SISTEMA.md): visão em diagramas.
+
 ---
 
 ## 1) Backend (Spring Boot)

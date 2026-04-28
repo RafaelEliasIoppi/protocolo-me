@@ -1,90 +1,75 @@
 package back.backend.security;
 
-import io.jsonwebtoken.JwtException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.*;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
 
 import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private static final Logger log = LoggerFactory.getLogger(JwtFilter.class);
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    private final JwtUtil jwtUtil;
-    private final UserDetailsService userDetailsService;
-
-    // ✅ CONSTRUTOR CORRETO
-    public JwtFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
-        this.jwtUtil = jwtUtil;
-        this.userDetailsService = userDetailsService;
-    }
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
+        String path = request.getServletPath();
+
+        // 🔥 IGNORA LOGIN E REGISTER
+        if (path.startsWith("/api/usuarios")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         final String authHeader = request.getHeader("Authorization");
 
-        String jwt = null;
         String username = null;
+        String jwt = null;
 
-        // =========================
-        // EXTRAÇÃO DO TOKEN
-        // =========================
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
 
             try {
                 username = jwtUtil.extractUsername(jwt);
-            } catch (JwtException | IllegalArgumentException e) {
-                log.debug("Token inválido ou expirado: {}", e.getMessage());
+            } catch (Exception e) {
+                filterChain.doFilter(request, response);
+                return;
             }
         }
 
-        // =========================
-        // AUTENTICAÇÃO
-        // =========================
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                if (jwtUtil.validateToken(jwt, userDetails)) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities()
-                            );
+            if (jwtUtil.validateToken(jwt, userDetails)) {
 
-                    authToken.setDetails(
-                            new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
 
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                }
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-            } catch (UsernameNotFoundException | BadCredentialsException e) {
-                log.debug("Falha de autenticação pelo token: {}", e.getMessage());
-            } catch (JwtException | IllegalArgumentException e) {
-                log.debug("Erro ao autenticar usuário pelo token: {}", e.getMessage());
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 

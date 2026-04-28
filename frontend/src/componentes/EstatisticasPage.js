@@ -251,7 +251,7 @@ const EstatisticasPage = () => {
     }
   };
 
-  const handleMudarAno = (ano) => {
+  const selecionarAno = (ano) => {
     setAnoSelecionado(ano);
     if (abas === 'geral') {
       carregarEstatisticasGerais(ano);
@@ -262,7 +262,7 @@ const EstatisticasPage = () => {
     }
   };
 
-  const handleMudarAba = (aba) => {
+  const selecionarAba = (aba) => {
     setAbas(aba);
     if (aba === 'geral') {
       carregarEstatisticasGerais(anoSelecionado);
@@ -274,7 +274,7 @@ const EstatisticasPage = () => {
     }
   };
 
-  const handleSelecionarProtocolo = async (item) => {
+  const selecionarProtocolo = async (item) => {
     try {
       const response = await apiClient.get(`/api/estatisticas-transplantes/protocolo-me/${item.protocoloMEId}`);
       const data = response.data || {};
@@ -286,7 +286,7 @@ const EstatisticasPage = () => {
     }
   };
 
-  const handleSalvarEstatistica = async () => {
+  const salvarEstatistica = async () => {
     if (!protocoloSelecionado?.protocoloMEId) return;
     setSalvando(true);
     setErro('');
@@ -369,7 +369,7 @@ const EstatisticasPage = () => {
           <select
             id="filtro-ano"
             value={anoSelecionado || ''}
-            onChange={(e) => handleMudarAno(e.target.value ? parseInt(e.target.value) : null)}
+            onChange={(e) => selecionarAno(e.target.value ? parseInt(e.target.value) : null)}
             className="select-ano"
           >
             <option value="">Todos os anos</option>
@@ -423,19 +423,19 @@ const EstatisticasPage = () => {
         <div className="abas">
           <button
             className={`aba ${abas === 'geral' ? 'ativa' : ''}`}
-            onClick={() => handleMudarAba('geral')}
+            onClick={() => selecionarAba('geral')}
           >
             📈 Visão Geral
           </button>
           <button
             className={`aba ${abas === 'pacientes' ? 'ativa' : ''}`}
-            onClick={() => handleMudarAba('pacientes')}
+            onClick={() => selecionarAba('pacientes')}
           >
             👥 Por Paciente
           </button>
           <button
             className={`aba ${abas === 'protocolo' ? 'ativa' : ''}`}
-            onClick={() => handleMudarAba('protocolo')}
+            onClick={() => selecionarAba('protocolo')}
           >
             🧾 Por Protocolo
           </button>
@@ -707,7 +707,7 @@ const EstatisticasPage = () => {
                         <td>{item.mesCompetencia || '-'}</td>
                         <td>{item.atualizadoPor || '-'}</td>
                         <td>
-                          <button className="modal-report-button" onClick={() => handleSelecionarProtocolo(item)}>
+                          <button className="modal-report-button" onClick={() => selecionarProtocolo(item)}>
                             Preencher/Editar
                           </button>
                         </td>
@@ -746,7 +746,7 @@ const EstatisticasPage = () => {
                       </div>
                     ))}
                   </div>
-                  <button className="modal-report-button" onClick={handleSalvarEstatistica} disabled={salvando}>
+                  <button className="modal-report-button" onClick={salvarEstatistica} disabled={salvando}>
                     {salvando ? 'Salvando...' : 'Salvar estatistica do protocolo'}
                   </button>
                 </div>

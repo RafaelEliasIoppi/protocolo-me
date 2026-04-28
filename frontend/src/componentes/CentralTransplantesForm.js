@@ -45,7 +45,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
     }
   }, [centralParaEditar]);
 
-  const handleChange = (e) => {
+  const atualizarCampoFormulario = (e) => {
     const { name, value } = e.target;
 
     if (name === 'telefone' || name === 'telefonePlantao' || name === 'telefoneCoordenador') {
@@ -67,7 +67,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
     setErro('');
   };
 
-  const handleSubmit = async (e) => {
+  const salvarCentral = async (e) => {
     e.preventDefault();
     setErro('');
     setSucesso('');
@@ -129,7 +129,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
       {erro && <div className="alerta alerta-erro">{erro}</div>}
       {sucesso && <div className="alerta alerta-sucesso">{sucesso}</div>}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={salvarCentral}>
         <div className="secao">
           <h3>Informações Gerais</h3>
 
@@ -140,7 +140,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="nome"
               name="nome"
               value={formData.nome}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Ex: Central de Transplantes São Paulo"
               required
             />
@@ -156,7 +156,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               onChange={(e) => {
                 let value = e.target.value.replace(/\D/g, '');
                 if (value.length <= 14) {
-                  handleChange({ target: { name: 'cnpj', value } });
+                  atualizarCampoFormulario({ target: { name: 'cnpj', value } });
                 }
               }}
               placeholder="00.000.000/0000-00"
@@ -171,7 +171,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="endereco"
               name="endereco"
               value={formData.endereco}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Ex: Avenida Paulista, 1000"
             />
           </div>
@@ -184,7 +184,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
                 id="cidade"
                 name="cidade"
                 value={formData.cidade}
-                onChange={handleChange}
+                onChange={atualizarCampoFormulario}
                 placeholder="Ex: São Paulo"
               />
             </div>
@@ -196,7 +196,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
                 id="estado"
                 name="estado"
                 value={formData.estado}
-                onChange={handleChange}
+                onChange={atualizarCampoFormulario}
                 placeholder="Ex: SP"
                 maxLength="2"
               />
@@ -214,7 +214,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="telefone"
               name="telefone"
               value={formData.telefone}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               maxLength="15"
               placeholder="(11) 3000-0000"
             />
@@ -227,7 +227,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="telefonePlantao"
               name="telefonePlantao"
               value={formData.telefonePlantao}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               maxLength="15"
               placeholder="(11) 98765-4321"
             />
@@ -240,7 +240,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="email"
               name="email"
               value={formData.email}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="central@hospital.com"
             />
           </div>
@@ -252,7 +252,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="emailPlantao"
               name="emailPlantao"
               value={formData.emailPlantao}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="plantao@hospital.com"
             />
           </div>
@@ -268,7 +268,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="coordenador"
               name="coordenador"
               value={formData.coordenador}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Ex: Dr. Carlos Silva"
             />
           </div>
@@ -280,7 +280,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="telefoneCoordenador"
               name="telefoneCoordenador"
               value={formData.telefoneCoordenador}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               maxLength="15"
               placeholder="(11) 99999-9999"
             />
@@ -297,7 +297,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="capacidadeProcessamento"
               name="capacidadeProcessamento"
               value={formData.capacidadeProcessamento}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Ex: 50"
               min="0"
             />
@@ -309,7 +309,7 @@ const CentralTransplantesForm = ({ onSuccess, centralParaEditar }) => {
               id="especialidadesOrgaos"
               name="especialidadesOrgaos"
               value={formData.especialidadesOrgaos}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Ex: Coração, Pulmão, Fígado, Rim"
               rows="3"
             />

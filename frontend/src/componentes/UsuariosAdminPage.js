@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import autenticarService from "../services/autenticarService";
 import { getApiErrorMessage } from "../utils/apiError";
 
@@ -91,7 +91,7 @@ function UsuariosAdminPage() {
   // =========================
   // CADASTRO
   // =========================
-  const handleSubmit = async (e) => {
+  const criarUsuario = async (e) => {
     e.preventDefault();
     limparMensagens();
 
@@ -201,7 +201,7 @@ function UsuariosAdminPage() {
             </div>
           </header>
 
-          <form className="usuarios-form" onSubmit={handleSubmit}>
+          <form className="usuarios-form" onSubmit={criarUsuario}>
             <input
               className="input-field"
               placeholder="Nome"

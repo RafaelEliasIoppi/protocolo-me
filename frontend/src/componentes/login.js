@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import autenticarService from "../services/autenticarService";
 import { getApiErrorMessage } from "../utils/apiError";
 
@@ -19,7 +19,7 @@ function Login({ onLogin }) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  const handleChange = (campo, valor) => {
+  const atualizarCampoConta = (campo, valor) => {
     setForm((prev) => ({
       ...prev,
       [campo]: valor
@@ -47,7 +47,7 @@ function Login({ onLogin }) {
     return null;
   };
 
-  const handleSubmit = async (e) => {
+  const fazerLogin = async (e) => {
     e.preventDefault();
     limparMensagens();
 
@@ -120,7 +120,7 @@ function Login({ onLogin }) {
           {erro && <div className="mensagem erro">{erro}</div>}
           {mensagem && <div className="mensagem sucesso">{mensagem}</div>}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={fazerLogin}>
 
             {isRegister && (
               <>
@@ -128,13 +128,13 @@ function Login({ onLogin }) {
                   type="text"
                   placeholder="Nome"
                   value={form.nome}
-                  onChange={(e) => handleChange("nome", e.target.value)}
+                  onChange={(e) => atualizarCampoConta("nome", e.target.value)}
                   disabled={carregando}
                 />
 
                 <select
                   value={form.role}
-                  onChange={(e) => handleChange("role", e.target.value)}
+                  onChange={(e) => atualizarCampoConta("role", e.target.value)}
                   disabled={carregando}
                 >
                   <option value="MEDICO">Médico</option>
@@ -147,7 +147,7 @@ function Login({ onLogin }) {
               type="email"
               placeholder="Email"
               value={form.email}
-              onChange={(e) => handleChange("email", e.target.value)}
+              onChange={(e) => atualizarCampoConta("email", e.target.value)}
               disabled={carregando}
             />
 
@@ -155,7 +155,7 @@ function Login({ onLogin }) {
               type="password"
               placeholder="Senha"
               value={form.senha}
-              onChange={(e) => handleChange("senha", e.target.value)}
+              onChange={(e) => atualizarCampoConta("senha", e.target.value)}
               disabled={carregando}
             />
 

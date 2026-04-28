@@ -65,3 +65,17 @@ Agora existe uma página dedicada para alteração de senha do usuário:
 - Mensagens de sucesso e erro são exibidas na tela.
 
 Essa mudança melhora a experiência do usuário e separa claramente as funções administrativas das funções de perfil pessoal.
+
+## 🚀 Orientação de Desenvolvimento
+
+### Com erro ao salvar paciente?
+
+**Comece aqui**:
+1. [GUIA_CODIGO_BACK_FRONT.md](GUIA_CODIGO_BACK_FRONT.md) - Manual único com o caminho completo do front até o backend, exemplos e endpoints
+
+### Outros documentos úteis
+
+- [INDICE_DOCUMENTOS.md](INDICE_DOCUMENTOS.md) - Índice completo de toda documentação
+- [CHECKLIST_DEBUG_RAPIDO.md](CHECKLIST_DEBUG_RAPIDO.md) - Diagnóstico rápido de problemas
+- [COMO_RODAR.md](COMO_RODAR.md) - Mais detalhes sobre configuração
+

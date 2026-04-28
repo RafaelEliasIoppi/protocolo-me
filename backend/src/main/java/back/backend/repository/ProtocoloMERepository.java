@@ -19,7 +19,8 @@ public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> 
             "paciente",
             "paciente.hospital",
             "centralTransplantes",
-            "orgaosDoados"
+            "doacao",
+            "doacao.orgaos"
     })
     @Query("SELECT DISTINCT p FROM ProtocoloME p")
     List<ProtocoloME> findAllWithDetalhes();
@@ -28,7 +29,8 @@ public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> 
             "paciente",
             "paciente.hospital",
             "centralTransplantes",
-            "orgaosDoados"
+            "doacao",
+            "doacao.orgaos"
     })
     @Query("SELECT p FROM ProtocoloME p WHERE p.id = :id")
     Optional<ProtocoloME> findByIdWithDetalhes(@Param("id") Long id);
@@ -37,7 +39,8 @@ public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> 
             "paciente",
             "paciente.hospital",
             "centralTransplantes",
-            "orgaosDoados"
+            "doacao",
+            "doacao.orgaos"
     })
     Optional<ProtocoloME> findByNumeroProtocolo(String numeroProtocolo);
 
@@ -47,7 +50,8 @@ public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> 
             "paciente",
             "paciente.hospital",
             "centralTransplantes",
-            "orgaosDoados"
+            "doacao",
+            "doacao.orgaos"
     })
     @Query("SELECT DISTINCT p FROM ProtocoloME p WHERE p.centralTransplantes = :centralTransplantes")
     List<ProtocoloME> findByCentralTransplantes(CentralTransplantes centralTransplantes);
@@ -56,7 +60,8 @@ public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> 
             "paciente",
             "paciente.hospital",
             "centralTransplantes",
-            "orgaosDoados"
+            "doacao",
+            "doacao.orgaos"
     })
     List<ProtocoloME> findByStatus(ProtocoloME.StatusProtocoloME status);
 
@@ -64,7 +69,8 @@ public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> 
             "paciente",
             "paciente.hospital",
             "centralTransplantes",
-            "orgaosDoados"
+            "doacao",
+            "doacao.orgaos"
     })
     @Query("SELECT DISTINCT p FROM ProtocoloME p WHERE p.centralTransplantes = :centralTransplantes AND p.status = :status")
     List<ProtocoloME> findByCentralTransplantesAndStatus(
@@ -76,7 +82,8 @@ public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> 
             "paciente",
             "paciente.hospital",
             "centralTransplantes",
-            "orgaosDoados"
+            "doacao",
+            "doacao.orgaos"
     })
     @Query("SELECT DISTINCT p FROM ProtocoloME p WHERE p.dataNotificacao BETWEEN :dataInicio AND :dataFim")
     List<ProtocoloME> findByDataNotificacaoBetween(
@@ -88,7 +95,8 @@ public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> 
             "paciente",
             "paciente.hospital",
             "centralTransplantes",
-            "orgaosDoados"
+            "doacao",
+            "doacao.orgaos"
     })
     List<ProtocoloME> findByHospitalOrigem(String hospitalOrigem);
 }

@@ -326,8 +326,7 @@ public class PacienteService {
             throw new IllegalArgumentException("CPF inválido");
         }
 
-        return n.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})",
-                "$1.$2.$3-$4");
+        return n;
     }
 
     // ================= INNER CLASS =================

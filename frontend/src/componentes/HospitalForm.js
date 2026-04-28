@@ -35,7 +35,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
     }
   }, [hospitalParaEditar]);
 
-  const handleChange = (e) => {
+  const atualizarCampoFormulario = (e) => {
     const { name, value } = e.target;
 
     if (name === 'telefone') {
@@ -66,7 +66,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
     return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
   };
 
-  const handleSubmit = async (e) => {
+  const salvarHospital = async (e) => {
     e.preventDefault();
     setErro('');
     setSucesso('');
@@ -131,7 +131,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
       {erro && <div className="alerta alerta-erro">{erro}</div>}
       {sucesso && <div className="alerta alerta-sucesso">{sucesso}</div>}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={salvarHospital}>
         <div className="form-group">
           <label htmlFor="nome">Nome do Hospital *</label>
           <input
@@ -139,7 +139,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
             id="nome"
             name="nome"
             value={formData.nome}
-            onChange={handleChange}
+            onChange={atualizarCampoFormulario}
             placeholder="Ex: Hospital Central"
             required
           />
@@ -155,7 +155,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
             onChange={(e) => {
               let value = e.target.value.replace(/\D/g, '');
               if (value.length <= 14) {
-                handleChange({
+                atualizarCampoFormulario({
                   target: { name: 'cnpj', value }
                 });
               }
@@ -172,7 +172,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
             id="endereco"
             name="endereco"
             value={formData.endereco}
-            onChange={handleChange}
+            onChange={atualizarCampoFormulario}
             placeholder="Ex: Rua das Flores, 123"
           />
         </div>
@@ -185,7 +185,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
               id="cidade"
               name="cidade"
               value={formData.cidade}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Ex: São Paulo"
             />
           </div>
@@ -197,7 +197,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
               id="estado"
               name="estado"
               value={formData.estado}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Ex: SP"
               maxLength="2"
             />
@@ -212,7 +212,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
               id="telefone"
               name="telefone"
               value={formData.telefone}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               maxLength="15"
               placeholder="Ex: (11) 98765-4321"
             />
@@ -225,7 +225,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
               id="email"
               name="email"
               value={formData.email}
-              onChange={handleChange}
+              onChange={atualizarCampoFormulario}
               placeholder="Ex: hospital@email.com"
             />
           </div>
@@ -238,7 +238,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
             id="responsavelMedico"
             name="responsavelMedico"
             value={formData.responsavelMedico}
-            onChange={handleChange}
+            onChange={atualizarCampoFormulario}
             placeholder="Ex: Dr. João Silva"
           />
         </div>

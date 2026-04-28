@@ -48,7 +48,7 @@ function PacientesProtocoloMEPage() {
   }, []);
 
   // Se hotel for alterado, recarregar pacientes
-  const handleFiltroHospitalChange = (e) => {
+  const filtrarPorHospital = (e) => {
     const hospitalId = e.target.value;
     setFiltroHospital(hospitalId);
     if (hospitalId) {
@@ -126,7 +126,7 @@ function PacientesProtocoloMEPage() {
           <select
             id="filtro-hospital"
             value={filtroHospital}
-            onChange={handleFiltroHospitalChange}
+            onChange={filtrarPorHospital}
             className="select-filtro"
           >
             <option value="">Todos os Hospitais</option>

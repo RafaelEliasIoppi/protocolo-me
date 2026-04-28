@@ -3,8 +3,10 @@ import exameService from '../services/exameService';
 import '../styles/ExameMEManager.css';
 
 const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
+  // Lista de exames já registrados para este protocolo.
   const [exames, setExames] = useState([]);
 
+  // Estado do formulário de criação do exame.
   const [novoExame, setNovoExame] = useState({
     tipoExame: '',
     descricao: '',
@@ -17,6 +19,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
 
+  // Catálogo de tipos de exame exibido no select.
   const tiposExame = [
     { valor: 'REFLEXO_PUPILAR', label: 'Reflexo Pupilar' },
     { valor: 'REFLEXO_CORNEAL', label: 'Reflexo Corneal' },
@@ -57,11 +60,13 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   };
 
   useEffect(() => {
+    // Sempre que o protocolo mudar, recarrega os exames relacionados.
     if (protocoloId) carregarExames();
   }, [protocoloId]);
 
   const carregarExames = async () => {
     try {
+      // Busca a lista no backend e atualiza a tela.
       const dados = await exameService.listarPorProtocolo(protocoloId);
       setExames(dados);
     } catch {
@@ -69,7 +74,8 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     }
   };
 
-  const handleChange = (e) => {
+  const atualizarCampoFormulario = (e) => {
+    // Atualiza qualquer campo do formulário de forma genérica.
     const { name, value } = e.target;
     setNovoExame(prev => ({ ...prev, [name]: value }));
   };
@@ -79,12 +85,14 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     setErro('');
     setSucesso('');
 
+    // Validação mínima antes de chamar a API.
     if (!novoExame.tipoExame || !novoExame.descricao.trim() || novoExame.resultadoPositivo === '') {
       setErro('Preencha todos os campos obrigatórios');
       return;
     }
 
     try {
+      // Monta o payload no formato esperado pelo backend.
       const payload = {
         protocoloId,
         categoria: obterCategoriaExame(novoExame.tipoExame),
@@ -96,8 +104,10 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
         resultado: novoExame.resultadoPositivo === 'true' ? 'POSITIVO' : 'NEGATIVO'
       };
 
+      // Envia o exame para criação.
       const criado = await exameService.criar(payload);
 
+      // Atualiza a lista local sem recarregar a página inteira.
       setExames([...exames, criado]);
 
       setNovoExame({
@@ -116,6 +126,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   };
 
   const deletarExame = async (id) => {
+    // Confirma antes de apagar para evitar exclusão acidental.
     const ok = window.confirm('Deseja realmente excluir este exame?');
     if (!ok) return;
 
@@ -131,6 +142,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
   const salvarResultado = async (exame) => {
     try {
+      // Persiste as alterações feitas no cartão de edição inline.
       const atualizado = await exameService.atualizarResultado(
         exame.id,
         exame.resultadoPositivo,
@@ -159,10 +171,12 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
       {/* ================= FORM ================= */}
       <div className="card-form">
         <h3>Novo Exame</h3>
+        <p className="exame-ajuda">Preencha os campos obrigatórios e clique em Salvar exame.</p>
 
+        {/* Formulário de criação do exame */}
         <form onSubmit={criarExame}>
 
-          <select name="tipoExame" value={novoExame.tipoExame} onChange={handleChange}>
+          <select name="tipoExame" value={novoExame.tipoExame} onChange={atualizarCampoFormulario}>
             <option value="">Tipo de exame</option>
             {tiposExame.map(t => (
               <option key={t.valor} value={t.valor}>{t.label}</option>
@@ -173,13 +187,13 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
             name="descricao"
             placeholder="Descrição"
             value={novoExame.descricao}
-            onChange={handleChange}
+            onChange={atualizarCampoFormulario}
           />
 
           <select
             name="resultadoPositivo"
             value={novoExame.resultadoPositivo}
-            onChange={handleChange}
+            onChange={atualizarCampoFormulario}
           >
             <option value="">Positivo / Negativo</option>
             <option value="true">Positivo</option>
@@ -190,7 +204,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
             name="responsavel"
             placeholder="Responsável"
             value={novoExame.responsavel}
-            onChange={handleChange}
+            onChange={atualizarCampoFormulario}
           />
 
           <textarea
@@ -198,11 +212,11 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
             name="observacoes"
             placeholder="Observações"
             value={novoExame.observacoes}
-            onChange={handleChange}
+            onChange={atualizarCampoFormulario}
           />
 
-          <button type="submit" className="btn-primario">
-            + Adicionar Exame
+          <button type="submit" className="btn-primario" title="Salvar exame">
+            Salvar exame
           </button>
 
         </form>
@@ -219,6 +233,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
         {exames.map(exame => (
           <div key={exame.id} className="card-exame">
 
+            {/* Cabeçalho do cartão com tipo e resultado */}
             <div className="header-exame">
               <strong>{exame.tipoExame}</strong>
 
@@ -230,7 +245,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
             <p><strong>Responsável:</strong> {exame.responsavel || 'Não informado'}</p>
             {exame.observacoes && <p className="obs"><strong>Obs:</strong> {exame.observacoes}</p>}
 
-            {/* BOTÕES */}
+            {/* Ações do cartão */}
             <div className="acoes">
 
               <button
@@ -249,7 +264,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
             </div>
 
-            {/* EDIT INLINE */}
+            {/* Edição inline do resultado e do responsável */}
             {exameSelecionado?.id === exame.id && (
               <div className="edit-box">
 
