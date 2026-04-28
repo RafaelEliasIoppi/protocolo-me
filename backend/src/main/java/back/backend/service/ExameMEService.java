@@ -209,17 +209,19 @@ public class ExameMEService {
 
         List<ExameME> exames = exameRepository.findByProtocoloME_Id(protocoloId);
 
-        // Indicador de Teste Clínico 1
-        boolean tc1 = exames.stream()
-                .anyMatch(e -> e.getTipoExame() == ExameME.TipoExame.REFLEXO_PUPILAR && e.getResultado() != null);
+        long clinicosConcluidos = exames.stream()
+            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO)
+            .filter(e -> e.getResultado() != null)
+            .count();
+
+        // Considera qualquer exame clínico concluído para compor o TC1/TC2.
+        boolean tc1 = clinicosConcluidos >= 1;
         protocolo.setTesteClinico1Realizado(tc1);
         if (tc1 && protocolo.getDataTesteClinico1() == null) {
             protocolo.setDataTesteClinico1(LocalDateTime.now());
         }
 
-        // Indicador de Teste Clínico 2
-        boolean tc2 = exames.stream()
-                .anyMatch(e -> e.getTipoExame() == ExameME.TipoExame.REFLEXO_CORNEAL && e.getResultado() != null);
+        boolean tc2 = clinicosConcluidos >= 2;
         protocolo.setTesteClinico2Realizado(tc2);
         if (tc2 && protocolo.getDataTesteClinico2() == null) {
             protocolo.setDataTesteClinico2(LocalDateTime.now());

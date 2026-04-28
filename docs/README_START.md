@@ -1,6 +1,10 @@
 # Como iniciar a aplicação
 
-Existem várias formas de iniciar o Backend e o Frontend:
+**Status Atual:** Backend e Frontend rodando com as últimas melhorias ✅
+
+## Portas Configuradas
+- **Backend (Spring Boot):** http://localhost:2500
+- **Frontend (React):** http://localhost:3000
 
 ## Opção 1: Script Bash (recomendado)
 
@@ -32,12 +36,14 @@ make stop         # Para ambos os serviços
 ```bash
 cd backend
 ./mvnw spring-boot:run
+# Porta: 2500
 ```
 
 **Terminal 2 - Frontend:**
 ```bash
 cd frontend
 npm start
+# Porta: 3000
 ```
 
 ## Pré-requisitos
@@ -45,6 +51,29 @@ npm start
 - Java 17+
 - Node.js 14+
 - npm ou yarn
+
+## Funcionalidades Principais
+
+### 🧪 Painel de Exames Melhorado
+- Inserção e atualização de exames em tempo real
+- Sincronização automática de flags (testeClinico1/2, complementares)
+- Limpeza automática de mensagens após 5 segundos
+- Feedback visual de carregamento
+
+### 📊 Dashboard do Protocolo
+- Visualização em tempo real das flags de exames
+- Progresso dos testes clínicos
+- Status automático do protocolo
+- Controle de liberação de entrevista familiar
+
+## Acesso Rápido
+
+| Funcionalidade | URL | Descrição |
+|---|---|---|
+| Home | http://localhost:3000 | Página inicial |
+| Login | http://localhost:3000/login | Autenticação |
+| Protocolo ME | http://localhost:3000/medico/protocolo-me | Gerenciar protocolos |
+| H2 Database | http://localhost:2500/h2-console | Console do banco (dev) |
 
 ## Para parar
 
