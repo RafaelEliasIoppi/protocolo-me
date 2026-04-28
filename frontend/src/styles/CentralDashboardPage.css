@@ -946,9 +946,9 @@
 
 .central-dashboard.telao-mode .tabela-pacientes {
   font-size: 0.98rem;
-  min-width: 0;
-  width: 100%;
-  table-layout: fixed;
+  width: max-content;
+  min-width: 1500px;
+  table-layout: auto;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes th,
@@ -957,44 +957,44 @@
 }
 
 .central-dashboard.telao-mode .pacientes-tabela-wrapper {
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-nome {
-  width: 14%;
+  min-width: 210px;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-cpf {
-  width: 10%;
+  min-width: 155px;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-hospital {
-  width: 14%;
+  min-width: 220px;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-cidade {
-  width: 8%;
+  min-width: 165px;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-data {
-  width: 10%;
+  min-width: 150px;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-exames {
-  width: 7%;
+  min-width: 130px;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-status-exames {
-  width: 12%;
+  min-width: 210px;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-faltantes {
-  width: 15%;
+  min-width: 300px;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-status {
-  width: 10%;
+  min-width: 220px;
 }
 
 .central-dashboard.telao-mode.tv-fullscreen {
@@ -1029,7 +1029,7 @@
 .central-dashboard.telao-mode.tv-fullscreen .pacientes-tabela-wrapper {
   border-radius: 0;
   border: none;
-  overflow-x: hidden;
+  overflow-x: auto;
   scrollbar-width: none;
 }
 
@@ -1040,6 +1040,9 @@
 
 .central-dashboard.telao-mode.tv-fullscreen .tabela-pacientes {
   font-size: 0.9rem;
+  width: max-content;
+  min-width: 1450px;
+  table-layout: auto;
 }
 
 .central-dashboard.telao-mode.tv-fullscreen .tabela-pacientes th,

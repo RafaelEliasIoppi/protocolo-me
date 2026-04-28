@@ -700,24 +700,114 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 1.5rem 2rem;
-  border-bottom: 2px solid #ecf0f1;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
 }
 
 .modal-header h2 {
   margin: 0;
-  color: #2c3e50;
-  font-size: 1.4rem;
+  color: #0f172a;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.modal-header-main {
+  flex: 1;
+}
+
+.modal-header-subtitle {
+  margin: 0.35rem 0 0 0;
+  color: #64748b;
+  font-size: 0.92rem;
+}
+
+.modal-header-meta {
+  margin-top: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.modal-tabs {
+  justify-content: flex-start;
+  margin: 1rem 2rem 0.8rem;
+}
+
+.modal-tab {
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
   font-weight: 600;
 }
 
-.modal-header p {
-  margin: 0.5rem 0 0 0;
-  color: #555;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+.modal-tab.is-active {
+  background: #0ea5e9;
+  color: #ffffff;
+  border-color: #0ea5e9;
+}
+
+.modal-pill-row {
+  margin: 0 2rem 0.8rem;
+}
+
+.exames-resumo-modal {
+  margin: 0 2rem 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.exames-resumo-modal h4 {
+  margin: 0 0 0.8rem;
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.exames-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+}
+
+.resumo-item {
+  padding: 0.8rem;
+  border-radius: 10px;
+  text-align: center;
+  border: 1px solid transparent;
+  background: #f1f5f9;
+}
+
+.resumo-item-icon {
+  font-size: 1.45rem;
+  margin-bottom: 0.25rem;
+}
+
+.resumo-item strong {
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.resumo-item.is-complete {
+  background: #dcfce7;
+  border-color: #22c55e;
+}
+
+.resumo-item.is-pending {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.exames-resumo-footer {
+  margin-top: 0.7rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.exames-resumo-footer p {
+  margin: 0;
 }
 
 .modal-close {
@@ -842,6 +932,17 @@
     padding: 1rem;
   }
 
+  .modal-tabs,
+  .modal-pill-row,
+  .exames-resumo-modal {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+
+  .exames-resumo-grid {
+    grid-template-columns: 1fr;
+  }
+
   .modal-body {
     padding: 1rem;
   }
@@ -857,6 +958,32 @@
   background: #0f3460;
   color: #e5e7eb;
   border-color: rgba(148, 163, 184, 0.22);
+}
+
+[data-theme="dark"] .medico-protocolo-me .modal-header-subtitle,
+[data-theme="dark"] .medico-protocolo-me .modal-header-meta,
+[data-theme="dark"] .medico-protocolo-me .exames-resumo-footer {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .medico-protocolo-me .exames-resumo-modal {
+  background: #123a63;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+[data-theme="dark"] .medico-protocolo-me .exames-resumo-modal h4,
+[data-theme="dark"] .medico-protocolo-me .resumo-item strong {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .medico-protocolo-me .resumo-item.is-complete {
+  background: #14532d;
+  border-color: #22c55e;
+}
+
+[data-theme="dark"] .medico-protocolo-me .resumo-item.is-pending {
+  background: #0b2947;
+  border-color: rgba(148, 163, 184, 0.35);
 }
 
 [data-theme="dark"] .medico-protocolo-me .card-header,
