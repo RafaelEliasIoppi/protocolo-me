@@ -22,8 +22,9 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+
+@AutoConfigureMockMvc(addFilters = false)
 @SpringBootTest
-@AutoConfigureMockMvc
 public class UsuarioControllerIntegrationTest {
 
     @Autowired
@@ -251,5 +252,8 @@ public class UsuarioControllerIntegrationTest {
         String token = (String) loginMap.get("token");
         System.out.println("✓ Token gerado: " + token.substring(0, 20) + "...");
     }
+
+
+
 
 }
