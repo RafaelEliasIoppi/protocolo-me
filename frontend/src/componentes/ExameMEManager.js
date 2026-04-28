@@ -18,6 +18,22 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   const [exameSelecionado, setExameSelecionado] = useState(null);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
+  const [carregando, setCarregando] = useState(false);
+
+  // Limpar mensagens após 5 segundos
+  useEffect(() => {
+    if (erro) {
+      const timer = setTimeout(() => setErro(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [erro]);
+
+  useEffect(() => {
+    if (sucesso) {
+      const timer = setTimeout(() => setSucesso(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [sucesso]);
 
   // Catálogo de tipos de exame exibido no select.
   const tiposExame = [
@@ -84,10 +100,12 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     e.preventDefault();
     setErro('');
     setSucesso('');
+    setCarregando(true);
 
     // Validação mínima antes de chamar a API.
     if (!novoExame.tipoExame || !novoExame.descricao.trim() || novoExame.resultadoPositivo === '') {
       setErro('Preencha todos os campos obrigatórios');
+      setCarregando(false);
       return;
     }
 
@@ -107,9 +125,10 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
       // Envia o exame para criação.
       const criado = await exameService.criar(payload);
 
-      // Atualiza a lista local sem recarregar a página inteira.
-      setExames([...exames, criado]);
+      // Recarrega a lista completa do backend para garantir sincronização
+      await carregarExames();
 
+      // Limpa o formulário
       setNovoExame({
         tipoExame: '',
         descricao: '',
@@ -120,8 +139,11 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
 
       setSucesso('Exame criado com sucesso');
       if (onAtualizacao) onAtualizacao();
-    } catch {
-      setErro('Erro ao criar exame');
+    } catch (err) {
+      console.error('Erro ao criar exame:', err);
+      setErro('Erro ao criar exame. Tente novamente.');
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -130,17 +152,27 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
     const ok = window.confirm('Deseja realmente excluir este exame?');
     if (!ok) return;
 
+    setCarregando(true);
+    setErro('');
+
     try {
       await exameService.deletar(id);
-      setExames(exames.filter(e => e.id !== id));
+      // Recarrega a lista completa do backend
+      await carregarExames();
       setSucesso('Exame excluído');
       if (onAtualizacao) onAtualizacao();
-    } catch {
+    } catch (err) {
+      console.error('Erro ao excluir exame:', err);
       setErro('Erro ao excluir');
+    } finally {
+      setCarregando(false);
     }
   };
 
   const salvarResultado = async (exame) => {
+    setCarregando(true);
+    setErro('');
+
     try {
       // Persiste as alterações feitas no cartão de edição inline.
       const atualizado = await exameService.atualizarResultado(
@@ -149,12 +181,16 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
         exame.responsavel
       );
 
-      setExames(exames.map(e => e.id === exame.id ? atualizado : e));
+      // Recarrega a lista completa do backend para manter sincronização
+      await carregarExames();
       setExameSelecionado(null);
       setSucesso('Resultado atualizado');
       if (onAtualizacao) onAtualizacao();
-    } catch {
+    } catch (err) {
+      console.error('Erro ao salvar resultado:', err);
       setErro('Erro ao salvar resultado');
+    } finally {
+      setCarregando(false);
     }
   };
 
@@ -174,8 +210,8 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
       <p><strong>Responsável:</strong> {exame.responsavel || 'Não informado'}</p>
       {exame.observacoes && <p className="obs"><strong>Obs:</strong> {exame.observacoes}</p>}
       <div className="acoes">
-        <button className="btn-editar" onClick={() => setExameSelecionado({...exame})}>Editar</button>
-        <button className="btn-excluir" onClick={() => deletarExame(exame.id)}>Excluir</button>
+        <button className="btn-editar" onClick={() => setExameSelecionado({...exame})} disabled={carregando}>Editar</button>
+        <button className="btn-excluir" onClick={() => deletarExame(exame.id)} disabled={carregando}>Excluir</button>
       </div>
       {exameSelecionado?.id === exame.id && (
         <div className="edit-box">
@@ -198,8 +234,8 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
             />
           </div>
           <div className="acoes-edit">
-            <button className="btn-salvar" onClick={() => salvarResultado(exameSelecionado)}>Salvar</button>
-            <button className="btn-cancelar" onClick={() => setExameSelecionado(null)}>Cancelar</button>
+            <button className="btn-salvar" onClick={() => salvarResultado(exameSelecionado)} disabled={carregando}>Salvar</button>
+            <button className="btn-cancelar" onClick={() => setExameSelecionado(null)} disabled={carregando}>Cancelar</button>
           </div>
         </div>
       )}
@@ -220,21 +256,23 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
         <h3>Novo Exame</h3>
         <p className="exame-ajuda">Preencha os campos obrigatórios e clique em Salvar exame.</p>
         <form onSubmit={criarExame}>
-          <select name="tipoExame" value={novoExame.tipoExame} onChange={atualizarCampoFormulario}>
+          <select name="tipoExame" value={novoExame.tipoExame} onChange={atualizarCampoFormulario} disabled={carregando}>
             <option value="">Tipo de exame</option>
             {tiposExame.map(t => (
               <option key={t.valor} value={t.valor}>{t.label}</option>
             ))}
           </select>
-          <input name="descricao" placeholder="Descrição" value={novoExame.descricao} onChange={atualizarCampoFormulario} />
-          <select name="resultadoPositivo" value={novoExame.resultadoPositivo} onChange={atualizarCampoFormulario}>
+          <input name="descricao" placeholder="Descrição" value={novoExame.descricao} onChange={atualizarCampoFormulario} disabled={carregando} />
+          <select name="resultadoPositivo" value={novoExame.resultadoPositivo} onChange={atualizarCampoFormulario} disabled={carregando}>
             <option value="">Positivo / Negativo</option>
             <option value="true">Positivo</option>
             <option value="false">Negativo</option>
           </select>
-          <input name="responsavel" placeholder="Responsável" value={novoExame.responsavel} onChange={atualizarCampoFormulario} />
-          <textarea className="campo-largo" name="observacoes" placeholder="Observações" value={novoExame.observacoes} onChange={atualizarCampoFormulario} />
-          <button type="submit" className="btn-primario" title="Salvar exame">Salvar exame</button>
+          <input name="responsavel" placeholder="Responsável" value={novoExame.responsavel} onChange={atualizarCampoFormulario} disabled={carregando} />
+          <textarea className="campo-largo" name="observacoes" placeholder="Observações" value={novoExame.observacoes} onChange={atualizarCampoFormulario} disabled={carregando} />
+          <button type="submit" className="btn-primario" title="Salvar exame" disabled={carregando}>
+            {carregando ? 'Salvando exame...' : 'Salvar exame'}
+          </button>
         </form>
       </div>
 
