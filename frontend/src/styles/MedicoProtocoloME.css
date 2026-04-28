@@ -800,6 +800,19 @@
   border-color: #cbd5e1;
 }
 
+/* Suavização para evitar "piscar" ao atualizar estados */
+.resumo-item,
+.resumo-item.is-complete,
+.resumo-item.is-pending {
+  transition: background-color 220ms ease, transform 220ms ease, opacity 220ms ease;
+  will-change: background-color, transform, opacity;
+}
+
+.exames-resumo .exame,
+.exames-status .exame {
+  transition: background-color 220ms ease, color 220ms ease, opacity 220ms ease;
+}
+
 .exames-resumo-footer {
   margin-top: 0.7rem;
   color: #475569;

@@ -152,21 +152,29 @@ function MedicoProtocoloME() {
   };
 
   const atualizarPainelAposExame = async () => {
-    const pacientesAtualizados = await carregarPacientesProtocolo();
-    if (!protocoloSelecionado?.id) {
-      return;
+    try {
+      if (!protocoloSelecionado?.id) return;
+
+      // Buscar apenas o protocolo atualizado para evitar forçar re-render da lista inteira
+      const protocoloAtualizado = await protocoloService.obter(protocoloSelecionado.id);
+
+      // Atualiza o modal/seleção atual com os dados retornados
+      setProtocoloSelecionado(protocoloAtualizado);
+
+      // Atualiza silenciosamente a lista de pacientes em protocolo para manter os cards sincronizados,
+      // sem forçar re-render do modal (evita "piscar").
+      setPacientesProtocolo((prev) => prev.map((p) => {
+        const proto = p.protocolosME?.[0];
+        if (proto?.id === protocoloAtualizado.id) {
+          return { ...p, protocolosME: [protocoloAtualizado] };
+        }
+        return p;
+      }));
+    } catch (e) {
+      console.error('Erro ao atualizar protocolo selecionado:', e);
+      // Em casos excepcionais, recarrega tudo (fallback) — mas evitamos isso para não causar piscar.
+      await carregarPacientesProtocolo();
     }
-
-    const pacienteComProtocolo = pacientesAtualizados.find(
-      (paciente) => paciente?.protocolosME?.[0]?.id === protocoloSelecionado.id,
-    );
-
-    if (pacienteComProtocolo?.protocolosME?.[0]) {
-      setProtocoloSelecionado(pacienteComProtocolo.protocolosME[0]);
-    }
-
-    // Força re-render de toda a lista para refletir as mudanças no "exames-resumo"
-    setAtualizacaoExames(prev => prev + 1);
   };
 
   const carregarPacientesDisponiveis = async () => {
