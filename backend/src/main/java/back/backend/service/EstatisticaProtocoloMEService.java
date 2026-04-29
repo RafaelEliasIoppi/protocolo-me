@@ -251,15 +251,13 @@ public class EstatisticaProtocoloMEService {
         EstatisticaProtocoloMEDTO dto = new EstatisticaProtocoloMEDTO();
 
         dto.setId(estatistica.getId());
-        dto.setProtocoloMEId(protocolo != null ? protocolo.getId() : null);
-        dto.setNumeroProtocolo(protocolo != null ? protocolo.getNumeroProtocolo() : null);
+        dto.setProtocoloMEId(Optional.ofNullable(protocolo).map(ProtocoloME::getId).orElse(null));
+        dto.setNumeroProtocolo(Optional.ofNullable(protocolo).map(ProtocoloME::getNumeroProtocolo).orElse(null));
 
         dto.setNomeDoador(getStringField(estatistica, "nomeDoador"));
         dto.setAnoCompetencia(estatistica.getAnoCompetencia());
         dto.setMesCompetencia(estatistica.getMesCompetencia());
-        dto.setPeriodicidade(estatistica.getPeriodicidade() != null
-            ? estatistica.getPeriodicidade().name()
-            : null);
+        dto.setPeriodicidade(Optional.ofNullable(estatistica.getPeriodicidade()).map(Enum::name).orElse(null));
 
         Map<String, String> campos = new LinkedHashMap<>();
 

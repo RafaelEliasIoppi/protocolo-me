@@ -193,17 +193,15 @@ public class CentralTransplantesService {
             }
 
             // 🔥 CONTAR ÓRGÃOS
-            if (p.getDoacao() != null && p.getDoacao().getOrgaos() != null) {
-                for (OrgaoDoado orgao : p.getDoacao().getOrgaos()) {
-
-                    String nome = orgao.getTipo().name();
-
-                    orgaosCount.put(
-                            nome,
-                            orgaosCount.getOrDefault(nome, 0L) + 1
-                    );
-                }
-            }
+            Optional.ofNullable(p.getDoacao())
+                    .map(Doacao::getOrgaos)
+                    .ifPresent(orgaos -> {
+                        for (OrgaoDoado orgao : orgaos) {
+                            if (orgao.getTipo() == null) continue;
+                            String nome = orgao.getTipo().name();
+                            orgaosCount.put(nome, orgaosCount.getOrDefault(nome, 0L) + 1);
+                        }
+                    });
         }
 
         dto.setDoadoresEmAvaliacao(emAvaliacao);

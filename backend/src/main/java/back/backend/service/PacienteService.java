@@ -187,8 +187,8 @@ public class PacienteService {
         dto.setPacienteId(paciente.getId());
         dto.setNomePaciente(paciente.getNome());
         dto.setCpf(paciente.getCpf());
-        dto.setHospital(paciente.getHospital() != null ? paciente.getHospital().getNome() : null);
-        dto.setStatusPaciente(paciente.getStatus() != null ? paciente.getStatus().name() : null);
+        dto.setHospital(Optional.ofNullable(paciente.getHospital()).map(Hospital::getNome).orElse(null));
+        dto.setStatusPaciente(Optional.ofNullable(paciente.getStatus()).map(Enum::name).orElse(null));
         dto.setStatusEntrevistaFamiliar(paciente.getStatusEntrevistaFamiliar());
         return dto;
     }
@@ -244,15 +244,12 @@ public class PacienteService {
         dto.setNome(paciente.getNome());
         dto.setCpf(paciente.getCpf());
         dto.setLeito(paciente.getLeito());
-        dto.setStatus(paciente.getStatus() != null ? paciente.getStatus().name() : null);
+        dto.setStatus(Optional.ofNullable(paciente.getStatus()).map(Enum::name).orElse(null));
         dto.setStatusEntrevistaFamiliar(paciente.getStatusEntrevistaFamiliar());
 
-        if (paciente.getHospital() != null) {
-            dto.setHospital(new PacienteEmProtocoloDTO.HospitalResumoDTO(
-                    paciente.getHospital().getId(),
-                    paciente.getHospital().getNome()
-            ));
-        }
+        Optional.ofNullable(paciente.getHospital()).ifPresent(h -> 
+            dto.setHospital(new PacienteEmProtocoloDTO.HospitalResumoDTO(h.getId(), h.getNome()))
+        );
 
         return dto;
     }
