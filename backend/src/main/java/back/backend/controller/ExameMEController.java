@@ -86,9 +86,5 @@ public class ExameMEController {
         return ResponseEntity.noContent().build();
     }
 
-    // POST - Criar exame com atualização automática de status (incremental)
-    @PostMapping("/incrementar")
-    public ResponseEntity<ExameMEDTO> criarExameIncremental(@Valid @RequestBody ExameRequestDTO request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(exameService.criarExame(exameRequestMapper.toEntity(request)));
-    }
+
 }

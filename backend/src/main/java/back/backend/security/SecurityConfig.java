@@ -10,7 +10,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.web.filter.CorsFilter;import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.filter.CorsFilter;
 
 import org.springframework.web.cors.*;
 
@@ -41,7 +41,7 @@ public class SecurityConfig {
             // =========================
             // CORS + CSRF
             // =========================
-            .cors(cors -> {})
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
 
             // =========================
@@ -183,28 +183,7 @@ private List<String> resolveAllowedOrigins() {
 
     return list;
 }
-    @Bean
-    public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
 
-        List<String> origins = resolveAllowedOrigins();
-
-        config.setAllowedOrigins(origins);
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-
-        config.setAllowCredentials(true);
-        config.setExposedHeaders(List.of("Authorization"));
-
-        if (corsDebug) {
-            log.info("CorsFilter ativo para: {}", origins);
-        }
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-
-        return new CorsFilter(source);
-    }
     // =====================================================
     // HANDLERS
     // =====================================================

@@ -266,9 +266,22 @@ public class ProtocoloMEService {
         protocolo.setDataNotificacaoFamilia(LocalDateTime.now());
         protocolo.setAutopsiaAutorizada(autorizouDoacao);
 
-        protocolo.setStatus(autorizouDoacao
-                ? ProtocoloME.StatusProtocoloME.DOACAO_AUTORIZADA
-                : ProtocoloME.StatusProtocoloME.FAMILIA_RECUSOU);
+        // 🔥 Persistir decisão em Doacao para o cálculo automático de status funcionar
+        if (protocolo.getDoacao() == null) {
+            back.backend.model.Doacao doacao = new back.backend.model.Doacao();
+            doacao.setProtocoloME(protocolo);
+            doacao.setCentralTransplantes(protocolo.getCentralTransplantes());
+            protocolo.setDoacao(doacao);
+        }
+        
+        protocolo.getDoacao().setAutorizada(autorizouDoacao);
+        protocolo.getDoacao().setDataEntrevista(LocalDateTime.now());
+        protocolo.getDoacao().setObservacoes(observacoes);
+        protocolo.getDoacao().setStatus(autorizouDoacao 
+            ? back.backend.model.Doacao.StatusDoacao.AUTORIZADA 
+            : back.backend.model.Doacao.StatusDoacao.RECUSADA);
+
+        protocolo.setStatus(protocolo.calcularStatusAutomatico());
 
         return toDTO(salvar(protocolo));
     }
