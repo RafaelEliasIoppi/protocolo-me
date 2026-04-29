@@ -1,6 +1,6 @@
 {
     "makefile.configureOnOpen": true,
-    "workbench.colorTheme": "Default Dark+",
+    "workbench.colorTheme": "Dark+",
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": "explicit"
@@ -25,5 +25,6 @@
     },
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "java.compile.nullAnalysis.mode": "automatic"
 }

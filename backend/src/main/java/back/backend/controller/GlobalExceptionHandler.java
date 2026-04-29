@@ -1,24 +1,24 @@
 package back.backend.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import back.backend.dto.ErrorResponseDTO;
 import back.backend.exception.AutenticacaoException;
 import back.backend.exception.ConflitoNegocioException;
 import back.backend.exception.RecursoNaoEncontradoException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import org.springframework.validation.ObjectError;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -36,8 +36,7 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 ex.getMessage(),
                 HttpStatus.NOT_FOUND,
-                null
-        );
+                null);
     }
 
     // =========================
@@ -58,8 +57,7 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 "Erro de validação",
                 HttpStatus.BAD_REQUEST,
-                errors
-        );
+                errors);
     }
 
     // =========================
@@ -73,8 +71,7 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 "Parâmetro inválido: " + ex.getMessage(),
                 HttpStatus.BAD_REQUEST,
-                null
-        );
+                null);
     }
 
     // =========================
@@ -88,23 +85,21 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 ex.getMessage(),
                 HttpStatus.UNAUTHORIZED,
-                null
-        );
+                null);
     }
 
     // =========================
     // 400 - BUSINESS RULE
     // =========================
-    @ExceptionHandler({ConflitoNegocioException.class, IllegalStateException.class})
+    @ExceptionHandler({ ConflitoNegocioException.class, IllegalStateException.class })
     public ResponseEntity<ErrorResponseDTO> handleBusiness(RuntimeException ex) {
 
-        log.error("Erro de regra de negócio", ex);
+        log.warn("Erro de regra de negócio: {}", ex.getMessage());
 
         return buildResponse(
                 ex.getMessage(),
                 HttpStatus.CONFLICT,
-                null
-        );
+                null);
     }
 
     // =========================
@@ -118,8 +113,7 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 "Payload inválido",
                 HttpStatus.BAD_REQUEST,
-                null
-        );
+                null);
     }
 
     // =========================
@@ -133,8 +127,7 @@ public class GlobalExceptionHandler {
         return buildResponse(
                 "Erro interno no servidor",
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                null
-        );
+                null);
     }
 
     // =========================
@@ -143,14 +136,12 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ErrorResponseDTO> buildResponse(
             String mensagem,
             HttpStatus status,
-            Map<String, String> detalhes
-    ) {
+            Map<String, String> detalhes) {
         ErrorResponseDTO body = new ErrorResponseDTO(
                 mensagem,
                 status.value(),
                 detalhes,
-                LocalDateTime.now()
-        );
+                LocalDateTime.now());
 
         return ResponseEntity.status(status).body(body);
     }
