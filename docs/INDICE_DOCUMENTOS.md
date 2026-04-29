@@ -2,15 +2,16 @@
 
 ## ⭐ COMECE AQUI
 
-Não sabe por onde começar? Leia: [GUIA_CODIGO_BACK_FRONT.md](GUIA_CODIGO_BACK_FRONT.md)
-- Manual único com o fluxo completo do paciente
-- Exemplos práticos de payload e endpoints
-- Caminho front → service → controller → mapper → service → banco
+Leia primeiro: [GUIA_MESTRA_DE_INICIO.md](GUIA_MESTRA_DE_INICIO.md)
+- Ponto de entrada único para iniciar qualquer trabalho no repositório
+- Ordem mínima de leitura para evitar excesso de documentos abertos
+- Lista dos documentos que viram referência secundária
 
 ---
 
-## Documentos principais (manter)
+## Documentos principais (mantidos como referência)
 
+- [GUIA_MESTRA_DE_INICIO.md](GUIA_MESTRA_DE_INICIO.md): ponto de entrada padrão.
 - [COMO_RODAR.md](COMO_RODAR.md): execução local, portas, CORS e troubleshooting.
 - [TESTING_GUIDE.md](TESTING_GUIDE.md): testes automatizados e smoke tests manuais.
 - [README_START.md](README_START.md): atalho rápido de inicialização.
@@ -21,7 +22,7 @@ Não sabe por onde começar? Leia: [GUIA_CODIGO_BACK_FRONT.md](GUIA_CODIGO_BACK_
 
 ### 📚 Documento oficial de Salvamento de Paciente
 
-- [GUIA_CODIGO_BACK_FRONT.md](GUIA_CODIGO_BACK_FRONT.md): documento oficial e único para o fluxo de paciente.
+- [GUIA_CODIGO_BACK_FRONT.md](GUIA_CODIGO_BACK_FRONT.md): documento técnico oficial para o fluxo de paciente.
 
 ### 🧹 Auditoria e Refatoração de Código
 

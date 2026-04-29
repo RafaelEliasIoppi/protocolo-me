@@ -97,14 +97,7 @@ Essa mudança melhora a experiência do usuário e separa claramente as funçõe
 
 ## 🚀 Orientação de Desenvolvimento
 
-### Com erro ao salvar paciente?
+**Documento principal:** [GUIA_MESTRA_DE_INICIO.md](GUIA_MESTRA_DE_INICIO.md)
 
-**Comece aqui**:
-1. [GUIA_CODIGO_BACK_FRONT.md](GUIA_CODIGO_BACK_FRONT.md) - Manual único com o caminho completo do front até o backend, exemplos e endpoints
-
-### Outros documentos úteis
-
-- [INDICE_DOCUMENTOS.md](INDICE_DOCUMENTOS.md) - Índice completo de toda documentação
-- [CHECKLIST_DEBUG_RAPIDO.md](CHECKLIST_DEBUG_RAPIDO.md) - Diagnóstico rápido de problemas
-- [COMO_RODAR.md](COMO_RODAR.md) - Mais detalhes sobre configuração
+Se houver erro ao salvar paciente ou dúvida sobre o fluxo técnico, siga primeiro o guia mestre e depois, se necessário, abra o documento especializado indicado nele.
 

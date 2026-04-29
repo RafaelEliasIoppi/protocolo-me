@@ -1,5 +1,7 @@
 # Checklist Rápido de Debug (Backend + Frontend + UX)
 
+> Leia primeiro: [GUIA_MESTRA_DE_INICIO.md](GUIA_MESTRA_DE_INICIO.md). Use este checklist apenas quando precisar diagnosticar um erro.
+
 Este guia serve para erros de fluxo como:
 - ação bloqueada por regra de negócio no backend
 - mensagem genérica no frontend

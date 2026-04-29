@@ -1,5 +1,7 @@
 # 🚀 Como Rodar o Protocolo ME
 
+> Leia primeiro: [GUIA_MESTRA_DE_INICIO.md](GUIA_MESTRA_DE_INICIO.md). Use este documento só quando a tarefa for iniciar a aplicação.
+
 ## Opção 1: Script Automático (Recomendado)
 
 ```bash
