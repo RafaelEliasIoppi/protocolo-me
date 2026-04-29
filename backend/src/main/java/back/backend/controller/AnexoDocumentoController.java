@@ -1,18 +1,24 @@
 package back.backend.controller;
 
-import back.backend.dto.AnexoDocumentoDTO;
-import back.backend.service.AnexoDocumentoService;
+import java.io.IOException;
+import java.util.List;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.List;
+import back.backend.dto.AnexoDocumentoDTO;
+import back.backend.service.AnexoDocumentoService;
 
 @RestController
 @RequestMapping("/api/anexos")
@@ -35,11 +41,10 @@ public class AnexoDocumentoController {
             @RequestParam(required = false) String uploadPor) throws IOException {
 
         AnexoDocumentoDTO anexo = anexoService.uploadAnexoExame(
-                exameMEId, arquivo, descricao, uploadPor
-        );
+                exameMEId, arquivo, descricao, uploadPor);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(anexo);
+                .body(anexo);
     }
 
     // ---------------- UPLOAD ENTREVISTA ----------------
@@ -52,11 +57,10 @@ public class AnexoDocumentoController {
             @RequestParam(required = false) String uploadPor) throws IOException {
 
         AnexoDocumentoDTO anexo = anexoService.uploadAnexoEntrevista(
-                protocoloMEId, arquivo, descricao, uploadPor
-        );
+                protocoloMEId, arquivo, descricao, uploadPor);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(anexo);
+                .body(anexo);
     }
 
     // ---------------- LIST EXAME ----------------
@@ -88,8 +92,10 @@ public class AnexoDocumentoController {
         AnexoDocumentoDTO anexo = anexoService.obterPorId(id);
         byte[] conteudo = anexoService.downloadArquivo(id);
 
+        String tipoMime = anexo.getTipoMime() != null ? anexo.getTipoMime() : "application/octet-stream";
+
         return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(anexo.getTipoMime()))
+                .contentType(MediaType.parseMediaType(tipoMime))
                 .header(HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename=\"" + anexo.getNomeArquivo() + "\"")
                 .body(conteudo);

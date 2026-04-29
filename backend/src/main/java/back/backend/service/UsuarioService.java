@@ -1,5 +1,19 @@
 package back.backend.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.lang.NonNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import back.backend.dto.UsuarioDTO;
 import back.backend.exception.AutenticacaoException;
 import back.backend.exception.ConflitoNegocioException;
@@ -8,22 +22,7 @@ import back.backend.mapper.UsuarioMapper;
 import back.backend.model.Role;
 import back.backend.model.Usuario;
 import back.backend.repository.UsuarioRepository;
-
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @Transactional
@@ -49,7 +48,7 @@ public class UsuarioService implements UserDetailsService {
         boolean isAdmin = auth != null
                 && auth.isAuthenticated()
                 && auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
             throw new ConflitoNegocioException("Primeiro usuário deve ser ADMIN");
@@ -67,8 +66,7 @@ public class UsuarioService implements UserDetailsService {
         String emailNormalizado = normalizarEmail(email);
 
         Usuario usuario = usuarioRepository.findByEmail(emailNormalizado)
-                .orElseThrow(() ->
-                        new AutenticacaoException("Usuário não encontrado ou inativo"));
+                .orElseThrow(() -> new AutenticacaoException("Usuário não encontrado ou inativo"));
 
         if (!Boolean.TRUE.equals(usuario.getAtivo())) {
             throw new AutenticacaoException("Usuário não encontrado ou inativo");
@@ -85,8 +83,7 @@ public class UsuarioService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) {
 
         Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
 
         return User.builder()
                 .username(usuario.getEmail())
@@ -128,7 +125,7 @@ public class UsuarioService implements UserDetailsService {
         }
 
         if (usuario.getRole() != Role.MEDICO &&
-            usuario.getRole() != Role.ENFERMEIRO) {
+                usuario.getRole() != Role.ENFERMEIRO) {
             throw new IllegalArgumentException(
                     "Cadastro público permite apenas MÉDICO ou ENFERMEIRO");
         }
@@ -193,8 +190,7 @@ public class UsuarioService implements UserDetailsService {
             String confirmar) {
 
         Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Usuário não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
 
         if (!passwordEncoder.matches(atual, usuario.getSenha())) {
             throw new IllegalArgumentException("Senha atual inválida");
@@ -223,7 +219,7 @@ public class UsuarioService implements UserDetailsService {
 
     // ================= DELETE =================
 
-    public void deletar(Long id) {
+    public void deletar(@NonNull Long id) {
 
         if (!usuarioRepository.existsById(id)) {
             throw new RecursoNaoEncontradoException("Usuário não encontrado");
@@ -236,8 +232,7 @@ public class UsuarioService implements UserDetailsService {
 
     private Usuario buscarOuFalhar(Long id) {
         return usuarioRepository.findById(id)
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Usuário não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário não encontrado"));
     }
 
     private String normalizarEmail(String email) {
@@ -252,7 +247,7 @@ public class UsuarioService implements UserDetailsService {
     private void validarUsuario(Usuario usuario) {
 
         if (usuario.getSenha() == null ||
-            usuario.getSenha().length() < 6) {
+                usuario.getSenha().length() < 6) {
             throw new IllegalArgumentException("Senha inválida");
         }
     }

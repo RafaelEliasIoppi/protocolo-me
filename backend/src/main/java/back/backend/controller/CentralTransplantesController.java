@@ -1,16 +1,24 @@
 package back.backend.controller;
 
-import back.backend.dto.CentralTransplantesDTO;
-import back.backend.dto.CentralTransplantesRequestDTO;
-import back.backend.model.CentralTransplantes;
-import back.backend.service.CentralTransplantesService;
+import java.util.List;
 
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import back.backend.dto.CentralTransplantesDTO;
+import back.backend.dto.CentralTransplantesRequestDTO;
+import back.backend.service.CentralTransplantesService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/centrais-transplantes")
@@ -32,8 +40,7 @@ public class CentralTransplantesController {
     @GetMapping
     public ResponseEntity<List<CentralTransplantesDTO>> listarTodas() {
         return ResponseEntity.ok(
-            centralService.listarTodas()
-        );
+                centralService.listarTodas());
     }
 
     // ---------------- READ BY ID ----------------
@@ -58,15 +65,13 @@ public class CentralTransplantesController {
     @GetMapping("/cidade/{cidade}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorCidade(@PathVariable String cidade) {
         return ResponseEntity.ok(
-                centralService.listarPorCidade(cidade)
-        );
+                centralService.listarPorCidade(cidade));
     }
 
     @GetMapping("/estado/{estado}")
     public ResponseEntity<List<CentralTransplantesDTO>> listarPorEstado(@PathVariable String estado) {
         return ResponseEntity.ok(
-                centralService.listarPorEstado(estado)
-        );
+                centralService.listarPorEstado(estado));
     }
 
     @GetMapping("/status/{status}")
