@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import exameService from '../services/exameService';
 import '../styles/ExameMEManager.css';
 
@@ -19,6 +19,7 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const montadoRef = useRef(true);
 
   // Limpar mensagens após 5 segundos
   useEffect(() => {
@@ -76,19 +77,42 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   };
 
   useEffect(() => {
-    // Sempre que o protocolo mudar, recarrega os exames relacionados.
-    if (protocoloId) carregarExames();
-  }, [protocoloId]);
+    return () => {
+      montadoRef.current = false;
+    };
+  }, []);
 
-  const carregarExames = async () => {
-    try {
-      // Busca a lista no backend e atualiza a tela.
-      const dados = await exameService.listarPorProtocolo(protocoloId);
-      setExames(dados);
-    } catch {
-      setErro('Erro ao carregar exames');
-    }
-  };
+  useEffect(() => {
+    // Sempre que o protocolo mudar, recarrega os exames relacionados.
+    let ativo = true;
+
+    const carregar = async () => {
+      if (!protocoloId) {
+        setExames([]);
+        return;
+      }
+
+      try {
+        // Busca a lista no backend e atualiza a tela.
+        const dados = await exameService.listarPorProtocolo(protocoloId);
+        if (!ativo || !montadoRef.current) {
+          return;
+        }
+        setExames(dados);
+      } catch {
+        if (!ativo || !montadoRef.current) {
+          return;
+        }
+        setErro('Erro ao carregar exames');
+      }
+    };
+
+    carregar();
+
+    return () => {
+      ativo = false;
+    };
+  }, [protocoloId]);
 
   const atualizarCampoFormulario = (e) => {
     // Atualiza qualquer campo do formulário de forma genérica.

@@ -10,6 +10,7 @@ import {
     obterNomeHospital,
     obterResumoStatusExames,
 } from "../services/centralDashboardService";
+import protocoloService from "../services/protocoloService";
 import { formatarCpf } from "../utils/cpf";
 
 const cabecalhoSecao = "## [SECAO] ";
@@ -89,8 +90,13 @@ function CentralPacientesPainel({
   salvarConclusaoProtocolo,
 }) {
   const [secoesPorProtocolo, setSecoesPorProtocolo] = useState({});
+  const [mostraModalValidacao, setMostraModalValidacao] = useState(false);
+  const [dadosValidacao, setDadosValidacao] = useState({ protocolo: null, pendencia: null });
+  const [validadoPor, setValidadoPor] = useState('');
+  const [observacoes, setObservacoes] = useState('');
+  const [carregandoValidacao, setCarregandoValidacao] = useState(false);
 
-  useEffect(() => {
+  useEffect(() =>{
     if (!relatorioFinalPaciente?.protocolos) {
       setSecoesPorProtocolo({});
       return;
@@ -125,7 +131,7 @@ function CentralPacientesPainel({
     });
   };
 
-  const adicionarSecao = (protocoloId) => {
+  const adicionarSecao = (protocoloId) => {cer
     atualizarSecoesDoProtocolo(protocoloId, (secoesAtuais) => ([
       ...secoesAtuais,
       {
@@ -153,6 +159,50 @@ function CentralPacientesPainel({
           : secao
       )
     );
+  };
+
+  const abrirModalValidacao = (protocolo, pendencia) => {
+    setDadosValidacao({ protocolo, pendencia });
+    setValidadoPor('');
+    setObservacoes('');
+    setCarregandoValidacao(false);
+    setMostraModalValidacao(true);
+  };
+
+  const confirmarValidacao = async () => {
+    if (!validadoPor.trim()) {
+      alert('Por favor, informe quem está validando.');
+      return;
+    }
+
+    setCarregandoValidacao(true);
+    try {
+      const { protocolo, pendencia } = dadosValidacao;
+      const pendenciaLimpa = pendencia.replace(/\s*\(.*\)$/, '');
+
+      if (pendenciaLimpa.includes('Teste clínico 1')) {
+        await protocoloService.validarTesteClinico1(protocolo.id, validadoPor, observacoes);
+      } else if (pendenciaLimpa.includes('Teste clínico 2')) {
+        await protocoloService.validarTesteClinico2(protocolo.id, validadoPor, observacoes);
+      } else if (pendenciaLimpa.includes('Apneia')) {
+        await protocoloService.validarApneia(protocolo.id, validadoPor, observacoes);
+      } else if (pendenciaLimpa.includes('Exames complementares')) {
+        await protocoloService.validarTestesComplementares(protocolo.id, validadoPor, observacoes);
+      } else {
+        alert('Tipo de pendência não suportado.');
+        setCarregandoValidacao(false);
+        return;
+      }
+
+      alert('Validação registrada com sucesso!');
+      setMostraModalValidacao(false);
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao registrar validação: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setCarregandoValidacao(false);
+    }
   };
 
   const imprimirRelatorioProtocolo = (protocoloResumo, secoes) => {
@@ -192,6 +242,69 @@ function CentralPacientesPainel({
 
   return (
     <>
+      {/* Modal de Validação */}
+      {mostraModalValidacao && (
+        <div className="modal-overlay-validacao" onClick={() => setMostraModalValidacao(false)}>
+          <div className="modal-validacao" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-validacao-header">
+              <h3>Validar Exame/Teste</h3>
+              <button
+                className="modal-validacao-close"
+                onClick={() => setMostraModalValidacao(false)}
+                disabled={carregandoValidacao}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="modal-validacao-body">
+              <div className="validacao-info">
+                <p>
+                  <strong>Pendência:</strong> {dadosValidacao.pendencia}
+                </p>
+              </div>
+              <div className="form-group">
+                <label htmlFor="validadoPor">Validado por *</label>
+                <input
+                  id="validadoPor"
+                  type="text"
+                  placeholder="Nome completo ou matrícula"
+                  value={validadoPor}
+                  onChange={(e) => setValidadoPor(e.target.value)}
+                  disabled={carregandoValidacao}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="observacoes">Observações (opcional)</label>
+                <textarea
+                  id="observacoes"
+                  placeholder="Adicione observações sobre a validação"
+                  value={observacoes}
+                  onChange={(e) => setObservacoes(e.target.value)}
+                  disabled={carregandoValidacao}
+                  rows="3"
+                />
+              </div>
+            </div>
+            <div className="modal-validacao-footer">
+              <button
+                className="btn-cancel"
+                onClick={() => setMostraModalValidacao(false)}
+                disabled={carregandoValidacao}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn-save"
+                onClick={confirmarValidacao}
+                disabled={carregandoValidacao}
+              >
+                {carregandoValidacao ? '⏳ Validando...' : '✅ Confirmar Validação'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="panel pacientes-painel">
         <header className="painel-header">
           <div>
@@ -257,13 +370,13 @@ function CentralPacientesPainel({
                           : "N/A"}
                       </td>
                       <td className="col-exames" data-label="Exames Concluídos">
-                        <strong>{examesConcluidos}/3</strong>
+                        <strong>{examesConcluidos}/4</strong>
                       </td>
                       <td className="col-status-exames" data-label="Resumo dos Exames">
                         <div className="status-exames-resumo">
-                          <span className="badge-exame badge-exame-positivo">+ {resumoStatusExames.positivos}</span>
-                          <span className="badge-exame badge-exame-negativo">- {resumoStatusExames.negativos}</span>
-                          <span className="badge-exame badge-exame-pendente">⏳ {resumoStatusExames.pendentes}</span>
+                          <span className="badge-exame badge-validado">✅ {resumoStatusExames.validados}</span>
+                          <span className="badge-exame badge-aguardando">⏳ {resumoStatusExames.aguardandoValidacao}</span>
+                          <span className="badge-exame badge-nao-realizado">❌ {resumoStatusExames.naoRealizados}</span>
                         </div>
                       </td>
                       <td className="col-faltantes" data-label="Pendências de Exames">
@@ -272,7 +385,18 @@ function CentralPacientesPainel({
                         ) : (
                           <ul className="lista-faltantes">
                             {examesPendentes.map((item) => (
-                              <li key={`${paciente.id}-${item}`}>{item}</li>
+                              <li key={`${paciente.id}-${item}`} className="pendencia-item">
+                                <span>{item}</span>
+                                <button
+                                  className="btn-small btn-validar"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    abrirModalValidacao(protocolo, item);
+                                  }}
+                                >
+                                  Validar
+                                </button>
+                              </li>
                             ))}
                           </ul>
                         )}
@@ -328,7 +452,7 @@ function CentralPacientesPainel({
                   </span>
                 </div>
                 <div>
-                  <strong>Exames Concluídos:</strong> {obterExamesConcluidos(pacienteSelecionado.protocolo)}/3
+                  <strong>Exames Concluídos:</strong> {obterExamesConcluidos(pacienteSelecionado.protocolo)}/4
                 </div>
                 <div>
                   <strong>Resumo da Entrevista:</strong> {formatarStatusEntrevista(pacienteSelecionado.statusEntrevistaFamiliar)}

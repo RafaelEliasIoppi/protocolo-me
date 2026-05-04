@@ -53,24 +53,24 @@ public class ExameMEService {
 
     public List<ExameMEDTO> listarExamesClinico(Long protocoloId) {
         return exameRepository.findByProtocoloME_Id(protocoloId)
-            .stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO)
+                .stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO)
                 .map(this::toDTO)
                 .toList();
     }
 
     public List<ExameMEDTO> listarExamesComplementares(Long protocoloId) {
         return exameRepository.findByProtocoloME_Id(protocoloId)
-            .stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR)
+                .stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR)
                 .map(this::toDTO)
                 .toList();
     }
 
     public List<ExameMEDTO> listarExamesLaboratoriais(Long protocoloId) {
         return exameRepository.findByProtocoloME_Id(protocoloId)
-            .stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL)
+                .stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.LABORATORIAL)
                 .map(this::toDTO)
                 .toList();
     }
@@ -87,11 +87,16 @@ public class ExameMEService {
 
         ExameME exame = buscarEntity(id);
 
-        if (dados.getDescricao() != null) exame.setDescricao(dados.getDescricao());
-        if (dados.getTipoExame() != null) exame.setTipoExame(dados.getTipoExame());
-        if (dados.getObservacoes() != null) exame.setObservacoes(dados.getObservacoes());
-        if (dados.getDataRealizacao() != null) exame.setDataRealizacao(dados.getDataRealizacao());
-        if (dados.getResponsavel() != null) exame.setResponsavel(dados.getResponsavel());
+        if (dados.getDescricao() != null)
+            exame.setDescricao(dados.getDescricao());
+        if (dados.getTipoExame() != null)
+            exame.setTipoExame(dados.getTipoExame());
+        if (dados.getObservacoes() != null)
+            exame.setObservacoes(dados.getObservacoes());
+        if (dados.getDataRealizacao() != null)
+            exame.setDataRealizacao(dados.getDataRealizacao());
+        if (dados.getResponsavel() != null)
+            exame.setResponsavel(dados.getResponsavel());
 
         exame.setDataAtualizacao(LocalDateTime.now());
 
@@ -187,8 +192,7 @@ public class ExameMEService {
                 complementaresRealizados,
                 complementaresTotal,
                 laboratoriaisRealizados,
-                laboratoriaisTotal
-        ));
+                laboratoriaisTotal));
     }
 
     // ================= HELPERS =================
@@ -203,40 +207,72 @@ public class ExameMEService {
     }
 
     @Transactional
-    protected void atualizarIndicadoresProtocolo(Long protocoloId) {
+    public void atualizarIndicadoresProtocolo(Long protocoloId) {
         ProtocoloME protocolo = protocoloRepository.findById(protocoloId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Protocolo não encontrado"));
 
         List<ExameME> exames = exameRepository.findByProtocoloME_Id(protocoloId);
 
-        long clinicosConcluidos = exames.stream()
-            .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO)
-            .filter(e -> e.getResultado() != null)
-            .count();
+        // ===== VALIDADOS (exames que foram feitos E validados pela central) =====
+        long clinicosValidados = exames.stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO)
+                .filter(e -> e.getStatusValidacao() == ExameME.StatusValidacao.VALIDADO)
+                .filter(e -> e.getResultado() != null)
+                .count();
 
-        // Considera qualquer exame clínico concluído para compor o TC1/TC2.
-        boolean tc1 = clinicosConcluidos >= 1;
-        protocolo.setTesteClinico1Realizado(tc1);
-        if (tc1 && protocolo.getDataTesteClinico1() == null) {
+        // Apneia é critério obrigatório e separado
+        boolean apneiaValidada = exames.stream()
+                .anyMatch(e -> e.getTipoExame() == ExameME.TipoExame.APNEIA_TEST
+                        && e.getStatusValidacao() == ExameME.StatusValidacao.VALIDADO
+                        && e.getResultado() != null);
+
+        boolean complementaresValidados = exames.stream()
+                .anyMatch(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR
+                        && e.getStatusValidacao() == ExameME.StatusValidacao.VALIDADO
+                        && e.getResultado() != null);
+
+        // Setar FLAGS DE VALIDAÇÃO (para determinar se protocolo está pronto para
+        // ENTREVISTA)
+        protocolo.setTesteClinico1Validado(clinicosValidados >= 1);
+        protocolo.setTesteClinico2Validado(clinicosValidados >= 2);
+        protocolo.setApneiaValidada(apneiaValidada);
+        protocolo.setTestesComplementaresValidados(complementaresValidados);
+
+        // ===== REALIZADOS (exames que foram feitos, independente de validação) =====
+        long clinicosRealizados = exames.stream()
+                .filter(e -> e.getCategoria() == ExameME.CategoriaExame.CLINICO)
+                .filter(e -> e.getResultado() != null)
+                .count();
+
+        boolean apneiaRealizada = exames.stream()
+                .anyMatch(e -> e.getTipoExame() == ExameME.TipoExame.APNEIA_TEST
+                        && e.getResultado() != null);
+
+        boolean complementaresRealizados = exames.stream()
+                .anyMatch(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR
+                        && e.getResultado() != null);
+
+        // Setar FLAGS DE REALIZAÇÃO (para saber estado do protocolo)
+        boolean tc1Realizado = clinicosRealizados >= 1;
+        protocolo.setTesteClinico1Realizado(tc1Realizado);
+        if (tc1Realizado && protocolo.getDataTesteClinico1() == null) {
             protocolo.setDataTesteClinico1(LocalDateTime.now());
         }
 
-        boolean tc2 = clinicosConcluidos >= 2;
-        protocolo.setTesteClinico2Realizado(tc2);
-        if (tc2 && protocolo.getDataTesteClinico2() == null) {
+        boolean tc2Realizado = clinicosRealizados >= 2;
+        protocolo.setTesteClinico2Realizado(tc2Realizado);
+        if (tc2Realizado && protocolo.getDataTesteClinico2() == null) {
             protocolo.setDataTesteClinico2(LocalDateTime.now());
         }
 
-        // Indicador de Testes Complementares
-        boolean comp = exames.stream()
-                .anyMatch(e -> e.getCategoria() == ExameME.CategoriaExame.COMPLEMENTAR && e.getResultado() != null);
-        protocolo.setTestesComplementaresRealizados(comp);
-        if (comp && protocolo.getDataTesteComplementar() == null) {
+        protocolo.setTestesComplementaresRealizados(complementaresRealizados);
+        if (complementaresRealizados && protocolo.getDataTesteComplementar() == null) {
             protocolo.setDataTesteComplementar(LocalDateTime.now());
         }
 
         // Se todos os testes realizados, marcar data de confirmação se ainda não houver
-        if (tc1 && tc2 && comp && protocolo.getDataConfirmacaoME() == null) {
+        if (tc1Realizado && tc2Realizado && complementaresRealizados && apneiaRealizada
+                && protocolo.getDataConfirmacaoME() == null) {
             protocolo.setDataConfirmacaoME(LocalDateTime.now());
         }
 
@@ -272,14 +308,14 @@ public class ExameMEService {
         private final int examesLaboratoriaisTotal;
 
         public ExameResumo(int totalExames,
-                           int examesRealizados,
-                           int examesPendentes,
-                           int examesClinicos,
-                           int examesClinicosTotal,
-                           int examesComplementares,
-                           int examesComplementaresTotal,
-                           int examesLaboratoriais,
-                           int examesLaboratoriaisTotal) {
+                int examesRealizados,
+                int examesPendentes,
+                int examesClinicos,
+                int examesClinicosTotal,
+                int examesComplementares,
+                int examesComplementaresTotal,
+                int examesLaboratoriais,
+                int examesLaboratoriaisTotal) {
 
             this.totalExames = totalExames;
             this.examesRealizados = examesRealizados;
@@ -292,14 +328,40 @@ public class ExameMEService {
             this.examesLaboratoriaisTotal = examesLaboratoriaisTotal;
         }
 
-        public int getTotalExames() { return totalExames; }
-        public int getExamesRealizados() { return examesRealizados; }
-        public int getExamesPendentes() { return examesPendentes; }
-        public int getExamesClinicos() { return examesClinicos; }
-        public int getExamesClinicosTotal() { return examesClinicosTotal; }
-        public int getExamesComplementares() { return examesComplementares; }
-        public int getExamesComplementaresTotal() { return examesComplementaresTotal; }
-        public int getExamesLaboratoriais() { return examesLaboratoriais; }
-        public int getExamesLaboratoriaisTotal() { return examesLaboratoriaisTotal; }
+        public int getTotalExames() {
+            return totalExames;
+        }
+
+        public int getExamesRealizados() {
+            return examesRealizados;
+        }
+
+        public int getExamesPendentes() {
+            return examesPendentes;
+        }
+
+        public int getExamesClinicos() {
+            return examesClinicos;
+        }
+
+        public int getExamesClinicosTotal() {
+            return examesClinicosTotal;
+        }
+
+        public int getExamesComplementares() {
+            return examesComplementares;
+        }
+
+        public int getExamesComplementaresTotal() {
+            return examesComplementaresTotal;
+        }
+
+        public int getExamesLaboratoriais() {
+            return examesLaboratoriais;
+        }
+
+        public int getExamesLaboratoriaisTotal() {
+            return examesLaboratoriaisTotal;
+        }
     }
 }

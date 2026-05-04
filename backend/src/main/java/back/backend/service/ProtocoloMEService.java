@@ -39,6 +39,9 @@ public class ProtocoloMEService {
     @Autowired
     private ProtocoloMapper protocoloMapper;
 
+    @Autowired
+    private ExameMEService exameMEService;
+
     // ================= HELPERS =================
 
     private ProtocoloME buscarOuFalhar(Long id) {
@@ -359,6 +362,8 @@ public class ProtocoloMEService {
             if (observacoes != null) {
                 // Adicionar observação se houver
             }
+            // ✅ Recalcular status automaticamente
+            p.setStatus(p.calcularStatusAutomatico());
         });
     }
 
@@ -367,6 +372,8 @@ public class ProtocoloMEService {
             p.setTesteClinico2Validado(true);
             p.setDataValidacaoTesteClinico2(LocalDateTime.now());
             p.setValidadosPor(validadoPor);
+            // ✅ Recalcular status automaticamente
+            p.setStatus(p.calcularStatusAutomatico());
         });
     }
 
@@ -375,6 +382,8 @@ public class ProtocoloMEService {
             p.setTestesComplementaresValidados(true);
             p.setDataValidacaoTesteComplementar(LocalDateTime.now());
             p.setValidadosPor(validadoPor);
+            // ✅ Recalcular status automaticamente
+            p.setStatus(p.calcularStatusAutomatico());
         });
     }
 
@@ -383,6 +392,8 @@ public class ProtocoloMEService {
             p.setApneiaValidada(true);
             p.setDataValidacaoApneia(LocalDateTime.now());
             p.setValidadosPor(validadoPor);
+            // ✅ Recalcular status automaticamente
+            p.setStatus(p.calcularStatusAutomatico());
         });
     }
 
@@ -407,7 +418,18 @@ public class ProtocoloMEService {
         exame.setObservacoesValidacao(observacoes);
 
         exameRepository.save(exame);
-        return toDTO(protocolo);
+
+        // ✅ Atualizar indicadores do protocolo com base em VALIDADOS
+        exameMEService.atualizarIndicadoresProtocolo(id);
+
+        // ✅ Recarregar protocolo com novos valores
+        protocolo = buscarOuFalhar(id);
+
+        // ✅ Recalcular status automaticamente
+        protocolo.setStatus(protocolo.calcularStatusAutomatico());
+
+        // ✅ Salvar recalcula e sincroniza
+        return toDTO(salvar(protocolo));
     }
 
     // ================= DELETE =================

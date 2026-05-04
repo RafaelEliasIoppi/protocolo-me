@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import pacienteService from "../services/pacienteService";
 import PacienteForm from "./PacienteForm";
@@ -7,24 +7,45 @@ function PacientesPage() {
   const navigate = useNavigate();
   const [estatisticas, setEstatisticas] = useState(null);
   const [carregandoEstatisticas, setCarregandoEstatisticas] = useState(false);
+  const montadoRef = useRef(true);
 
   const normalizarNumero = (valor) => (typeof valor === "number" ? valor : 0);
 
   useEffect(() => {
+    return () => {
+      montadoRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let ativo = true;
+
     const carregarEstatisticas = async () => {
       try {
         setCarregandoEstatisticas(true);
         const data = await pacienteService.obterEstatisticas();
+        if (!ativo || !montadoRef.current) {
+          return;
+        }
         setEstatisticas(data || {});
       } catch (error) {
+        if (!ativo || !montadoRef.current) {
+          return;
+        }
         console.error("Erro ao carregar estatísticas de pacientes:", error);
         setEstatisticas({});
       } finally {
+        if (!ativo || !montadoRef.current) {
+          return;
+        }
         setCarregandoEstatisticas(false);
       }
     };
 
     carregarEstatisticas();
+    return () => {
+      ativo = false;
+    };
   }, []);
 
   return (

@@ -1,10 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import hospitalService from '../services/hospitalService';
 import pacienteService from '../services/pacienteService';
 import '../styles/PacienteForm.css';
 import { getApiErrorMessage } from '../utils/apiError';
 import { formatarCpf } from '../utils/cpf';
 import { formatarTelefone } from '../utils/telefone';
+
+const formDataPadrao = {
+  nome: '',
+  cpf: '',
+  dataNascimento: '',
+  genero: '',
+  hospitalId: '',
+  leito: '',
+  dataInternacao: '',
+  diagnosticoPrincipal: '',
+  historicoMedico: '',
+  nomeResponsavel: '',
+  telefoneResponsavel: '',
+  emailResponsavel: '',
+  statusEntrevistaFamiliar: '',
+  observacoesEntrevistaFamiliar: '',
+  dataEntrevistaFamiliar: '',
+  status: 'INTERNADO'
+};
 
 const PacienteForm = ({
   paciente,
@@ -15,24 +34,7 @@ const PacienteForm = ({
   somenteListagem = false,
   somenteFormulario = false,
 }) => {
-  const [formData, setFormData] = useState({
-    nome: '',
-    cpf: '',
-    dataNascimento: '',
-    genero: '',
-    hospitalId: '',
-    leito: '',
-    dataInternacao: '',
-    diagnosticoPrincipal: '',
-    historicoMedico: '',
-    nomeResponsavel: '',
-    telefoneResponsavel: '',
-    emailResponsavel: '',
-    statusEntrevistaFamiliar: '',
-    observacoesEntrevistaFamiliar: '',
-    dataEntrevistaFamiliar: '',
-    status: 'INTERNADO'
-  });
+  const [formData, setFormData] = useState(formDataPadrao);
 
   const [hospitais, setHospitais] = useState([]);
   const [pacientes, setPacientes] = useState([]);
@@ -43,6 +45,7 @@ const PacienteForm = ({
   const [mensagem, setMensagem] = useState({ tipo: '', texto: '' });
   const [carregando, setCarregando] = useState(false);
   const [estatisticas, setEstatisticas] = useState(null);
+  const montadoRef = useRef(true);
 
   const statusOpcoes = [
     'PRE_INTERNACAO',
@@ -73,9 +76,17 @@ const PacienteForm = ({
 
   // Carregar hospitais e pacientes ao montar
   useEffect(() => {
+    return () => {
+      montadoRef.current = false;
+    };
+  }, []);
+
+  // Carregar hospitais e pacientes ao montar
+  useEffect(() => {
     carregarHospitais();
     carregarPacientes();
     carregarEstatisticas();
+
   }, []);
 
   // Se veio um paciente como prop, editar
@@ -100,14 +111,20 @@ const PacienteForm = ({
         status: paciente.status || 'INTERNADO'
       });
       setEditandoId(paciente.id);
+      return;
     }
+
+    setFormData(formDataPadrao);
+    setEditandoId(null);
   }, [paciente]);
 
   const carregarHospitais = async () => {
     try {
       const dados = await hospitalService.listar();
+      if (!montadoRef.current) return;
       setHospitais(normalizarLista(dados));
     } catch (error) {
+      if (!montadoRef.current) return;
       console.error('Erro ao carregar hospitais:', error);
       setHospitais([]);
     }
@@ -120,6 +137,7 @@ const PacienteForm = ({
 
       if (busca) {
         const dados = await pacienteService.buscarPorNome(busca);
+        if (!montadoRef.current) return;
         const listaPacientes = normalizarLista(dados);
         setPacientes(listaPacientes);
         const total = listaPacientes.length;
@@ -127,6 +145,7 @@ const PacienteForm = ({
         return;
       } else if (filtroStatus && filtroHospital) {
         const dados = await pacienteService.listarPorHospitalEStatus(filtroHospital, filtroStatus);
+        if (!montadoRef.current) return;
         const listaPacientes = normalizarLista(dados);
         setPacientes(listaPacientes);
         const total = listaPacientes.length;
@@ -134,6 +153,7 @@ const PacienteForm = ({
         return;
       } else if (filtroStatus) {
         const dados = await pacienteService.listarPorStatus(filtroStatus);
+        if (!montadoRef.current) return;
         const listaPacientes = normalizarLista(dados);
         setPacientes(listaPacientes);
         const total = listaPacientes.length;
@@ -141,6 +161,7 @@ const PacienteForm = ({
         return;
       } else if (filtroHospital) {
         const dados = await pacienteService.listarPorHospital(filtroHospital);
+        if (!montadoRef.current) return;
         const listaPacientes = normalizarLista(dados);
         setPacientes(listaPacientes);
         const total = listaPacientes.length;
@@ -149,15 +170,18 @@ const PacienteForm = ({
       }
 
       const dados = await pacienteService.listar();
+      if (!montadoRef.current) return;
       const listaPacientes = normalizarLista(dados);
       setPacientes(listaPacientes);
       const total = listaPacientes.length;
       setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
     } catch (error) {
+      if (!montadoRef.current) return;
       console.error('Erro ao carregar pacientes:', error);
       setPacientes([]);
       setMensagem({ tipo: 'erro', texto: 'Erro ao carregar pacientes' });
     } finally {
+      if (!montadoRef.current) return;
       setCarregando(false);
     }
   };
@@ -165,8 +189,10 @@ const PacienteForm = ({
   const carregarEstatisticas = async () => {
     try {
       const dados = await pacienteService.obterEstatisticas();
+      if (!montadoRef.current) return;
       setEstatisticas(dados);
     } catch (error) {
+      if (!montadoRef.current) return;
       console.error('Erro ao carregar estatísticas:', error);
     }
   };

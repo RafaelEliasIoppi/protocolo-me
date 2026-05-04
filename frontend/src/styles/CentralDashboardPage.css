@@ -413,6 +413,24 @@
 }
 
 .status-subinfo {
+  .badge-validado {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+  }
+
+  .badge-aguardando {
+    background: #fef3c7;
+    border-color: #fcd34d;
+    color: #92400e;
+  }
+
+  .badge-nao-realizado {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #991b1b;
+  }
+
   margin-top: 0.35rem;
   font-size: 0.78rem;
   color: #5b6472;
@@ -865,6 +883,24 @@
 }
 
 [data-theme="dark"] .central-dashboard .badge-exame-negativo {
+  background: #7f1d1d;
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
+[data-theme="dark"] .central-dashboard .badge-validado {
+  background: #14532d;
+  border-color: #22c55e;
+  color: #bbf7d0;
+}
+
+[data-theme="dark"] .central-dashboard .badge-aguardando {
+  background: #78350f;
+  border-color: #f59e0b;
+  color: #fde047;
+}
+
+[data-theme="dark"] .central-dashboard .badge-nao-realizado {
   background: #7f1d1d;
   border-color: #ef4444;
   color: #fecaca;
@@ -1416,6 +1452,201 @@
 .modal-report-button:hover {
   background: #163a5c;
   transform: translateY(-1px);
+}
+
+/* Modal de Validação */
+.modal-overlay-validacao {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-validacao {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-validacao-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.modal-validacao-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+.modal-validacao-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.modal-validacao-close:hover:not(:disabled) {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.modal-validacao-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-validacao-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+.validacao-info {
+  background: #dbeafe;
+  border: 1px solid #93c5fd;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.validacao-info p {
+  margin: 0;
+  color: #1e40af;
+  font-size: 0.95rem;
+}
+
+.modal-validacao-body .form-group {
+  margin-bottom: 1.2rem;
+}
+
+.modal-validacao-body .form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.modal-validacao-body .form-group input,
+.modal-validacao-body .form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-validacao-body .form-group input:focus,
+.modal-validacao-body .form-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal-validacao-body .form-group input:disabled,
+.modal-validacao-body .form-group textarea:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.modal-validacao-footer {
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  justify-content: flex-end;
+}
+
+.modal-validacao-footer button {
+  padding: 0.7rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-size: 0.95rem;
+}
+
+.modal-validacao-footer .btn-cancel {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.modal-validacao-footer .btn-cancel:hover:not(:disabled) {
+  background: #d1d5db;
+}
+
+.modal-validacao-footer .btn-save {
+  background: #10b981;
+  color: white;
+}
+
+.modal-validacao-footer .btn-save:hover:not(:disabled) {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.modal-validacao-footer button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Botão pequeno de validação */
+.btn-small.btn-validar {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 600;
+}
+
+.btn-small.btn-validar:hover {
+  background: #2563eb;
+}
+
+.pendencia-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pendencia-item span {
+  flex-grow: 1;
 }
 
 @media (max-width: 600px) {

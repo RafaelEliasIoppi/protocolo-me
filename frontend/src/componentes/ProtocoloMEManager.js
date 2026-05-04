@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import protocoloService from '../services/protocoloService';
 import '../styles/ProtocoloMEManager.css';
 import OrgaoDoadoManager from './OrgaoDoadoManager';
@@ -25,6 +25,7 @@ const ProtocoloMEManager = () => {
   const [sucesso, setSucesso] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('');
   const [protocolosExpandidos, setProtocolosExpandidos] = useState(new Set());
+  const montadoRef = useRef(true);
 
   const statusOpcoes = [
     { valor: 'NOTIFICADO', label: 'Notificado', cor: 'azul' },
@@ -38,20 +39,40 @@ const ProtocoloMEManager = () => {
   ];
 
   useEffect(() => {
-    carregarProtocolos();
+    return () => {
+      montadoRef.current = false;
+    };
   }, []);
 
-  const carregarProtocolos = async () => {
-    setCarregando(true);
-    try {
-      const dados = await protocoloService.listar();
-      setProtocolos(Array.isArray(dados) ? dados : []);
-    } catch (err) {
-      setErro('Erro ao carregar protocolos');
-    } finally {
-      setCarregando(false);
-    }
-  };
+  useEffect(() => {
+    let ativo = true;
+
+    const carregar = async () => {
+      setCarregando(true);
+      try {
+        const dados = await protocoloService.listar();
+        if (!ativo || !montadoRef.current) {
+          return;
+        }
+        setProtocolos(Array.isArray(dados) ? dados : []);
+      } catch (err) {
+        if (!ativo || !montadoRef.current) {
+          return;
+        }
+        setErro('Erro ao carregar protocolos');
+      } finally {
+        if (ativo && montadoRef.current) {
+          setCarregando(false);
+        }
+      }
+    };
+
+    carregar();
+
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   const atualizarCampoFormulario = (e) => {
     const { name, value, type, checked } = e.target;

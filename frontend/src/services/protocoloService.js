@@ -87,6 +87,42 @@ export const protocoloService = {
     const response = await api.patch(`/api/protocolos-me/${protocoloId}/status`, { status });
     return response.data;
   }
+  ,
+  // ================= VALIDAÇÕES PELA CENTRAL =================
+  validarTesteClinico1: async (protocoloId, validadoPor = '', observacoes = '') => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/validar/teste-clinico-1`, {}, {
+      params: { validadoPor, observacoes }
+    });
+    return response.data;
+  },
+
+  validarTesteClinico2: async (protocoloId, validadoPor = '', observacoes = '') => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/validar/teste-clinico-2`, {}, {
+      params: { validadoPor, observacoes }
+    });
+    return response.data;
+  },
+
+  validarTestesComplementares: async (protocoloId, validadoPor = '', observacoes = '') => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/validar/testes-complementares`, {}, {
+      params: { validadoPor, observacoes }
+    });
+    return response.data;
+  },
+
+  validarApneia: async (protocoloId, validadoPor = '', observacoes = '') => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/validar/apneia`, {}, {
+      params: { validadoPor, observacoes }
+    });
+    return response.data;
+  },
+
+  validarExame: async (protocoloId, exameId, validado = true, validadoPor = '', observacoes = '') => {
+    const response = await api.post(`/api/protocolos-me/${protocoloId}/validar/exame/${exameId}`, {}, {
+      params: { validado, validadoPor, observacoes }
+    });
+    return response.data;
+  }
 };
 
 export default protocoloService;
