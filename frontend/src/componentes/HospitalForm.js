@@ -4,7 +4,7 @@ import '../styles/HospitalForm.css';
 import { getApiErrorMessage } from '../utils/apiError';
 import { formatarTelefone } from '../utils/telefone';
 
-const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
+const HospitalForm = ({ onSuccess, hospitalParaEditar, onClose }) => {
   const [formData, setFormData] = useState({
     nome: '',
     cnpj: '',
@@ -41,37 +41,22 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
     if (name === 'telefone') {
       const telefoneNumerico = value.replace(/\D/g, '').slice(0, 11);
       const telefoneFormatado = formatarTelefone(telefoneNumerico);
-
-      setFormData(prev => ({
-        ...prev,
-        [name]: telefoneFormatado
-      }));
+      setFormData(prev => ({ ...prev, [name]: telefoneFormatado }));
       setErro('');
       return;
     }
 
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
     setErro('');
   };
 
-  const validarCNPJ = (cnpj) => {
-    return cnpj.replace(/\D/g, '').length === 14;
-  };
-
-  const formatarCNPJ = (cnpj) => {
-    const cleaned = cnpj.replace(/\D/g, '');
-    return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-  };
+  const validarCNPJ = (cnpj) => cnpj.replace(/\D/g, '').length === 14;
 
   const salvarHospital = async (e) => {
     e.preventDefault();
     setErro('');
     setSucesso('');
 
-    // Validações
     if (!formData.nome || !formData.cnpj || !formData.endereco || !formData.cidade) {
       setErro('Por favor, preencha todos os campos obrigatórios');
       return;
@@ -85,40 +70,28 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
     setCarregando(true);
 
     try {
-      const dados = {
-        ...formData,
-        cnpj: formData.cnpj.replace(/\D/g, '')
-      };
+      const dados = { ...formData, cnpj: formData.cnpj.replace(/\D/g, '') };
 
       let resultado;
       if (hospitalParaEditar?.id) {
-        // Atualizar
         resultado = await hospitalService.atualizar(hospitalParaEditar.id, dados);
         setSucesso('Hospital atualizado com sucesso!');
       } else {
-        // Criar
         resultado = await hospitalService.criar(dados);
         setSucesso('Hospital cadastrado com sucesso!');
         setFormData({
-          nome: '',
-          cnpj: '',
-          endereco: '',
-          cidade: '',
-          estado: '',
-          telefone: '',
-          email: '',
-          responsavelMedico: ''
+          nome: '', cnpj: '', endereco: '', cidade: '',
+          estado: '', telefone: '', email: '', responsavelMedico: ''
         });
       }
 
-      if (onSuccess) {
-        onSuccess(resultado);
-      }
-
-      setTimeout(() => setSucesso(''), 3000);
+      if (onSuccess) onSuccess(resultado);
+      setTimeout(() => {
+        setSucesso('');
+        if (onClose) onClose();
+      }, 1500);
     } catch (err) {
-      const mensagem = getApiErrorMessage(err, 'Erro ao salvar hospital');
-      setErro(mensagem);
+      setErro(getApiErrorMessage(err, 'Erro ao salvar hospital'));
     } finally {
       setCarregando(false);
     }
@@ -126,7 +99,20 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
 
   return (
     <div className="hospital-form-container">
-      <h2>{hospitalParaEditar ? 'Editar Hospital' : 'Cadastrar Novo Hospital'}</h2>
+
+      <div className="hospital-form-header">
+        <h2>{hospitalParaEditar ? 'Editar Hospital' : 'Cadastrar Novo Hospital'}</h2>
+        {onClose && (
+          <button
+            type="button"
+            className="hospital-form-close"
+            onClick={onClose}
+            title="Fechar"
+          >
+            ×
+          </button>
+        )}
+      </div>
 
       {erro && <div className="alerta alerta-erro">{erro}</div>}
       {sucesso && <div className="alerta alerta-sucesso">{sucesso}</div>}
@@ -135,9 +121,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
         <div className="form-group">
           <label htmlFor="nome">Nome do Hospital *</label>
           <input
-            type="text"
-            id="nome"
-            name="nome"
+            type="text" id="nome" name="nome"
             value={formData.nome}
             onChange={atualizarCampoFormulario}
             placeholder="Ex: Hospital Central"
@@ -148,16 +132,12 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
         <div className="form-group">
           <label htmlFor="cnpj">CNPJ *</label>
           <input
-            type="text"
-            id="cnpj"
-            name="cnpj"
+            type="text" id="cnpj" name="cnpj"
             value={formData.cnpj}
             onChange={(e) => {
               let value = e.target.value.replace(/\D/g, '');
               if (value.length <= 14) {
-                atualizarCampoFormulario({
-                  target: { name: 'cnpj', value }
-                });
+                atualizarCampoFormulario({ target: { name: 'cnpj', value } });
               }
             }}
             placeholder="00.000.000/0000-00"
@@ -168,9 +148,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
         <div className="form-group">
           <label htmlFor="endereco">Endereço *</label>
           <input
-            type="text"
-            id="endereco"
-            name="endereco"
+            type="text" id="endereco" name="endereco"
             value={formData.endereco}
             onChange={atualizarCampoFormulario}
             placeholder="Ex: Rua das Flores, 123"
@@ -181,21 +159,16 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
           <div className="form-group">
             <label htmlFor="cidade">Cidade *</label>
             <input
-              type="text"
-              id="cidade"
-              name="cidade"
+              type="text" id="cidade" name="cidade"
               value={formData.cidade}
               onChange={atualizarCampoFormulario}
               placeholder="Ex: São Paulo"
             />
           </div>
-
           <div className="form-group">
             <label htmlFor="estado">Estado *</label>
             <input
-              type="text"
-              id="estado"
-              name="estado"
+              type="text" id="estado" name="estado"
               value={formData.estado}
               onChange={atualizarCampoFormulario}
               placeholder="Ex: SP"
@@ -208,22 +181,17 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
           <div className="form-group">
             <label htmlFor="telefone">Telefone *</label>
             <input
-              type="tel"
-              id="telefone"
-              name="telefone"
+              type="tel" id="telefone" name="telefone"
               value={formData.telefone}
               onChange={atualizarCampoFormulario}
               maxLength="15"
               placeholder="Ex: (11) 98765-4321"
             />
           </div>
-
           <div className="form-group">
             <label htmlFor="email">Email *</label>
             <input
-              type="email"
-              id="email"
-              name="email"
+              type="email" id="email" name="email"
               value={formData.email}
               onChange={atualizarCampoFormulario}
               placeholder="Ex: hospital@email.com"
@@ -234,9 +202,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
         <div className="form-group">
           <label htmlFor="responsavelMedico">Responsável Médico</label>
           <input
-            type="text"
-            id="responsavelMedico"
-            name="responsavelMedico"
+            type="text" id="responsavelMedico" name="responsavelMedico"
             value={formData.responsavelMedico}
             onChange={atualizarCampoFormulario}
             placeholder="Ex: Dr. João Silva"
@@ -244,7 +210,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
         </div>
 
         <button type="submit" className="btn-submit" disabled={carregando}>
-          {carregando ? 'Carregando...' : (hospitalParaEditar ? 'Atualizar Hospital' : 'Cadastrar Hospital')}
+          {carregando ? 'Salvando...' : (hospitalParaEditar ? 'Atualizar Hospital' : 'Cadastrar Hospital')}
         </button>
       </form>
     </div>

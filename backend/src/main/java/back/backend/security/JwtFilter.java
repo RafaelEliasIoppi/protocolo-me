@@ -36,8 +36,8 @@ public class JwtFilter extends OncePerRequestFilter {
         // o restante de /api/usuarios exige autenticação.
         String method = request.getMethod();
         if (path.equals("/api/usuarios/login")
-                || (path.equals("/api/usuarios") && "POST".equalsIgnoreCase(method))
-                || path.equals("/api/usuarios/admin/registrar")) {
+                || (path.equals("/api/usuarios") && "POST".equalsIgnoreCase(method)))
+               {
             filterChain.doFilter(request, response);
             return;
         }
