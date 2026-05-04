@@ -275,6 +275,13 @@ function MedicoProtocoloME() {
     return exames;
   };
 
+  // ✅ NOVA REGRA: Verificar se exames foram VALIDADOS pela central
+  const examesObrigatoriosValidados = (protocolo) =>
+    Boolean(protocolo?.testeClinico1Validado)
+    && Boolean(protocolo?.testeClinico2Validado)
+    && Boolean(protocolo?.testesComplementaresValidados)
+    && Boolean(protocolo?.apneiaValidada);
+
   const examesObrigatoriosConcluidos = (protocolo) =>
     Boolean(protocolo?.testeClinico1Realizado)
     && Boolean(protocolo?.testeClinico2Realizado)
@@ -282,7 +289,8 @@ function MedicoProtocoloME() {
 
   const entrevistaLiberada = (protocolo) => {
     const status = protocolo?.status;
-    if (examesObrigatoriosConcluidos(protocolo)) {
+    // ✅ Agora verifica se exames foram VALIDADOS, não apenas realizados
+    if (examesObrigatoriosValidados(protocolo)) {
       return true;
     }
 
@@ -516,10 +524,10 @@ function MedicoProtocoloME() {
                         )}
                         <button
                           className="btn-entrevista-inline"
-                          title={!podeAbrirEntrevista ? "Conclua 2 testes clínicos e 1 exame complementar para liberar a entrevista" : ""}
+                          title={!podeAbrirEntrevista ? "Exames precisam ser VALIDADOS pela central: 2 testes clínicos + apneia + 1 exame complementar" : ""}
                           onClick={() => {
                             if (!podeAbrirEntrevista) {
-                              setErro("Entrevista ainda não liberada. Conclua 2 testes clínicos e 1 exame complementar.");
+                              setErro("Entrevista ainda não liberada. Aguarde a validação da central para: 2 testes clínicos + apneia + 1 exame complementar.");
                               return;
                             }
                             setProtocoloSelecionado(protocolo);
@@ -568,7 +576,7 @@ function MedicoProtocoloME() {
 
                     {!podeAbrirEntrevista && (
                       <div className="entrevista-alerta-card" role="alert">
-                        ⚠️ Entrevista bloqueada no momento. Conclua 2 testes clínicos e 1 exame complementar para liberar esta etapa.
+                        ⚠️ Entrevista bloqueada. Aguardando validação pela central de: 2 testes clínicos + apneia + 1 exame complementar.
                       </div>
                     )}
                   </div>

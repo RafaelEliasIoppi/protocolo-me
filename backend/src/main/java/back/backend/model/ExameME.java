@@ -27,7 +27,7 @@ public class ExameME {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "protocolo_me_id")
-    @JsonIgnoreProperties({"exames", "paciente", "centralTransplantes"})
+    @JsonIgnoreProperties({ "exames", "paciente", "centralTransplantes" })
     private ProtocoloME protocoloME;
 
     @Enumerated(EnumType.STRING)
@@ -45,6 +45,20 @@ public class ExameME {
 
     @Column(length = 1000)
     private String observacoes;
+
+    // =========================
+    // VALIDAÇÃO PELA CENTRAL
+    // =========================
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusValidacao statusValidacao = StatusValidacao.PENDENTE;
+
+    private String validadoPor;
+    private LocalDateTime dataValidacao;
+
+    @Column(length = 1000)
+    private String observacoesValidacao;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
@@ -111,6 +125,29 @@ public class ExameME {
 
         public CategoriaExame getCategoria() {
             return categoria;
+        }
+    }
+
+    public enum StatusValidacao {
+        PENDENTE("Pendente de validação", "Exame realizado, aguardando validação da central"),
+        VALIDADO("Validado", "Exame validado pela central"),
+        REJEITADO("Rejeitado", "Exame rejeitado pela central"),
+        REALIZADO("Realizado", "Exame realizado mas não validado");
+
+        private final String label;
+        private final String descricao;
+
+        StatusValidacao(String label, String descricao) {
+            this.label = label;
+            this.descricao = descricao;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public String getDescricao() {
+            return descricao;
         }
     }
 }

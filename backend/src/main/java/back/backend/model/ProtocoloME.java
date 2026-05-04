@@ -24,20 +24,20 @@ public class ProtocoloME {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "central_transplantes_id")
-    @JsonIgnoreProperties({"protocolosME", "usuarios", "hospitaisParceados"})
+    @JsonIgnoreProperties({ "protocolosME", "usuarios", "hospitaisParceados" })
     private CentralTransplantes centralTransplantes;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "paciente_id")
-    @JsonIgnoreProperties({"protocolosME", "examesEmProtocolo"})
+    @JsonIgnoreProperties({ "protocolosME", "examesEmProtocolo" })
     private Paciente paciente;
 
     @OneToOne(mappedBy = "protocoloME", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties({"protocoloME"})
+    @JsonIgnoreProperties({ "protocoloME" })
     private Doacao doacao;
 
     @OneToMany(mappedBy = "protocoloME", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnoreProperties({"protocoloME"})
+    @JsonIgnoreProperties({ "protocoloME" })
     private List<ExameME> exames;
 
     // =========================
@@ -78,6 +78,25 @@ public class ProtocoloME {
     private LocalDateTime dataTesteComplementar;
 
     private LocalDateTime dataConfirmacaoME;
+
+    // =========================
+    // VALIDAÇÃO DE TESTES PELA CENTRAL
+    // =========================
+
+    private Boolean testeClinico1Validado = false;
+    private LocalDateTime dataValidacaoTesteClinico1;
+
+    private Boolean testeClinico2Validado = false;
+    private LocalDateTime dataValidacaoTesteClinico2;
+
+    private Boolean testesComplementaresValidados = false;
+    private LocalDateTime dataValidacaoTesteComplementar;
+
+    private Boolean apneiaValidada = false;
+    private LocalDateTime dataValidacaoApneia;
+
+    private String validadosPor;
+    private LocalDateTime dataValidacaoGeral;
 
     // =========================
     // ENTREVISTA FAMILIAR
@@ -140,18 +159,28 @@ public class ProtocoloME {
 
     public StatusProtocoloME calcularStatusAutomatico() {
 
-        boolean testesOk =
-                Boolean.TRUE.equals(testeClinico1Realizado) &&
+        // ✅ NOVA REGRA: Verificar se exames estão VALIDADOS (não apenas realizados)
+        boolean testesValidados = Boolean.TRUE.equals(testeClinico1Validado) &&
+                Boolean.TRUE.equals(testeClinico2Validado) &&
+                Boolean.TRUE.equals(testesComplementaresValidados) &&
+                Boolean.TRUE.equals(apneiaValidada);
+
+        boolean testesRealizados = Boolean.TRUE.equals(testeClinico1Realizado) &&
                 Boolean.TRUE.equals(testeClinico2Realizado) &&
                 Boolean.TRUE.equals(testesComplementaresRealizados);
 
-        // 🔹 Ainda não confirmou ME
-        if (!testesOk) {
+        // 🔹 Ainda não tem exames realizados
+        if (!testesRealizados) {
             if (Boolean.TRUE.equals(testeClinico1Realizado) ||
-                Boolean.TRUE.equals(testeClinico2Realizado)) {
+                    Boolean.TRUE.equals(testeClinico2Realizado)) {
                 return StatusProtocoloME.EM_PROCESSO;
             }
             return StatusProtocoloME.NOTIFICADO;
+        }
+
+        // 🔹 Exames realizados mas aguardando validação da central
+        if (!testesValidados) {
+            return StatusProtocoloME.EM_PROCESSO;
         }
 
         // 🔹 Confirmou morte encefálica
@@ -178,10 +207,12 @@ public class ProtocoloME {
     }
 
     public boolean estaProntoParaEntrevista() {
-        return Boolean.TRUE.equals(testeClinico1Realizado) &&
-               Boolean.TRUE.equals(testeClinico2Realizado) &&
-               Boolean.TRUE.equals(testesComplementaresRealizados) &&
-               dataConfirmacaoME != null;
+        // ✅ NOVA REGRA: Exames devem estar VALIDADOS pela central
+        return Boolean.TRUE.equals(testeClinico1Validado) &&
+                Boolean.TRUE.equals(testeClinico2Validado) &&
+                Boolean.TRUE.equals(testesComplementaresValidados) &&
+                Boolean.TRUE.equals(apneiaValidada) &&
+                dataConfirmacaoME != null;
     }
 
     // =========================
@@ -213,26 +244,63 @@ public class ProtocoloME {
     // GETTERS ESSENCIAIS
     // =========================
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
 
-    public CentralTransplantes getCentralTransplantes() { return centralTransplantes; }
-    public Paciente getPaciente() { return paciente; }
-    public Doacao getDoacao() { return doacao; }
+    public CentralTransplantes getCentralTransplantes() {
+        return centralTransplantes;
+    }
 
-    public StatusProtocoloME getStatus() { return status; }
-    public void setStatus(StatusProtocoloME status) { this.status = status; }
+    public Paciente getPaciente() {
+        return paciente;
+    }
 
-    public LocalDateTime getDataConfirmacaoME() { return dataConfirmacaoME; }
+    public Doacao getDoacao() {
+        return doacao;
+    }
 
-    public Boolean getAutopsiaAutorizada() { return autopsiaAutorizada; }
-    public void setAutopsiaAutorizada(Boolean autopsiaAutorizada) { this.autopsiaAutorizada = autopsiaAutorizada; }
+    public StatusProtocoloME getStatus() {
+        return status;
+    }
 
-    public Boolean getPreservacaoOrgaos() { return preservacaoOrgaos; }
-    public void setPreservacaoOrgaos(Boolean preservacaoOrgaos) { this.preservacaoOrgaos = preservacaoOrgaos; }
+    public void setStatus(StatusProtocoloME status) {
+        this.status = status;
+    }
 
-    public LocalDateTime getDataPreservacao() { return dataPreservacao; }
-    public void setDataPreservacao(LocalDateTime dataPreservacao) { this.dataPreservacao = dataPreservacao; }
+    public LocalDateTime getDataConfirmacaoME() {
+        return dataConfirmacaoME;
+    }
 
-    public String getOrgaosDisponiveis() { return orgaosDisponiveis; }
-    public void setOrgaosDisponiveis(String orgaosDisponiveis) { this.orgaosDisponiveis = orgaosDisponiveis; }
+    public Boolean getAutopsiaAutorizada() {
+        return autopsiaAutorizada;
+    }
+
+    public void setAutopsiaAutorizada(Boolean autopsiaAutorizada) {
+        this.autopsiaAutorizada = autopsiaAutorizada;
+    }
+
+    public Boolean getPreservacaoOrgaos() {
+        return preservacaoOrgaos;
+    }
+
+    public void setPreservacaoOrgaos(Boolean preservacaoOrgaos) {
+        this.preservacaoOrgaos = preservacaoOrgaos;
+    }
+
+    public LocalDateTime getDataPreservacao() {
+        return dataPreservacao;
+    }
+
+    public void setDataPreservacao(LocalDateTime dataPreservacao) {
+        this.dataPreservacao = dataPreservacao;
+    }
+
+    public String getOrgaosDisponiveis() {
+        return orgaosDisponiveis;
+    }
+
+    public void setOrgaosDisponiveis(String orgaosDisponiveis) {
+        this.orgaosDisponiveis = orgaosDisponiveis;
+    }
 }

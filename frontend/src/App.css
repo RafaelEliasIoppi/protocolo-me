@@ -608,6 +608,32 @@ a {
   }
 }
 
+/* Telão fullscreen - ocupar tela inteira */
+.app-shell:has(.telao-mode) {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+
+  .overview-layout,
+  .overview-panels-row,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .app-shell {
     width: calc(100% - 20px);

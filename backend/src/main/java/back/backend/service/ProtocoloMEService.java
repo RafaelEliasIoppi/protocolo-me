@@ -349,6 +349,67 @@ public class ProtocoloMEService {
         pacienteRepository.save(paciente);
     }
 
+    // ================= VALIDAÇÃO DE TESTES PELA CENTRAL =================
+
+    public ProtocoloMEDTO validarTesteClinico1(Long id, String validadoPor, String observacoes) {
+        return executar(id, p -> {
+            p.setTesteClinico1Validado(true);
+            p.setDataValidacaoTesteClinico1(LocalDateTime.now());
+            p.setValidadosPor(validadoPor);
+            if (observacoes != null) {
+                // Adicionar observação se houver
+            }
+        });
+    }
+
+    public ProtocoloMEDTO validarTesteClinico2(Long id, String validadoPor, String observacoes) {
+        return executar(id, p -> {
+            p.setTesteClinico2Validado(true);
+            p.setDataValidacaoTesteClinico2(LocalDateTime.now());
+            p.setValidadosPor(validadoPor);
+        });
+    }
+
+    public ProtocoloMEDTO validarTestesComplementares(Long id, String validadoPor, String observacoes) {
+        return executar(id, p -> {
+            p.setTestesComplementaresValidados(true);
+            p.setDataValidacaoTesteComplementar(LocalDateTime.now());
+            p.setValidadosPor(validadoPor);
+        });
+    }
+
+    public ProtocoloMEDTO validarApneia(Long id, String validadoPor, String observacoes) {
+        return executar(id, p -> {
+            p.setApneiaValidada(true);
+            p.setDataValidacaoApneia(LocalDateTime.now());
+            p.setValidadosPor(validadoPor);
+        });
+    }
+
+    public ProtocoloMEDTO validarExame(Long id, Long exameId, boolean validado, String validadoPor,
+            String observacoes) {
+        ProtocoloME protocolo = buscarOuFalhar(id);
+        ExameME exame = exameRepository.findById(exameId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Exame não encontrado"));
+
+        if (!exame.getProtocoloME().getId().equals(id)) {
+            throw new ConflitoNegocioException("Exame não pertence a este protocolo");
+        }
+
+        if (validado) {
+            exame.setStatusValidacao(ExameME.StatusValidacao.VALIDADO);
+        } else {
+            exame.setStatusValidacao(ExameME.StatusValidacao.REJEITADO);
+        }
+
+        exame.setValidadoPor(validadoPor);
+        exame.setDataValidacao(LocalDateTime.now());
+        exame.setObservacoesValidacao(observacoes);
+
+        exameRepository.save(exame);
+        return toDTO(protocolo);
+    }
+
     // ================= DELETE =================
 
     public void deletarProtocolo(@NonNull Long id) {

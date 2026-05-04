@@ -919,8 +919,11 @@
 
 .central-dashboard.telao-mode {
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   padding: 0.35rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .central-dashboard.telao-mode .dashboard-header {
@@ -938,6 +941,9 @@
 
 .central-dashboard.telao-mode .pacientes-painel {
   padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 200px);
 }
 
 .central-dashboard.telao-mode .painel-header h2 {
@@ -959,6 +965,8 @@
 .central-dashboard.telao-mode .pacientes-tabela-wrapper {
   overflow-x: auto;
   overflow-y: auto;
+  flex: 1;
+  height: 100%;
 }
 
 .central-dashboard.telao-mode .tabela-pacientes .col-nome {
@@ -998,7 +1006,10 @@
 }
 
 .central-dashboard.telao-mode.tv-fullscreen {
-  padding: 0.2rem 0.3rem;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
 }
 
 .central-dashboard.telao-mode.tv-fullscreen .dashboard-header,
@@ -1008,29 +1019,42 @@
 }
 
 .central-dashboard.telao-mode.tv-fullscreen .pacientes-painel {
-  padding: 0.35rem;
+  padding: 0;
   border-radius: 0;
-  min-height: calc(100vh - 0.4rem);
+  min-height: 100vh;
+  height: 100%;
+  background: var(--surface);
+  box-shadow: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
 }
 
 .central-dashboard.telao-mode.tv-fullscreen .painel-header {
-  margin-bottom: 0.45rem;
-  padding-bottom: 0.35rem;
+  margin-bottom: 0.2rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid #ecf0f1;
 }
 
 .central-dashboard.telao-mode.tv-fullscreen .painel-header h2 {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 .central-dashboard.telao-mode.tv-fullscreen .painel-header .note {
-  font-size: 0.76rem;
+  font-size: 0.7rem;
+  margin: 0.2rem 0 0 0;
 }
 
 .central-dashboard.telao-mode.tv-fullscreen .pacientes-tabela-wrapper {
   border-radius: 0;
   border: none;
   overflow-x: auto;
+  overflow-y: auto;
   scrollbar-width: none;
+  width: 100vw;
+  height: 100vh;
+  flex: 1;
 }
 
 .central-dashboard.telao-mode.tv-fullscreen .pacientes-tabela-wrapper::-webkit-scrollbar {

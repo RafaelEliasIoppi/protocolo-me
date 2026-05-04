@@ -15,5 +15,9 @@ public interface ExameMapper {
     @Mapping(target = "tipoExame", expression = "java(entity.getTipoExame() != null ? entity.getTipoExame().name() : null)")
     @Mapping(target = "resultado", expression = "java(entity.getResultado() != null ? entity.getResultado().name() : null)")
     @Mapping(target = "resultadoPositivo", expression = "java(entity.getResultado() != null ? entity.getResultado() == back.backend.model.ExameME.ResultadoExame.POSITIVO : null)")
+    @Mapping(target = "statusValidacao", expression = "java(entity.getStatusValidacao() != null ? entity.getStatusValidacao().name() : null)")
+    @Mapping(target = "validadoPor", source = "validadoPor")
+    @Mapping(target = "dataValidacao", source = "dataValidacao")
+    @Mapping(target = "observacoesValidacao", source = "observacoesValidacao")
     ExameMEDTO toDTO(ExameME entity);
 }

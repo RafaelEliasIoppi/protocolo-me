@@ -31,12 +31,11 @@ public class ProtocoloMEController {
     @PostMapping
     public ResponseEntity<ProtocoloMEDTO> criarProtocolo(@Valid @RequestBody ProtocoloCreateRequestDTO request) {
         return ResponseEntity
-            .status(201)
-            .body(protocoloService.criarProtocoloPorPacienteId(
-                request.getPacienteId(),
-                request.getDiagnosticoBasico(),
-                request.getNumeroProtocolo()
-        ));
+                .status(201)
+                .body(protocoloService.criarProtocoloPorPacienteId(
+                        request.getPacienteId(),
+                        request.getDiagnosticoBasico(),
+                        request.getNumeroProtocolo()));
     }
 
     // ================= READ =================
@@ -89,7 +88,8 @@ public class ProtocoloMEController {
     // ================= UPDATE =================
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProtocoloMEDTO> atualizar(@PathVariable Long id, @Valid @RequestBody ProtocoloUpdateRequestDTO request) {
+    public ResponseEntity<ProtocoloMEDTO> atualizar(@PathVariable Long id,
+            @Valid @RequestBody ProtocoloUpdateRequestDTO request) {
         ProtocoloME protocolo = protocoloRequestMapper.toEntity(request);
         return ResponseEntity.ok(protocoloService.atualizarProtocolo(id, protocolo));
     }
@@ -100,12 +100,10 @@ public class ProtocoloMEController {
             @Valid @RequestBody ProtocoloRelatorioRequestDTO request) {
 
         return ResponseEntity.ok(
-            protocoloService.atualizarRelatorioFinal(
-                    id,
-                    request.getTextoRelatorio(),
-                    request.getAtualizadoPor()
-            )
-        );
+                protocoloService.atualizarRelatorioFinal(
+                        id,
+                        request.getTextoRelatorio(),
+                        request.getAtualizadoPor()));
     }
 
     @PatchMapping("/{id}/status")
@@ -128,8 +126,7 @@ public class ProtocoloMEController {
             @RequestParam(required = false) String observacoes) {
 
         return ResponseEntity.ok(
-                protocoloService.registrarResultadoEntrevista(id, autorizouDoacao, observacoes)
-        );
+                protocoloService.registrarResultadoEntrevista(id, autorizouDoacao, observacoes));
     }
 
     // ================= ACTIONS =================
@@ -167,6 +164,55 @@ public class ProtocoloMEController {
     @PostMapping("/{id}/atualizar-status")
     public ResponseEntity<ProtocoloMEDTO> atualizarStatusAuto(@PathVariable Long id) {
         return action(id, protocoloService::atualizarStatusAutomatico);
+    }
+
+    // ================= VALIDAÇÃO DE TESTES PELA CENTRAL =================
+
+    @PostMapping("/{id}/validar/teste-clinico-1")
+    public ResponseEntity<ProtocoloMEDTO> validarTesteClinico1(
+            @PathVariable Long id,
+            @RequestParam(required = false) String validadoPor,
+            @RequestParam(required = false) String observacoes) {
+        ProtocoloMEDTO resultado = protocoloService.validarTesteClinico1(id, validadoPor, observacoes);
+        return ResponseEntity.ok(resultado);
+    }
+
+    @PostMapping("/{id}/validar/teste-clinico-2")
+    public ResponseEntity<ProtocoloMEDTO> validarTesteClinico2(
+            @PathVariable Long id,
+            @RequestParam(required = false) String validadoPor,
+            @RequestParam(required = false) String observacoes) {
+        ProtocoloMEDTO resultado = protocoloService.validarTesteClinico2(id, validadoPor, observacoes);
+        return ResponseEntity.ok(resultado);
+    }
+
+    @PostMapping("/{id}/validar/testes-complementares")
+    public ResponseEntity<ProtocoloMEDTO> validarTestesComplementares(
+            @PathVariable Long id,
+            @RequestParam(required = false) String validadoPor,
+            @RequestParam(required = false) String observacoes) {
+        ProtocoloMEDTO resultado = protocoloService.validarTestesComplementares(id, validadoPor, observacoes);
+        return ResponseEntity.ok(resultado);
+    }
+
+    @PostMapping("/{id}/validar/apneia")
+    public ResponseEntity<ProtocoloMEDTO> validarApneia(
+            @PathVariable Long id,
+            @RequestParam(required = false) String validadoPor,
+            @RequestParam(required = false) String observacoes) {
+        ProtocoloMEDTO resultado = protocoloService.validarApneia(id, validadoPor, observacoes);
+        return ResponseEntity.ok(resultado);
+    }
+
+    @PostMapping("/{id}/validar/exame/{exameId}")
+    public ResponseEntity<ProtocoloMEDTO> validarExame(
+            @PathVariable Long id,
+            @PathVariable Long exameId,
+            @RequestParam boolean validado,
+            @RequestParam(required = false) String validadoPor,
+            @RequestParam(required = false) String observacoes) {
+        ProtocoloMEDTO resultado = protocoloService.validarExame(id, exameId, validado, validadoPor, observacoes);
+        return ResponseEntity.ok(resultado);
     }
 
     // ================= DELETE =================

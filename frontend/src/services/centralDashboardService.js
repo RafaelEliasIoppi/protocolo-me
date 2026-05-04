@@ -79,56 +79,104 @@ export const obterResultadoPositivo = (exame) => {
   return null;
 };
 
+// ✅ REVISADO: Agora verifica VALIDAÇÃO, não apenas realização
 export const obterExamesPendentes = (protocolo) => {
   if (!protocolo) {
-    return ["Teste clínico 1", "Teste clínico 2", "Exames complementares"];
+    return [
+      "Teste clínico 1 (VALIDAÇÃO PENDENTE)",
+      "Teste clínico 2 (VALIDAÇÃO PENDENTE)",
+      "Apneia (VALIDAÇÃO PENDENTE)",
+      "Exames complementares (VALIDAÇÃO PENDENTE)"
+    ];
   }
 
-  if (Array.isArray(protocolo.exames) && protocolo.exames.length > 0) {
-    const clinicosRealizados = protocolo.exames.filter(
-      (e) => e?.categoria === "CLINICO" && !!e?.dataRealizacao,
-    ).length;
-    const complementaresRealizados = protocolo.exames.filter(
-      (e) => e?.categoria === "COMPLEMENTAR" && !!e?.dataRealizacao,
-    ).length;
-
-    const pendentes = [];
-    if (clinicosRealizados < 1) pendentes.push("Teste clínico 1");
-    if (clinicosRealizados < 2) pendentes.push("Teste clínico 2");
-    if (complementaresRealizados < 1) pendentes.push("Exames complementares");
-    return pendentes;
-  }
-
+  // Usar status de validação do protocolo como source of truth
   const pendentes = [];
-  if (!protocolo.testeClinico1Realizado) pendentes.push("Teste clínico 1");
-  if (!protocolo.testeClinico2Realizado) pendentes.push("Teste clínico 2");
-  if (!protocolo.testesComplementaresRealizados) pendentes.push("Exames complementares");
+
+  if (!protocolo.testeClinico1Validado) {
+    pendentes.push(
+      protocolo.testeClinico1Realizado
+        ? "Teste clínico 1 (AGUARDANDO VALIDAÇÃO)"
+        : "Teste clínico 1 (NÃO REALIZADO)"
+    );
+  }
+
+  if (!protocolo.testeClinico2Validado) {
+    pendentes.push(
+      protocolo.testeClinico2Realizado
+        ? "Teste clínico 2 (AGUARDANDO VALIDAÇÃO)"
+        : "Teste clínico 2 (NÃO REALIZADO)"
+    );
+  }
+
+  if (!protocolo.apneiaValidada) {
+    pendentes.push(
+      "Apneia (AGUARDANDO VALIDAÇÃO ou NÃO REALIZADO)"
+    );
+  }
+
+  if (!protocolo.testesComplementaresValidados) {
+    pendentes.push(
+      protocolo.testesComplementaresRealizados
+        ? "Exames complementares (AGUARDANDO VALIDAÇÃO)"
+        : "Exames complementares (NÃO REALIZADO)"
+    );
+  }
+
   return pendentes;
 };
 
+// ✅ NOVO: Contar exames VALIDADOS (não apenas realizados)
+// ✅ CORRIGIDO: Agora inclui apneia (total = 4, não 3)
 export const obterExamesConcluidos = (protocolo) => {
   if (!protocolo) return 0;
 
-  if (Array.isArray(protocolo.exames) && protocolo.exames.length > 0) {
-    let concluidos = 0;
-    const clinicosRealizados = protocolo.exames.filter(
-      (e) => e?.categoria === "CLINICO" && !!e?.dataRealizacao,
-    ).length;
-    const complementaresRealizados = protocolo.exames.filter(
-      (e) => e?.categoria === "COMPLEMENTAR" && !!e?.dataRealizacao,
-    ).length;
+  // Source of truth: campos de protocolo (não exames individuais)
+  let validados = 0;
+  if (protocolo.testeClinico1Validado) validados += 1;
+  if (protocolo.testeClinico2Validado) validados += 1;
+  if (protocolo.apneiaValidada) validados += 1;
+  if (protocolo.testesComplementaresValidados) validados += 1;
 
-    if (clinicosRealizados >= 1) concluidos += 1;
-    if (clinicosRealizados >= 2) concluidos += 1;
-    if (complementaresRealizados >= 1) concluidos += 1;
-    return concluidos;
+  return validados;
+};
+
+// ✅ NOVO: Exames que estão à espera de validação
+export const obterExamesAguardandoValidacao = (protocolo) => {
+  if (!protocolo) return [];
+
+  const aguardando = [];
+
+  if (protocolo.testeClinico1Realizado && !protocolo.testeClinico1Validado) {
+    aguardando.push("Teste clínico 1");
   }
 
-  let concluidos = 0;
-  if (protocolo.testeClinico1Realizado) concluidos += 1;
-  if (protocolo.testeClinico2Realizado) concluidos += 1;
-  if (protocolo.testesComplementaresRealizados) concluidos += 1;
-  return concluidos;
+  if (protocolo.testeClinico2Realizado && !protocolo.testeClinico2Validado) {
+    aguardando.push("Teste clínico 2");
+  }
+
+  // Apneia é tratada internamente
+  if (!protocolo.apneiaValidada) {
+    aguardando.push("Apneia");
+  }
+
+  if (protocolo.testesComplementaresRealizados && !protocolo.testesComplementaresValidados) {
+    aguardando.push("Exames complementares");
+  }
+
+  return aguardando;
+};
+
+// ✅ NOVO: Verificar se todos os 4 exames obrigatórios estão VALIDADOS
+export const todoExamesObrigatoriosValidados = (protocolo) => {
+  if (!protocolo) return false;
+
+  return Boolean(
+    protocolo.testeClinico1Validado &&
+    protocolo.testeClinico2Validado &&
+    protocolo.apneiaValidada &&
+    protocolo.testesComplementaresValidados
+  );
 };
 
 export const obterExamesRealizadosDetalhados = (protocolo) => {
@@ -145,25 +193,45 @@ export const obterExamesRealizadosDetalhados = (protocolo) => {
   });
 };
 
+// ✅ REVISADO: Agora mostra status de validação, não apenas resultado
 export const obterResumoStatusExames = (protocolo) => {
-  const exames = Array.isArray(protocolo?.exames) ? protocolo.exames : [];
-  const positivos = exames.filter((exame) => obterResultadoPositivo(exame) === true).length;
-  const negativos = exames.filter((exame) => obterResultadoPositivo(exame) === false).length;
-  const semResultado = exames.filter((exame) => {
-    const resultadoPositivo = obterResultadoPositivo(exame);
-    const temResultadoTexto = exame?.resultado && exame.resultado.trim() !== "";
-    return resultadoPositivo === null && !temResultadoTexto;
-  }).length;
+  if (!protocolo) {
+    return {
+      validados: 0,
+      aguardandoValidacao: 0,
+      naoRealizados: 4,
+      total: 4
+    };
+  }
 
-  const concluidos = obterExamesConcluidos(protocolo);
-  const pendentes = Math.max(3 - concluidos, 0);
+  let validados = 0;
+  let aguardandoValidacao = 0;
+  let naoRealizados = 0;
+
+  // Teste Clínico 1
+  if (protocolo.testeClinico1Validado) validados += 1;
+  else if (protocolo.testeClinico1Realizado) aguardandoValidacao += 1;
+  else naoRealizados += 1;
+
+  // Teste Clínico 2
+  if (protocolo.testeClinico2Validado) validados += 1;
+  else if (protocolo.testeClinico2Realizado) aguardandoValidacao += 1;
+  else naoRealizados += 1;
+
+  // Apneia
+  if (protocolo.apneiaValidada) validados += 1;
+  else aguardandoValidacao += 1;
+
+  // Exames Complementares
+  if (protocolo.testesComplementaresValidados) validados += 1;
+  else if (protocolo.testesComplementaresRealizados) aguardandoValidacao += 1;
+  else naoRealizados += 1;
 
   return {
-    positivos,
-    negativos,
-    semResultado,
-    concluidos,
-    pendentes
+    validados,
+    aguardandoValidacao,
+    naoRealizados,
+    total: 4
   };
 };
 
