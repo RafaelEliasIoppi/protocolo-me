@@ -458,9 +458,9 @@ a {
 
 .usuario-card {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, auto);
+  align-items: center;
+  gap: 14px;
   border: 1px solid var(--border);
   background: var(--surface-soft);
   border-radius: 12px;
@@ -475,18 +475,20 @@ a {
 
 .usuario-card-info {
   display: grid;
-  gap: 5px;
+  gap: 6px;
   min-width: 0;
 }
 
 .usuario-card-info strong {
-  font-size: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
 .usuario-card-info span {
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.94rem;
+  line-height: 1.4;
   overflow-wrap: anywhere;
 }
 
@@ -496,6 +498,19 @@ a {
   gap: 8px;
   flex-wrap: wrap;
   min-width: 0;
+}
+
+.usuario-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.usuario-card-actions .secondary-button {
+  min-width: 118px;
+  justify-content: center;
 }
 
 .usuario-role-badge {
@@ -543,6 +558,19 @@ a {
   margin-top: 4px;
   width: min(100%, 780px);
   justify-self: start;
+}
+
+.usuarios-edicao-panel .usuarios-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.usuarios-edicao-panel .usuarios-form> :is(.input-field, .select-field, .usuario-ativo-toggle, .action-row, .note) {
+  grid-column: 1 / -1;
+}
+
+.usuarios-panel header,
+.usuarios-edicao-panel header {
+  align-items: flex-start;
 }
 
 .mensagem {
@@ -648,6 +676,7 @@ a {
 
   .usuario-card {
     grid-template-columns: 1fr;
+    align-items: start;
   }
 
   .usuarios-filtros {
@@ -659,6 +688,19 @@ a {
   }
 
   .usuarios-edicao-panel {
+    width: 100%;
+  }
+
+  .usuarios-edicao-panel .usuarios-form {
+    grid-template-columns: 1fr;
+  }
+
+  .usuario-card-actions {
+    justify-content: stretch;
+  }
+
+  .usuario-card-actions .secondary-button {
+    min-width: 0;
     width: 100%;
   }
 

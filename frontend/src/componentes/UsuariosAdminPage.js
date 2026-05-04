@@ -26,6 +26,15 @@ const estadoInicialEdicao = {
   coren: "",
 };
 
+const ADMIN_PRINCIPAL_EMAIL = "admin@protocolo.me";
+
+const validarEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || "").trim());
+
+const isAdminPrincipal = (usuario) =>
+  usuario?.role === "ADMIN" &&
+  (usuario?.email || "").toLowerCase() === ADMIN_PRINCIPAL_EMAIL;
+
 function UsuariosAdminPage() {
 
   const [formData, setFormData] = useState(
@@ -64,6 +73,44 @@ function UsuariosAdminPage() {
 
   const normalizarEmail = (email) =>
     email.trim().toLowerCase();
+
+  const validarFormularioCriacao = () => {
+
+    if (!formData.nome.trim()) {
+      return "Informe o nome do usuário";
+    }
+
+    if (!validarEmail(formData.email)) {
+      return "Informe um email válido";
+    }
+
+    if ((formData.senha || "").trim().length < 6) {
+      return "A senha deve ter pelo menos 6 caracteres";
+    }
+
+    return null;
+  };
+
+  const validarFormularioEdicao = () => {
+
+    if (!formEdicao.nome.trim()) {
+      return "Informe o nome do usuário";
+    }
+
+    if (!validarEmail(formEdicao.email)) {
+      return "Informe um email válido";
+    }
+
+    if (novaSenha.trim() && novaSenha.trim().length < 6) {
+      return "A nova senha deve ter pelo menos 6 caracteres";
+    }
+
+    if (usuarioSelecionado && isAdminPrincipal(usuarioSelecionado) && formEdicao.ativo === false) {
+      return "O admin principal não pode ser desativado";
+    }
+
+    return null;
+  };
 
   const carregarUsuarios = useCallback(async () => {
 
@@ -143,13 +190,11 @@ function UsuariosAdminPage() {
 
     limparMensagens();
 
-    if (
-      !formData.nome ||
-      !formData.email ||
-      !formData.senha
-    ) {
+    const erroValidacao = validarFormularioCriacao();
 
-      setErro("Preencha todos os campos");
+    if (erroValidacao) {
+
+      setErro(erroValidacao);
 
       return;
     }
@@ -233,6 +278,15 @@ function UsuariosAdminPage() {
 
     limparMensagens();
 
+    const erroValidacao = validarFormularioEdicao();
+
+    if (erroValidacao) {
+
+      setErro(erroValidacao);
+
+      return;
+    }
+
     try {
 
       if (novaSenha.trim()) {
@@ -294,6 +348,11 @@ function UsuariosAdminPage() {
   const alternarStatusUsuario = async (usuario) => {
 
     limparMensagens();
+
+    if (isAdminPrincipal(usuario)) {
+      setErro("O admin principal não pode ser desativado");
+      return;
+    }
 
     try {
 
@@ -600,29 +659,33 @@ function UsuariosAdminPage() {
 
                     </div>
 
-                    <button
-                      className="secondary-button"
-                      type="button"
-                      onClick={() =>
-                        alternarStatusUsuario(u)
-                      }
-                      disabled={u.role === "ADMIN" && (u.email || "").toLowerCase() === "admin@protocolo.me"}
-                      title={u.role === "ADMIN" && (u.email || "").toLowerCase() === "admin@protocolo.me" ? "Admin principal não pode ser desativado" : undefined}
-                    >
-                      {u.role === "ADMIN" && (u.email || "").toLowerCase() === "admin@protocolo.me"
-                        ? "Admin principal"
-                        : (u.ativo ? "Desativar" : "Ativar")}
-                    </button>
+                    <div className="usuario-card-actions">
 
-                    <button
-                      className="secondary-button"
-                      type="button"
-                      onClick={() =>
-                        abrirEdicao(u)
-                      }
-                    >
-                      Editar
-                    </button>
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={() =>
+                          alternarStatusUsuario(u)
+                        }
+                        disabled={isAdminPrincipal(u)}
+                        title={isAdminPrincipal(u) ? "Admin principal não pode ser desativado" : undefined}
+                      >
+                        {isAdminPrincipal(u)
+                          ? "Admin principal"
+                          : (u.ativo ? "Desativar" : "Ativar")}
+                      </button>
+
+                      <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={() =>
+                          abrirEdicao(u)
+                        }
+                      >
+                        Editar
+                      </button>
+
+                    </div>
 
                   </div>
                 );
@@ -725,7 +788,7 @@ function UsuariosAdminPage() {
               <input
                 type="checkbox"
                 checked={formEdicao.ativo}
-                disabled={usuarioSelecionado.role === "ADMIN" && (usuarioSelecionado.email || "").toLowerCase() === "admin@protocolo.me"}
+                disabled={isAdminPrincipal(usuarioSelecionado)}
                 onChange={(e) =>
                   setFormEdicao((prev) => ({
                     ...prev,
@@ -738,7 +801,7 @@ function UsuariosAdminPage() {
 
             </label>
 
-            {usuarioSelecionado.role === "ADMIN" && (usuarioSelecionado.email || "").toLowerCase() === "admin@protocolo.me" && (
+            {isAdminPrincipal(usuarioSelecionado) && (
               <p className="note">
                 O admin principal permanece ativo por regra do sistema.
               </p>
