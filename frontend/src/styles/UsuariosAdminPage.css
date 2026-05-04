@@ -1,0 +1,550 @@
+/* UsuariosAdminPage.css — Estilos exclusivos */
+
+/* ─── Variáveis ─────────────────────────────────────────────────── */
+.usuarios-admin-page {
+  --ua-bg: #f4f6f9;
+  --ua-surface: #ffffff;
+  --ua-text: #2c3e50;
+  --ua-muted: #7f8c8d;
+  --ua-subtle: #34495e;
+  --ua-border: #dce3ea;
+  --ua-accent: #3498db;
+  --ua-accent-dark: #2980b9;
+  --ua-success: #27ae60;
+  --ua-success-dark: #229954;
+  --ua-danger: #e74c3c;
+  --ua-danger-dark: #c0392b;
+  --ua-warning: #f39c12;
+  --ua-gray: #95a5a6;
+  --ua-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --ua-shadow-md: 0 4px 14px rgba(0, 0, 0, 0.12);
+  --ua-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --ua-radius: 10px;
+  --ua-radius-sm: 6px;
+  --ua-radius-pill: 999px;
+
+  display: grid;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--ua-text);
+  background: var(--ua-bg);
+  min-height: 100vh;
+}
+
+/* ─── Brand Bar ─────────────────────────────────────────────────── */
+.usuarios-admin-page .brand-bar {
+  background: var(--ua-surface);
+  border-radius: var(--ua-radius);
+  padding: 20px 24px;
+  border-bottom: 3px solid var(--ua-accent);
+  box-shadow: var(--ua-shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.usuarios-admin-page .brand-bar h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.5vw, 2rem);
+  color: var(--ua-text);
+  border: none;
+  padding: 0;
+}
+
+.usuarios-admin-page .brand-bar p {
+  margin: 6px 0 0;
+  color: var(--ua-muted);
+  font-size: 0.95rem;
+}
+
+/* ─── Mensagens ─────────────────────────────────────────────────── */
+.usuarios-admin-page .mensagem {
+  padding: 14px 18px;
+  border-radius: var(--ua-radius-sm);
+  font-weight: 500;
+  font-size: 0.95rem;
+  animation: ua-slide-in 0.3s ease;
+}
+
+.usuarios-admin-page .mensagem.erro {
+  background-color: #fdf3f3;
+  color: #721c24;
+  border-left: 4px solid var(--ua-danger);
+}
+
+.usuarios-admin-page .mensagem.sucesso {
+  background-color: #f0faf4;
+  color: #155724;
+  border-left: 4px solid var(--ua-success);
+}
+
+@keyframes ua-slide-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Layout overview ───────────────────────────────────────────── */
+.usuarios-admin-page .overview-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 1.5fr);
+  gap: 20px;
+  align-items: start;
+}
+
+/* ─── Panel / Card base ─────────────────────────────────────────── */
+.usuarios-admin-page .panel.usuarios-panel {
+  background: var(--ua-surface);
+  border-radius: var(--ua-radius);
+  padding: 24px;
+  box-shadow: var(--ua-shadow-sm);
+  border: 1px solid var(--ua-border);
+  border-top: 4px solid var(--ua-accent);
+  display: grid;
+  gap: 14px;
+  transition: box-shadow 0.25s ease;
+}
+
+.usuarios-admin-page .panel.usuarios-panel:hover {
+  box-shadow: var(--ua-shadow-md);
+}
+
+.usuarios-admin-page .panel.usuarios-panel header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #ecf0f1;
+  margin-bottom: 4px;
+}
+
+.usuarios-admin-page .panel.usuarios-panel header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--ua-text);
+}
+
+/* ─── Note ──────────────────────────────────────────────────────── */
+.usuarios-admin-page .note {
+  color: var(--ua-muted);
+  font-size: 0.88rem;
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+.usuarios-admin-page .usuarios-resumo-lista {
+  margin: 0;
+}
+
+/* ─── Formulário de criação ─────────────────────────────────────── */
+.usuarios-admin-page .usuarios-form {
+  display: grid;
+  gap: 14px;
+}
+
+/* ─── Inputs e Selects ──────────────────────────────────────────── */
+.usuarios-admin-page .input-field,
+.usuarios-admin-page .select-field {
+  width: 100%;
+  padding: 11px 14px;
+  border: 2px solid var(--ua-border);
+  border-radius: var(--ua-radius-sm);
+  font-size: 0.97rem;
+  font-family: inherit;
+  color: var(--ua-text);
+  background: #fff;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  box-sizing: border-box;
+}
+
+.usuarios-admin-page .input-field:focus,
+.usuarios-admin-page .select-field:focus {
+  outline: none;
+  border-color: var(--ua-accent);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
+}
+
+.usuarios-admin-page .input-field::placeholder {
+  color: #b0bec5;
+}
+
+/* ─── Botões ────────────────────────────────────────────────────── */
+.usuarios-admin-page .primary-button {
+  padding: 11px 22px;
+  border: none;
+  border-radius: var(--ua-radius-sm);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  background-color: var(--ua-accent);
+  color: #fff;
+  font-family: inherit;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.usuarios-admin-page .primary-button:hover:not(:disabled) {
+  background-color: var(--ua-accent-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.usuarios-admin-page .primary-button:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.usuarios-admin-page .secondary-button {
+  padding: 10px 18px;
+  border: 1px solid var(--ua-border);
+  border-radius: var(--ua-radius-sm);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #ecf0f1;
+  color: var(--ua-subtle);
+  font-family: inherit;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.usuarios-admin-page .secondary-button:hover:not(:disabled) {
+  background-color: #dce3ea;
+  transform: translateY(-1px);
+}
+
+.usuarios-admin-page .secondary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.usuarios-admin-page .action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ─── Filtros ───────────────────────────────────────────────────── */
+.usuarios-admin-page .usuarios-filtros {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 10px;
+}
+
+/* ─── Lista de usuários ─────────────────────────────────────────── */
+.usuarios-admin-page .usuarios-lista {
+  display: grid;
+  gap: 10px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.usuarios-admin-page .usuarios-lista::-webkit-scrollbar {
+  width: 6px;
+}
+
+.usuarios-admin-page .usuarios-lista::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: var(--ua-radius-pill);
+}
+
+.usuarios-admin-page .usuarios-lista::-webkit-scrollbar-thumb {
+  background: #c0cad4;
+  border-radius: var(--ua-radius-pill);
+}
+
+.usuarios-admin-page .usuarios-lista::-webkit-scrollbar-thumb:hover {
+  background: #a0adb8;
+}
+
+/* ─── Card de usuário ───────────────────────────────────────────── */
+.usuarios-admin-page .usuario-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--ua-radius-sm);
+  border: 1px solid var(--ua-border);
+  border-left: 4px solid var(--ua-accent);
+  background: #fff;
+  box-shadow: var(--ua-shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-left-color 0.2s ease;
+}
+
+.usuarios-admin-page .usuario-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ua-shadow-md);
+  border-left-color: var(--ua-accent-dark);
+}
+
+.usuarios-admin-page .usuario-card-info {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.usuarios-admin-page .usuario-card-info strong {
+  font-size: 1rem;
+  color: var(--ua-text);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+
+.usuarios-admin-page .usuario-card-info > span {
+  font-size: 0.88rem;
+  color: var(--ua-muted);
+  overflow-wrap: anywhere;
+}
+
+.usuarios-admin-page .usuario-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.usuarios-admin-page .usuario-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  min-width: 130px;
+}
+
+.usuarios-admin-page .usuario-card-actions .secondary-button {
+  width: 100%;
+  text-align: center;
+}
+
+/* ─── Badges de role e status ───────────────────────────────────── */
+.usuarios-admin-page .usuario-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--ua-radius-pill);
+  font-size: 0.76rem;
+  font-weight: 700;
+  background-color: #eaf3fb;
+  color: #1a5a8a;
+  border: 1px solid #b8d9f5;
+}
+
+.usuarios-admin-page .usuario-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--ua-radius-pill);
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.usuarios-admin-page .usuario-status.ativo {
+  background-color: #eafaf1;
+  color: #186a3b;
+  border-color: #a9dfbf;
+}
+
+.usuarios-admin-page .usuario-status.inativo {
+  background-color: #fdedec;
+  color: #922b21;
+  border-color: #f5b7b1;
+}
+
+/* ─── Toggle ativo ──────────────────────────────────────────────── */
+.usuarios-admin-page .usuario-ativo-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: var(--ua-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.usuarios-admin-page .usuario-ativo-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--ua-accent);
+}
+
+/* ─── Painel de edição ──────────────────────────────────────────── */
+.usuarios-admin-page .usuarios-edicao-panel {
+  width: min(100%, 820px);
+  justify-self: start;
+  border-top-color: var(--ua-success);
+}
+
+.usuarios-admin-page .usuarios-edicao-panel .usuarios-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.usuarios-admin-page .usuarios-edicao-panel .usuarios-form
+  > :is(.input-field, .select-field, .usuario-ativo-toggle, .action-row, .note) {
+  grid-column: 1 / -1;
+}
+
+/* ─── Dark mode ─────────────────────────────────────────────────── */
+[data-theme="dark"] .usuarios-admin-page {
+  --ua-bg: #0b1120;
+  --ua-surface: #0f172a;
+  --ua-text: #e5e7eb;
+  --ua-muted: #94a3b8;
+  --ua-subtle: #cbd5e1;
+  --ua-border: rgba(148, 163, 184, 0.2);
+  --ua-shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --ua-shadow-md: 0 6px 20px rgba(0, 0, 0, 0.4);
+  --ua-shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+  background: var(--ua-bg);
+}
+
+[data-theme="dark"] .usuarios-admin-page .panel.usuarios-panel,
+[data-theme="dark"] .usuarios-admin-page .brand-bar {
+  background: var(--ua-surface);
+  border-color: var(--ua-border);
+  box-shadow: var(--ua-shadow-sm);
+}
+
+[data-theme="dark"] .usuarios-admin-page .panel.usuarios-panel header {
+  border-bottom-color: rgba(148, 163, 184, 0.18);
+}
+
+[data-theme="dark"] .usuarios-admin-page .input-field,
+[data-theme="dark"] .usuarios-admin-page .select-field {
+  background: #0b2947;
+  color: #e5e7eb;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+[data-theme="dark"] .usuarios-admin-page .input-field::placeholder {
+  color: #64748b;
+}
+
+[data-theme="dark"] .usuarios-admin-page .input-field:focus,
+[data-theme="dark"] .usuarios-admin-page .select-field:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+}
+
+[data-theme="dark"] .usuarios-admin-page .secondary-button {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ua-subtle);
+  border-color: var(--ua-border);
+}
+
+[data-theme="dark"] .usuarios-admin-page .secondary-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="dark"] .usuarios-admin-page .usuario-card {
+  background: #131f35;
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+[data-theme="dark"] .usuarios-admin-page .usuario-role-badge {
+  background: rgba(37, 99, 235, 0.2);
+  color: #bfdbfe;
+  border-color: rgba(96, 165, 250, 0.35);
+}
+
+[data-theme="dark"] .usuarios-admin-page .usuario-status.ativo {
+  background: rgba(22, 163, 74, 0.18);
+  color: #bbf7d0;
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+[data-theme="dark"] .usuarios-admin-page .usuario-status.inativo {
+  background: rgba(220, 38, 38, 0.18);
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+[data-theme="dark"] .usuarios-admin-page .mensagem.erro {
+  background: rgba(231, 76, 60, 0.14);
+  color: #fecaca;
+  border-left-color: var(--ua-danger);
+}
+
+[data-theme="dark"] .usuarios-admin-page .mensagem.sucesso {
+  background: rgba(39, 174, 96, 0.14);
+  color: #bbf7d0;
+  border-left-color: var(--ua-success);
+}
+
+/* ─── Responsivo ────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .usuarios-admin-page .overview-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .usuarios-admin-page {
+    padding: 16px 12px 32px;
+  }
+
+  .usuarios-admin-page .usuarios-filtros {
+    grid-template-columns: 1fr;
+  }
+
+  .usuarios-admin-page .usuario-card {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .usuarios-admin-page .usuario-card-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    min-width: unset;
+  }
+
+  .usuarios-admin-page .usuario-card-actions .secondary-button {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  .usuarios-admin-page .usuarios-edicao-panel {
+    width: 100%;
+  }
+
+  .usuarios-admin-page .usuarios-edicao-panel .usuarios-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .usuarios-admin-page .brand-bar h1 {
+    font-size: 1.2rem;
+  }
+
+  .usuarios-admin-page .panel.usuarios-panel {
+    padding: 16px;
+  }
+
+  .usuarios-admin-page .usuario-card-actions {
+    flex-direction: column;
+  }
+
+  .usuarios-admin-page .usuario-card-actions .secondary-button {
+    width: 100%;
+  }
+
+  .usuarios-admin-page .action-row {
+    flex-direction: column;
+  }
+
+  .usuarios-admin-page .action-row .primary-button,
+  .usuarios-admin-page .action-row .secondary-button {
+    width: 100%;
+  }
+}

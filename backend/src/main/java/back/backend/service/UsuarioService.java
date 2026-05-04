@@ -26,7 +26,6 @@ import back.backend.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 
 @Service
-@Transactional
 @RequiredArgsConstructor
 public class UsuarioService implements UserDetailsService {
 
@@ -39,6 +38,7 @@ public class UsuarioService implements UserDetailsService {
 
     // ================= ADMIN =================
 
+    @Transactional(readOnly = true)
     public long countAdmins() {
         return usuarioRepository.countByRole(Role.ADMIN);
     }
@@ -95,6 +95,7 @@ public class UsuarioService implements UserDetailsService {
 
     // ================= AUTH =================
 
+    @Transactional(readOnly = true)
     public UsuarioDTO autenticar(String email, String senha) {
 
         String emailNormalizado = normalizarEmail(email);
@@ -114,6 +115,7 @@ public class UsuarioService implements UserDetailsService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) {
 
         Usuario usuario = usuarioRepository.findByEmail(normalizarEmail(email))
@@ -128,6 +130,7 @@ public class UsuarioService implements UserDetailsService {
 
     // ================= CREATE =================
 
+    @Transactional
     public UsuarioDTO registrar(Usuario usuario) {
 
         validarUsuario(usuario);
@@ -152,6 +155,7 @@ public class UsuarioService implements UserDetailsService {
         return toDTO(usuarioRepository.save(usuario));
     }
 
+    @Transactional
     public UsuarioDTO registrarAdmin(Usuario usuario) {
 
         if (usuario.getRole() == null) {
@@ -165,6 +169,7 @@ public class UsuarioService implements UserDetailsService {
 
     // ================= UPDATE =================
 
+    @Transactional
     public UsuarioDTO atualizarUsuario(Long id, Usuario dados) {
 
         Usuario usuario = buscarOuFalhar(id);
@@ -194,6 +199,7 @@ public class UsuarioService implements UserDetailsService {
         return toDTO(usuarioRepository.save(usuario));
     }
 
+    @Transactional
     public UsuarioDTO redefinirSenha(Long id, String senhaNova) {
 
         Usuario usuario = buscarOuFalhar(id);
@@ -206,6 +212,7 @@ public class UsuarioService implements UserDetailsService {
         return toDTO(usuarioRepository.save(usuario));
     }
 
+    @Transactional
     public UsuarioDTO alterarMinhaSenha(
             String email,
             String atual,
@@ -233,6 +240,7 @@ public class UsuarioService implements UserDetailsService {
 
     // ================= READ =================
 
+    @Transactional(readOnly = true)
     public List<UsuarioDTO> listarTodos() {
         return usuarioRepository.findAll()
                 .stream()
@@ -242,6 +250,7 @@ public class UsuarioService implements UserDetailsService {
 
     // ================= DELETE =================
 
+    @Transactional
     public void deletar(@NonNull Long id) {
 
         if (!usuarioRepository.existsById(id)) {

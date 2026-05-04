@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import autenticarService from "../services/autenticarService";
 import { getApiErrorMessage } from "../utils/apiError";
+import "../styles/UsuariosAdminPage.css";
 
 const roleOpcoes = [
   { value: "ADMIN", label: "Administrador" },
