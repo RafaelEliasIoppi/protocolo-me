@@ -54,33 +54,26 @@ Arquivo base: [backend/src/main/java/back/backend/controller/PacienteController.
   - Mesmo filtro acima, restrito ao hospital.
 
 #### Relatorio final
-- [obterRelatorioFinalPaciente](backend/src/main/java/back/backend/controller/PacienteController.java#L146)
+- [obterRelatorioFinal](backend/src/main/java/back/backend/controller/PacienteController.java#L109)
   - Rota: GET por paciente.
-  - Chama gerarRelatorioFinalPaciente.
-
-- [listarRelatoriosFinaisPacientes](backend/src/main/java/back/backend/controller/PacienteController.java#L160)
-  - Rota: GET em lote.
-  - Chama gerarRelatoriosFinaisPacientes.
+  - Chama obterRelatorioFinal no service.
 
 #### Busca textual
-- [buscarPorNome](backend/src/main/java/back/backend/controller/PacienteController.java#L169)
+- [buscarPorNome](backend/src/main/java/back/backend/controller/PacienteController.java#L39)
   - Usa query param nome.
 
-- [buscarPorNomeEHospital](backend/src/main/java/back/backend/controller/PacienteController.java#L183)
-  - Busca nome dentro de um hospital.
-
 #### Atualizacao e remocao
-- [atualizar](backend/src/main/java/back/backend/controller/PacienteController.java#L199)
+- [atualizar](backend/src/main/java/back/backend/controller/PacienteController.java#L73)
   - Atualiza campos do paciente.
 
-- [atualizarStatus](backend/src/main/java/back/backend/controller/PacienteController.java#L213)
+- [atualizarStatus](backend/src/main/java/back/backend/controller/PacienteController.java#L79)
   - Atualiza apenas status via PATCH.
 
-- [deletar](backend/src/main/java/back/backend/controller/PacienteController.java#L231)
+- [deletar](backend/src/main/java/back/backend/controller/PacienteController.java#L88)
   - Remove paciente por id.
 
 #### Estatisticas
-- [obterEstatisticas](backend/src/main/java/back/backend/controller/PacienteController.java#L245)
+- [obterEstatisticas](backend/src/main/java/back/backend/controller/PacienteController.java#L94)
   - Resumo quantitativo por status.
 
 ---
@@ -111,28 +104,21 @@ Arquivo base: [backend/src/main/java/back/backend/service/PacienteService.java](
 - [deletarPaciente](backend/src/main/java/back/backend/service/PacienteService.java#L166)
 
 #### Consultas de filtro
-- [listarPorHospital](backend/src/main/java/back/backend/service/PacienteService.java#L106)
-- [listarPorStatus](backend/src/main/java/back/backend/service/PacienteService.java#L115)
-- [listarPorHospitalEStatus](backend/src/main/java/back/backend/service/PacienteService.java#L122)
-- [procurarPorNome](backend/src/main/java/back/backend/service/PacienteService.java#L131)
-- [procurarPorNomeEHospital](backend/src/main/java/back/backend/service/PacienteService.java#L141)
-- [listarPacientesEmProtocoloME](backend/src/main/java/back/backend/service/PacienteService.java#L150)
-- [listarPacientesEmProtocoloMEPorHospital](backend/src/main/java/back/backend/service/PacienteService.java#L157)
+- [listarPorHospital](backend/src/main/java/back/backend/service/PacienteService.java#L130)
+- [listarPorStatus](backend/src/main/java/back/backend/service/PacienteService.java#L140)
+- [listarPorHospitalEStatus](backend/src/main/java/back/backend/service/PacienteService.java#L152)
+- [buscarPorNome](backend/src/main/java/back/backend/service/PacienteService.java#L119)
+- [listarEmProtocoloME](backend/src/main/java/back/backend/service/PacienteService.java#L167)
+- [listarEmProtocoloMEPorHospital](backend/src/main/java/back/backend/service/PacienteService.java#L174)
 
 #### Estatisticas
 - [obterEstatisticas](backend/src/main/java/back/backend/service/PacienteService.java#L174)
   - Conta por status e devolve DTO PacienteStatisticas.
 
 #### Relatorio final
-- [gerarRelatorioFinalPaciente](backend/src/main/java/back/backend/service/PacienteService.java#L184)
+- [obterRelatorioFinal](backend/src/main/java/back/backend/service/PacienteService.java#L184)
   - Carrega paciente.
-  - Ordena protocolos por data.
-  - Gera resumo por protocolo.
-  - Conta exames realizados e pendentes por categoria.
-  - Determina status final e conclusao final.
-
-- [gerarRelatoriosFinaisPacientes](backend/src/main/java/back/backend/service/PacienteService.java#L258)
-  - Loop em todos pacientes chamando metodo individual.
+  - Monta o resumo final do paciente a partir do cadastro atual.
 
 - [exameRealizado](backend/src/main/java/back/backend/service/PacienteService.java#L269)
   - Regra de realizacao:
@@ -147,7 +133,7 @@ Arquivo base: [backend/src/main/java/back/backend/service/PacienteService.java](
   - Data de nascimento valida.
   - CPF unico.
 
-- [preencherHospitalOrigemSeNecessario](backend/src/main/java/back/backend/service/PacienteService.java#L343)
+- [preencherHospital](backend/src/main/java/back/backend/service/PacienteService.java#L344)
   - Autocompleta hospitalOrigem para manter consistencia.
 
 ---

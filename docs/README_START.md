@@ -73,7 +73,18 @@ npm start
 | Home | http://localhost:3000 | Página inicial |
 | Login | http://localhost:3000/login | Autenticação |
 | Protocolo ME | http://localhost:3000/medico/protocolo-me | Gerenciar protocolos |
-| H2 Database | http://localhost:2500/h2-console | Console do banco (dev) |
+
+## Supabase (PostgreSQL)
+
+O backend usa Supabase/PostgreSQL por padrão. Crie o projeto no Supabase e exporte estas variáveis antes de subir o backend:
+
+```bash
+export SUPABASE_DB_URL='jdbc:postgresql://db.<project-ref>.supabase.co:5432/postgres?sslmode=require'
+export SUPABASE_DB_USER=postgres
+export SUPABASE_DB_PASSWORD='sua-senha-do-supabase'
+```
+
+Depois execute o backend normalmente. O schema continua sendo atualizado com `ddl-auto=update` por padrão.
 
 ## Para parar
 

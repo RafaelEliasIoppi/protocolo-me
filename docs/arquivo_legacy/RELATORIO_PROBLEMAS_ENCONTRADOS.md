@@ -1,6 +1,6 @@
 # RELATÓRIO DETALHADO DE PROBLEMAS ENCONTRADOS
 
-**Data da Análise:** 15 de Abril de 2026  
+**Data da Análise:** 15 de Abril de 2026
 **Nível de Severidade:** CRÍTICO, ALTO, MÉDIO
 
 ---
@@ -18,15 +18,15 @@ Foram encontrados **23 problemas** ao longo do projeto, sendo:
 
 ### 1. **Arquivos Completamente Ausentes - Backend**
 
-**Arquivo:** Backend (Service, Repository, Controller)  
-**Severidade:** CRÍTICO  
+**Arquivo:** Backend (Service, Repository, Controller)
+**Severidade:** CRÍTICO
 **Descrição:** Os seguintes arquivos estão **COMPLETAMENTE AUSENTES** mas são referenciados no código:
 
 - `back/backend/service/UsuarioService.java` ❌
 - `back/backend/repository/UsuarioRepository.java` ❌
 - `back/backend/controller/UsuarioController.java` ❌
 
-**Impacto:** 
+**Impacto:**
 - A segurança JWT não funciona (JwtFilter tenta usar UserDetailsService que não existe)
 - Não há forma de registrar/autenticar usuários
 - Toda a camada de autenticação está quebrada
@@ -39,11 +39,11 @@ Foram encontrados **23 problemas** ao longo do projeto, sendo:
 
 ### 2. **Arquivo Index.js Vazio (Frontend)**
 
-**Arquivo:** `frontend/src/Index.js`  
-**Severidade:** CRÍTICO  
+**Arquivo:** `frontend/src/Index.js`
+**Severidade:** CRÍTICO
 **Descrição:** O arquivo está **completamente vazio**, mas é mencionado na estrutura de diretórios
 
-**Impacto:** 
+**Impacto:**
 - Arquivo sem funcionalidade, pode causar confusão ou erros de import
 - Não está sendo importado atualmente, mas pode quebrar se alguém tentar usá-lo
 
@@ -53,8 +53,8 @@ Foram encontrados **23 problemas** ao longo do projeto, sendo:
 
 ### 3. **Arquivo routes.js Vazio (Frontend)**
 
-**Arquivo:** `frontend/src/routes.js`  
-**Severidade:** CRÍTICO  
+**Arquivo:** `frontend/src/routes.js`
+**Severidade:** CRÍTICO
 **Descrição:** O arquivo está **completamente vazio**
 
 **Impacto:**
@@ -67,8 +67,8 @@ Foram encontrados **23 problemas** ao longo do projeto, sendo:
 
 ### 4. **Falta de PasswordEncoder (Segurança)**
 
-**Arquivo:** `back/security/SecurityConfig.java` e `back/backend/service/UsuarioService.java` (não existe)  
-**Severidade:** CRÍTICO  
+**Arquivo:** `back/security/SecurityConfig.java` e `back/backend/service/UsuarioService.java` (não existe)
+**Severidade:** CRÍTICO
 **Descrição:** Não há **nenhuma configuração de PasswordEncoder** no projeto. As senhas dos usuários seriam armazenadas em **texto plano**!
 
 **Impacto:**
@@ -91,8 +91,8 @@ public PasswordEncoder passwordEncoder() {
 
 ### 5. **URLs com Porta Incorreta (Frontend)**
 
-**Arquivo:** `frontend/src/componentes/PacienteForm.js`  
-**Severidade:** ALTO  
+**Arquivo:** `frontend/src/componentes/PacienteForm.js`
+**Severidade:** ALTO
 **Descrição:** Múltiplas chamadas usam `localhost:8080` mas o backend está configurado para `localhost:2500`
 
 **Linhas afetadas:**
@@ -113,7 +113,7 @@ public PasswordEncoder passwordEncoder() {
 server.port=2500
 ```
 
-**Impacto:** 
+**Impacto:**
 - Todas as requisições falhará com erro CORS/conexão recusada
 - Frontend não consegue comunicar com backend
 
@@ -123,8 +123,8 @@ server.port=2500
 
 ### 6. **Nomenclatura Incorreta: JwUtil vs JwtUtil**
 
-**Arquivo:** `back/security/JwUtil.java`  
-**Severidade:** ALTO  
+**Arquivo:** `back/security/JwUtil.java`
+**Severidade:** ALTO
 **Descrição:** Classe se chama `JwUtil` mas deveria ser `JwtUtil` (JWT completo)
 
 **Problema:**
@@ -140,8 +140,8 @@ server.port=2500
 
 ### 7. **Classe ErrorResponse em Local Incorreto**
 
-**Arquivo:** `back/backend/controller/PacienteController.java`  
-**Severidade:** ALTO  
+**Arquivo:** `back/backend/controller/PacienteController.java`
+**Severidade:** ALTO
 **Descrição:** Classe `ErrorResponse` está definida como **inner class privada** dentro de `PacienteController`, mas deveria ser uma classe pública compartilhada
 
 **Problema:**
@@ -163,8 +163,8 @@ public static class ErrorResponse {  // Linha 205
 
 ### 8. **Typo em Nome de Variável (ExameMEService)**
 
-**Arquivo:** `back/backend/service/ExameMEService.java`  
-**Severidade:** ALTO  
+**Arquivo:** `back/backend/service/ExameMEService.java`
+**Severidade:** ALTO
 **Descrição:** Variável nomeada com snake_case em método camelCase
 
 **Linha 109:**
@@ -186,8 +186,8 @@ resumo.setExamesClinico(...)  // ✅ Consistent camelCase
 
 ### 9. **Método registrarTesteClinco1 Não Existe (ProtocoloMEManager)**
 
-**Arquivo:** `frontend/src/componentes/ProtocoloMEManager.js`  
-**Severidade:** ALTO  
+**Arquivo:** `frontend/src/componentes/ProtocoloMEManager.js`
+**Severidade:** ALTO
 **Descrição:** Frontend chama método que não existe em nenhum endpoint backend
 
 **Linha 93-100:**
@@ -208,8 +208,8 @@ const registrarTesteClinco1 = async (protocoloId) => {
 
 ### 10. **Enumeração StatusProtocoloME Incompleta**
 
-**Arquivo:** `backend/src/main/java/back/backend/model/ExameME.java`  
-**Severidade:** ALTO  
+**Arquivo:** `backend/src/main/java/back/backend/model/ExameME.java`
+**Severidade:** ALTO
 **Descrição:** Enum `TipoExame` estava com método `getLabel()` incompleto (ao ler linhas 145-150)
 
 **Observação:** Após verificação completa, está fechado corretamente, mas foi um problema detectado
@@ -218,8 +218,8 @@ const registrarTesteClinco1 = async (protocoloId) => {
 
 ### 11. **Inconsistência de Nomes: Genero vs Gender**
 
-**Arquivo:** `backend/src/main/java/back/backend/model/Paciente.java`  
-**Severidade:** MÉDIO  
+**Arquivo:** `backend/src/main/java/back/backend/model/Paciente.java`
+**Severidade:** MÉDIO
 **Descrição:** Campo usa `Genero` (português) enquanto outros campos usam inglês ou nomenclatura mista
 
 **Linha 34:**
@@ -233,8 +233,8 @@ private Genero genero;  // português
 
 ### 12. **Typo: telefonoResponsavel (Espanhol)**
 
-**Arquivo:** `backend/src/main/java/back/backend/model/Paciente.java`  
-**Severidade:** MÉDIO  
+**Arquivo:** `backend/src/main/java/back/backend/model/Paciente.java`
+**Severidade:** MÉDIO
 **Descrição:** Campo nomeado em espanhol: `telefonoResponsavel` deveria ser `telefoneResponsavel` (português)
 
 **Linhas afetadas:**
@@ -246,8 +246,8 @@ private Genero genero;  // português
 
 ### 13. **Falta @PrePersist em ProtocoloME**
 
-**Arquivo:** `back/backend/model/ProtocoloME.java`  
-**Severidade:** MÉDIO  
+**Arquivo:** `back/backend/model/ProtocoloME.java`
+**Severidade:** MÉDIO
 **Descrição:** Linha 100 declara:
 ```java
 @Column(name = "data_notificacao", nullable = false)
@@ -260,8 +260,8 @@ Mas não há garantia de que será setada automaticamente como outras entidades
 
 ### 14. **Tipo Incorreto no Repositories**
 
-**Arquivo:** `back/backend/repository/ExameMERepository.java`  
-**Severidade:** ALTO  
+**Arquivo:** `back/backend/repository/ExameMERepository.java`
+**Severidade:** ALTO
 **Descrição:** Método `findByProtocoloME` pode retornar vazio enquanto não deveria
 
 **Problema Potencial:** Não há query customizada para garantir comportamento esperado
@@ -270,16 +270,16 @@ Mas não há garantia de que será setada automaticamente como outras entidades
 
 ### 15. **Falta Validação no PacienteService**
 
-**Arquivo:** `back/backend/service/PacienteService.java`  
-**Severidade:** MÉDIO  
+**Arquivo:** `back/backend/service/PacienteService.java`
+**Severidade:** MÉDIO
 **Descrição:** Método `validarPaciente` (linha 153) existe mas sua implementação não foi mostrada - pode estar vazia
 
 ---
 
 ### 16. **Inconsistência em Nomes de Métodos Frontend**
 
-**Arquivo:** `frontend/src/componentes/ProtocoloMEManager.js`  
-**Severidade:** MÉDIO  
+**Arquivo:** `frontend/src/componentes/ProtocoloMEManager.js`
+**Severidade:** MÉDIO
 **Descrição:** Typo em nome de função: `registrarTesteClinco1` deveria ser `registrarTesteClinico1`
 
 **Linha 93:**
@@ -293,8 +293,8 @@ const registrarTesteClinco1 = async (protocoloId) => {  // Typo: "Clinco" → "C
 
 ### 17. **Sem Tratamento de Erro para UserDetailsService**
 
-**Arquivo:** `back/security/JwtFilter.java`  
-**Severidade:** MÉDIO  
+**Arquivo:** `back/security/JwtFilter.java`
+**Severidade:** MÉDIO
 **Descrição:** Não há implementação de `UserDetailsService` e sem fallback
 
 ```java
@@ -305,24 +305,24 @@ UserDetails userDetails = this.userDetailsService.loadUserByUsername(username); 
 
 ### 18. **API sem Versionamento**
 
-**Arquivo:** Todas as rotas  
-**Severidade:** BAIXO  
+**Arquivo:** Todas as rotas
+**Severidade:** BAIXO
 **Descrição:** Endpoints não têm versionamento (`/api/v1/`)
 
 ---
 
 ### 19. **Falta de Logging**
 
-**Arquivo:** Serviços e Controllers  
-**Severidade:** BAIXO  
+**Arquivo:** Serviços e Controllers
+**Severidade:** BAIXO
 **Descrição:** Não há logs configurados (SLF4J/Log4j)
 
 ---
 
 ### 20. **CORS Aberto Demais**
 
-**Arquivo:** `back/backend/controller/*`  
-**Severidade:** MÉDIO  
+**Arquivo:** `back/backend/controller/*`
+**Severidade:** MÉDIO
 **Descrição:** `@CrossOrigin(origins = "*")` em todos os controllers
 
 ```java
@@ -338,8 +338,8 @@ UserDetails userDetails = this.userDetailsService.loadUserByUsername(username); 
 
 ### 21. **Sem Tratamento de Exceção Global**
 
-**Arquivo:** `back/controller/GlobalExceptionHandler.java`  
-**Severidade:** MÉDIO  
+**Arquivo:** `back/controller/GlobalExceptionHandler.java`
+**Severidade:** MÉDIO
 **Descrição:** Só trata 2 tipos de exceção, faltam outras
 
 ```java
@@ -352,12 +352,12 @@ UserDetails userDetails = this.userDetailsService.loadUserByUsername(username); 
 
 ### 22. **Sem Configuração de Banco de Dados Persistente**
 
-**Arquivo:** `application.properties`  
-**Severidade:** MÉDIO  
-**Descrição:** Banco H2 está em memória com `update` mode
+**Arquivo:** `application.properties`
+**Severidade:** MÉDIO
+**Descrição:** Na época, o banco estava configurado para um banco local com `update` mode
 
 ```properties
-spring.datasource.url=jdbc:h2:file:./data/banco  # ✅ Arquivo local (OK)
+spring.datasource.url=jdbc:postgresql://...  # ✅ Banco PostgreSQL/Supabase
 spring.jpa.hibernate.ddl-auto=update  # ⚠️ Nunca em produção
 ```
 
@@ -365,8 +365,8 @@ spring.jpa.hibernate.ddl-auto=update  # ⚠️ Nunca em produção
 
 ### 23. **Falta de Teste de Login**
 
-**Arquivo:** Frontend  
-**Severidade:** MÉDIO  
+**Arquivo:** Frontend
+**Severidade:** MÉDIO
 **Descrição:** Componente `login.js` não trata resposta corretamente:
 
 ```javascript

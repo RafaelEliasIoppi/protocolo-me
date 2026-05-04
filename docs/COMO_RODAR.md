@@ -39,7 +39,7 @@ npm start
 
 ## ✅ Verificar se está funcionando
 
-- **Backend**: http://localhost:2500/h2-console
+- **Backend**: usa Supabase/PostgreSQL via variáveis de ambiente
 - **Frontend**: http://localhost:3000
 - **API**: http://localhost:2500/api/usuarios
 
@@ -72,7 +72,7 @@ pkill -f "react-scripts"
 
 - **Backend**: Porta 2500 (em `backend/src/main/resources/application.properties`)
 - **Frontend**: Porta 3000 (React padrão)
-- **Banco de Dados**: H2 em `backend/data/banco.mv.db`
+- **Banco de Dados**: Supabase/PostgreSQL via `DATABASE_URL`
 - **CORS**: Controlado por `app.cors.allowed-origins` no backend
 
 ---

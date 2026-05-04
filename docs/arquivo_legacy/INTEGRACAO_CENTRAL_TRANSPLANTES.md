@@ -34,7 +34,7 @@ const routes = [
 ```javascript
 <nav>
   {/* Links existentes */}
-  
+
   {/* Novos links */}
   <li><a href="/centrais-transplantes">Central de Transplantes</a></li>
   <li><a href="/protocolos-me">Protocolos de ME</a></li>
@@ -57,16 +57,16 @@ public class Paciente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Column(nullable = false)
     private String nome;
-    
+
     @Column(nullable = false)
     private String dataAdmissao;
-    
+
     @Column(nullable = false)
     private String hospital;
-    
+
     // ... outros campos
 }
 ```
@@ -112,7 +112,7 @@ Certifique-se de ter:
 As configurações já estão no projeto:
 ```
 spring.jpa.hibernate.ddl-auto=update
-spring.datasource.url=jdbc:h2:file:./data/banco;AUTO_SERVER=TRUE;LOCK_TIMEOUT=10000
+spring.datasource.url=jdbc:postgresql://.../postgres
 ```
 
 ### 3. CORS no Backend
@@ -169,7 +169,7 @@ curl -X POST http://localhost:2500/api/protocolos-me \
 1. **Criar Central** → CentralTransplantesForm
    - Preencher dados da central
    - Adicionar hospitais parceiros
-   
+
 2. **Gerenciar Protocolos** → ProtocoloMEManager
    - Criar novo protocolo quando notificado
    - Registrar testes clínicos

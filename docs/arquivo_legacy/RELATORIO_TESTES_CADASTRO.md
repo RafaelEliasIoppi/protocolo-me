@@ -62,7 +62,7 @@ Service (UsuarioService)
     ↓
 Repository (UsuarioRepository)
     ↓
-Database (H2)
+Database (Supabase/PostgreSQL)
 ```
 
 ### Endpoints Testados:

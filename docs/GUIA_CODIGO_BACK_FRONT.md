@@ -290,23 +290,21 @@ Para aprofundar em outros fluxos do sistema, use os guias gerais abaixo:
 - Metodos principais:
   - criar
   - listarTodos
+  - buscarPorNome
   - obterPorId
   - obterPorCpf
   - listarPorHospital
   - listarPorStatus
   - listarPorHospitalEStatus
-  - listarPacientesEmProtocoloME
-  - listarPacientesEmProtocoloMEPorHospital
-  - obterRelatorioFinalPaciente
-  - listarRelatoriosFinaisPacientes
-  - buscarPorNome
-  - buscarPorNomeEHospital
   - atualizar
   - atualizarStatus
   - deletar
   - obterEstatisticas
+  - listarEmProtocoloME
+  - listarEmProtocoloMEPorHospital
+  - obterRelatorioFinal
 - Destaque:
-  - Endpoint de relatorio final por paciente e em lote.
+  - Endpoint de relatorio final por paciente e consultas de pacientes em protocolo ME.
 
 #### ProtocoloMEController
 - Arquivo: backend/src/main/java/back/backend/controller/ProtocoloMEController.java

@@ -4,7 +4,7 @@
 
 O backend do Protocolo-ME é uma API REST Spring Boot voltada ao gerenciamento de protocolo de morte encefálica, cadastro de pacientes, usuários, hospitais, centrais de transplantes, exames, órgãos doados e anexos.
 
-A arquitetura é clássica em camadas: controllers expõem a API, services concentram regra de negócio, repositories fazem persistência JPA/H2, mappers fazem a ponte DTO-entidade e a camada de segurança usa JWT com autorização por roles. O sistema não possui integração ativa com Gmail ou Telegram no código atual. Campos de e-mail existem como dados de domínio, mas não há adaptadores, bots, SMTP ou serviços de notificação para esses canais.
+A arquitetura é clássica em camadas: controllers expõem a API, services concentram regra de negócio, repositories fazem persistência JPA/PostgreSQL, mappers fazem a ponte DTO-entidade e a camada de segurança usa JWT com autorização por roles. O sistema não possui integração ativa com Gmail ou Telegram no código atual. Campos de e-mail existem como dados de domínio, mas não há adaptadores, bots, SMTP ou serviços de notificação para esses canais.
 
 ## Mapa de Componentes
 
