@@ -14,6 +14,10 @@ public interface ExameRequestMapper {
     @Mapping(target = "protocoloME", expression = "java(toProtocolo(dto.getProtocoloId()))")
     @Mapping(target = "tipoExame", expression = "java(dto.getTipoExame() != null ? ExameME.TipoExame.valueOf(dto.getTipoExame().toUpperCase()) : null)")
     @Mapping(target = "resultado", expression = "java(toResultado(dto.getResultado(), dto.getResultadoPositivo()))")
+    @Mapping(target = "statusValidacao", ignore = true)
+    @Mapping(target = "validadoPor", ignore = true)
+    @Mapping(target = "dataValidacao", ignore = true)
+    @Mapping(target = "observacoesValidacao", ignore = true)
     @Mapping(target = "dataCriacao", ignore = true)
     @Mapping(target = "dataAtualizacao", ignore = true)
     ExameME toEntity(ExameRequestDTO dto);

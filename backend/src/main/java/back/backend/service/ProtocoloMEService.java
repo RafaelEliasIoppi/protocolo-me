@@ -14,6 +14,7 @@ import back.backend.exception.ConflitoNegocioException;
 import back.backend.exception.RecursoNaoEncontradoException;
 import back.backend.mapper.ProtocoloMapper;
 import back.backend.model.CentralTransplantes;
+import back.backend.model.ExameME;
 import back.backend.model.Paciente;
 import back.backend.model.ProtocoloME;
 import back.backend.repository.CentralTransplantesRepository;
@@ -276,13 +277,13 @@ public class ProtocoloMEService {
             doacao.setCentralTransplantes(protocolo.getCentralTransplantes());
             protocolo.setDoacao(doacao);
         }
-        
+
         protocolo.getDoacao().setAutorizada(autorizouDoacao);
         protocolo.getDoacao().setDataEntrevista(LocalDateTime.now());
         protocolo.getDoacao().setObservacoes(observacoes);
-        protocolo.getDoacao().setStatus(autorizouDoacao 
-            ? back.backend.model.Doacao.StatusDoacao.AUTORIZADA 
-            : back.backend.model.Doacao.StatusDoacao.RECUSADA);
+        protocolo.getDoacao().setStatus(autorizouDoacao
+                ? back.backend.model.Doacao.StatusDoacao.AUTORIZADA
+                : back.backend.model.Doacao.StatusDoacao.RECUSADA);
 
         protocolo.setStatus(protocolo.calcularStatusAutomatico());
 
