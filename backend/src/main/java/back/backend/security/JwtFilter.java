@@ -26,16 +26,15 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
+            HttpServletResponse response,
+            FilterChain filterChain)
             throws ServletException, IOException {
 
         String path = request.getServletPath();
 
-        // 🔥 IGNORA LOGIN E REGISTER
-            if (path.equals("/api/usuarios/login") ||
-               (path.equals("/api/usuarios") && request.getMethod().equals("POST"))) {
-                  filterChain.doFilter(request, response);
+        // Ignora apenas o login; o restante de /api/usuarios exige autenticação.
+        if (path.equals("/api/usuarios/login")) {
+            filterChain.doFilter(request, response);
             return;
         }
         final String authHeader = request.getHeader("Authorization");
@@ -60,12 +59,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (jwtUtil.validateToken(jwt, userDetails)) {
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 

@@ -28,16 +28,6 @@ public class UsuarioController {
     private final UsuarioRequestMapper usuarioRequestMapper;
 
     // =========================
-    // REGISTRO PÚBLICO
-    // =========================
-    @PostMapping
-    public ResponseEntity<UsuarioDTO> registrar(@Valid @RequestBody UsuarioRequestDTO request) {
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(usuarioService.registrarPublico(usuarioRequestMapper.toEntity(request)));
-    }
-
-    // =========================
     // REGISTRO ADMIN
     // =========================
     @PostMapping("/admin/registrar")
@@ -59,8 +49,7 @@ public class UsuarioController {
         long expiraEm = jwtUtil.extractExpiration(token).getTime();
 
         return ResponseEntity.ok(
-            new AuthResponseDTO(token, expiraEm, usuario)
-        );
+                new AuthResponseDTO(token, expiraEm, usuario));
     }
 
     // =========================
@@ -75,8 +64,7 @@ public class UsuarioController {
                 auth.getName(),
                 dto.getSenhaAtual(),
                 dto.getSenhaNova(),
-                dto.getConfirmarSenha()
-        );
+                dto.getConfirmarSenha());
 
         return ResponseEntity.ok(new AcaoResponseDTO(usuario.getId(), "Senha alterada com sucesso"));
     }
@@ -93,7 +81,8 @@ public class UsuarioController {
     // ATUALIZAR
     // =========================
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioDTO> atualizarUsuario(@PathVariable Long id, @Valid @RequestBody UsuarioRequestDTO request) {
+    public ResponseEntity<UsuarioDTO> atualizarUsuario(@PathVariable Long id,
+            @Valid @RequestBody UsuarioRequestDTO request) {
 
         var dados = usuarioRequestMapper.toEntity(request);
 
@@ -107,7 +96,7 @@ public class UsuarioController {
     // =========================
     @PatchMapping("/{id}/senha")
     public ResponseEntity<AcaoResponseDTO> redefinirSenha(@PathVariable Long id,
-                                                         @Valid @RequestBody ResetSenhaDTO dto) {
+            @Valid @RequestBody ResetSenhaDTO dto) {
 
         UsuarioDTO usuario = usuarioService.redefinirSenha(id, dto.getSenhaNova());
 

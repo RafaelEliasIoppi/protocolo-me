@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, Outlet } from "react-router-dom";
 
 function AppLayout({ usuario, theme, setTheme, onLogout }) {
@@ -30,6 +29,9 @@ function AppLayout({ usuario, theme, setTheme, onLogout }) {
           )}
           {role === "CENTRAL_TRANSPLANTES" && (
             <Link className="secondary-button" to="/cadastros/hospitais">Cadastro de Hospitais</Link>
+          )}
+          {role === "CENTRAL_TRANSPLANTES" && (
+            <Link className="secondary-button" to="/cadastros/hospitais/status">Status dos Hospitais</Link>
           )}
           {(role === "ADMIN" || role === "COORDENADOR_TRANSPLANTES") && (
             <Link className="secondary-button" to="/admin/usuarios">Cadastro de Usuários</Link>

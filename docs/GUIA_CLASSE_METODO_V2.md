@@ -525,7 +525,7 @@ Arquivo base: [frontend/src/services/apiClient.js](frontend/src/services/apiClie
 Arquivo base: [frontend/src/componentes/login.js](frontend/src/componentes/login.js)
 
 - [Login](frontend/src/componentes/login.js#L4)
-  - Componente de entrada com login, cadastro público e cadastro do primeiro admin.
+  - Componente de entrada com login, cadastro restrito e cadastro do primeiro admin.
 
 - [validarEmail](frontend/src/componentes/login.js#L15)
   - Validação básica de formato antes de enviar request.
@@ -533,7 +533,7 @@ Arquivo base: [frontend/src/componentes/login.js](frontend/src/componentes/login
 - [handleSubmit](frontend/src/componentes/login.js#L20)
   - Orquestra três fluxos:
   - cadastro do primeiro administrador,
-  - cadastro público (médico/enfermeiro),
+  - cadastro restrito (médico/enfermeiro),
   - login com persistência da sessão via serviço de autenticação.
 
 ## 8) Autenticacao de Usuario
@@ -561,9 +561,7 @@ Arquivo base: [backend/src/main/java/back/backend/security/JwtUtil.java](backend
 ### 8.2 UsuarioController
 Arquivo base: [backend/src/main/java/back/backend/controller/UsuarioController.java](backend/src/main/java/back/backend/controller/UsuarioController.java)
 
-- [registrar](backend/src/main/java/back/backend/controller/UsuarioController.java#L29)
-  - Cadastro público restrito a MEDICO e ENFERMEIRO.
-  - Rejeita outros perfis com 403.
+ Cadastro restrito a MEDICO e ENFERMEIRO.
 
 - [registrarAdministrador](backend/src/main/java/back/backend/controller/UsuarioController.java#L54)
   - Trata o primeiro ADMIN e o cadastro administrativo posterior.

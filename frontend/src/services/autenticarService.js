@@ -30,11 +30,6 @@ export const autenticarService = {
     return response.data;
   },
 
-  async registrar(usuario) {
-    const response = await api.post("/api/usuarios", usuario);
-    return response.data;
-  },
-
   async registrarAdmin(usuario) {
     const response = await api.post("/api/usuarios/admin/registrar", usuario);
     return response.data;

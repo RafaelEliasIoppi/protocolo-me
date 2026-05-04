@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
-import HospitalForm from "./HospitalForm";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import hospitalService from "../services/hospitalService";
+import HospitalForm from "./HospitalForm";
 
 function HospitaisPage() {
   const [hospitais, setHospitais] = useState([]);
@@ -45,6 +46,9 @@ function HospitaisPage() {
           <h1>Cadastro de Hospitais</h1>
           <p>Somente a Central de Transplantes pode cadastrar hospitais.</p>
         </div>
+        <Link className="secondary-button" to="/cadastros/hospitais/status">
+          Gerenciar Status
+        </Link>
       </div>
 
       {erro && <div className="mensagem erro">{erro}</div>}
@@ -77,6 +81,13 @@ function HospitaisPage() {
                   <span>Email: {hospital.email || "Não informado"}</span>
                 </div>
                 <div className="action-buttons">
+                  <Link
+                    className="secondary-button"
+                    to="/cadastros/hospitais/status"
+                    title="Gerenciar status"
+                  >
+                    Status
+                  </Link>
                   <button className="edit-button" onClick={() => setHospitalEmEdicao(hospital)} title="Editar hospital">✏️</button>
                   <button className="delete-button" onClick={() => excluirHospital(hospital.id)} title="Excluir hospital">🗑️</button>
                 </div>

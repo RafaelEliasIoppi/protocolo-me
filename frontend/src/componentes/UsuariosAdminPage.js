@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import autenticarService from "../services/autenticarService";
 import { getApiErrorMessage } from "../utils/apiError";
 
@@ -291,6 +291,43 @@ function UsuariosAdminPage() {
     }
   };
 
+  const alternarStatusUsuario = async (usuario) => {
+
+    limparMensagens();
+
+    try {
+
+      setCarregando(true);
+
+      await autenticarService.atualizarUsuario(usuario.id, {
+        ativo: !usuario.ativo,
+      });
+
+      setSucesso(
+        usuario.ativo
+          ? "Usuário desativado com sucesso!"
+          : "Usuário ativado com sucesso!"
+      );
+
+      await carregarUsuarios();
+
+    } catch (error) {
+
+      setErro(
+        getApiErrorMessage(
+          error,
+          "Erro ao alterar status do usuário"
+        )
+      );
+
+    } finally {
+
+      setCarregando(false);
+
+    }
+
+  };
+
   return (
     <section className="usuarios-admin-page">
 
@@ -555,6 +592,16 @@ function UsuariosAdminPage() {
                       </div>
 
                     </div>
+
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      onClick={() =>
+                        alternarStatusUsuario(u)
+                      }
+                    >
+                      {u.ativo ? "Desativar" : "Ativar"}
+                    </button>
 
                     <button
                       className="secondary-button"

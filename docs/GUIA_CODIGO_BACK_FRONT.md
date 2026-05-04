@@ -474,7 +474,7 @@ Para aprofundar em outros fluxos do sistema, use os guias gerais abaixo:
   - validarEmail
   - handleSubmit
 - Papel:
-  - Login, cadastro publico e cadastro inicial admin.
+  - Login, cadastro restrito e cadastro inicial admin.
 
 #### Dashboard geral
 - Arquivo: frontend/src/componentes/Dashboard.js

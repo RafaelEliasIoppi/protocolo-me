@@ -1,5 +1,5 @@
-import autenticarService from './autenticarService';
 import apiClient from './apiClient';
+import autenticarService from './autenticarService';
 
 jest.mock('./apiClient');
 
@@ -42,38 +42,12 @@ describe('autenticarService', () => {
     });
   });
 
-  describe('registrar', () => {
-    it('deve registrar novo usuário', async () => {
-      const response = {
-        data: {
-          id: 1,
-          email: 'novo@email.com',
-          nome: 'Novo Usuario',
-          role: 'MEDICO'
-        }
-      };
-      apiClient.post.mockResolvedValue(response);
-
-      const result = await autenticarService.registrar({
-        email: 'novo@email.com',
-        senha: 'senha123',
-        nome: 'Novo Usuario'
-      });
-
-      expect(result).toEqual(response.data);
-      expect(apiClient.post).toHaveBeenCalledWith('/api/usuarios', expect.objectContaining({
-        email: 'novo@email.com',
-        nome: 'Novo Usuario'
-      }));
-    });
-  });
-
   describe('logout', () => {
     it('deve remover token do localStorage', () => {
       localStorage.setItem('token', 'test-token');
-      
+
       autenticarService.logout();
-      
+
       expect(localStorage.getItem('token')).toBeNull();
     });
   });
@@ -82,13 +56,13 @@ describe('autenticarService', () => {
     it('deve retornar true se token e usuário com role existem', () => {
       localStorage.setItem('token', 'test-token');
       localStorage.setItem('usuario', JSON.stringify({ role: 'MEDICO' }));
-      
+
       expect(autenticarService.isAutenticado()).toBe(true);
     });
 
     it('deve retornar false se token não existe', () => {
       localStorage.clear();
-      
+
       expect(autenticarService.isAutenticado()).toBe(false);
     });
 
@@ -108,9 +82,9 @@ describe('autenticarService', () => {
         role: 'MEDICO'
       };
       localStorage.setItem('usuario', JSON.stringify(usuarioMock));
-      
+
       const usuario = autenticarService.obterUsuarioAtual();
-      
+
       expect(usuario).toEqual(usuarioMock);
     });
   });

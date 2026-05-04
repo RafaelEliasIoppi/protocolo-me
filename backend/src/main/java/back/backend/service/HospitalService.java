@@ -36,9 +36,7 @@ public class HospitalService {
 
         hospital.setCnpj(cnpjNormalizado);
 
-        if (hospital.getStatus() == null) {
-            hospital.setStatus(Hospital.StatusHospital.ATIVO);
-        }
+        hospital.setStatus(Hospital.StatusHospital.ATIVO);
 
         return toDTO(hospitalRepository.save(hospital));
     }
@@ -96,13 +94,20 @@ public class HospitalService {
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado: " + id));
 
         // update parcial seguro
-        if (atualizado.getNome() != null) hospital.setNome(atualizado.getNome());
-        if (atualizado.getEndereco() != null) hospital.setEndereco(atualizado.getEndereco());
-        if (atualizado.getCidade() != null) hospital.setCidade(atualizado.getCidade());
-        if (atualizado.getEstado() != null) hospital.setEstado(atualizado.getEstado());
-        if (atualizado.getTelefone() != null) hospital.setTelefone(atualizado.getTelefone());
-        if (atualizado.getEmail() != null) hospital.setEmail(atualizado.getEmail());
-        if (atualizado.getResponsavelMedico() != null) hospital.setResponsavelMedico(atualizado.getResponsavelMedico());
+        if (atualizado.getNome() != null)
+            hospital.setNome(atualizado.getNome());
+        if (atualizado.getEndereco() != null)
+            hospital.setEndereco(atualizado.getEndereco());
+        if (atualizado.getCidade() != null)
+            hospital.setCidade(atualizado.getCidade());
+        if (atualizado.getEstado() != null)
+            hospital.setEstado(atualizado.getEstado());
+        if (atualizado.getTelefone() != null)
+            hospital.setTelefone(atualizado.getTelefone());
+        if (atualizado.getEmail() != null)
+            hospital.setEmail(atualizado.getEmail());
+        if (atualizado.getResponsavelMedico() != null)
+            hospital.setResponsavelMedico(atualizado.getResponsavelMedico());
 
         return toDTO(hospitalRepository.save(hospital));
     }
@@ -146,7 +151,7 @@ public class HospitalService {
         if (n.length() != 14) {
             throw new IllegalArgumentException("CNPJ inválido");
         }
-        return n.replaceAll("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})", "$1.$2.$3/$4-$5");
+        return n;
     }
 
     private HospitalDTO toDTO(Hospital hospital) {

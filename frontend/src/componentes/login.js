@@ -11,7 +11,7 @@ const estadoInicialFormulario = {
 
 function Login({ onLogin }) {
 
-  // 🔥 CADASTRO PÚBLICO DESATIVADO
+  // Cadastro restrito desativado na tela de login.
   const [isRegister] = useState(false);
 
   const [form, setForm] = useState(estadoInicialFormulario);

@@ -8,6 +8,7 @@ import CentralDashboardPage from "./componentes/CentralDashboardPage";
 import Dashboard from "./componentes/Dashboard";
 import EstatisticasPage from "./componentes/EstatisticasPage";
 import HospitaisPage from "./componentes/HospitaisPage";
+import HospitalStatus from "./componentes/HospitalStatus";
 import Login from "./componentes/login";
 import MedicoProtocoloME from "./componentes/MedicoProtocoloME";
 import PacienteCadastroPage from "./componentes/PacienteCadastroPage";
@@ -154,6 +155,14 @@ function App() {
             element={
               <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES"]}>
                 <HospitaisPage />
+              </GuardedRoute>
+            }
+          />
+          <Route
+            path="cadastros/hospitais/status"
+            element={
+              <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES"]}>
+                <HospitalStatus />
               </GuardedRoute>
             }
           />

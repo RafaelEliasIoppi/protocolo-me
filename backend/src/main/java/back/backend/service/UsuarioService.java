@@ -41,24 +41,20 @@ public class UsuarioService implements UserDetailsService {
 
     public void validarPermissaoCriacaoAdmin(Usuario usuario) {
 
-        long totalAdmins =
-                usuarioRepository.countByRole(Role.ADMIN);
+        long totalAdmins = usuarioRepository.countByRole(Role.ADMIN);
 
-        Authentication auth =
-                SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         boolean isAdmin = auth != null
                 && auth.isAuthenticated()
                 && auth.getAuthorities().stream()
-                        .anyMatch(a ->
-                                a.getAuthority().equals("ROLE_ADMIN"));
+                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
         boolean isCentral = auth != null
                 && auth.isAuthenticated()
                 && auth.getAuthorities().stream()
-                        .anyMatch(a ->
-                                a.getAuthority().equals(
-                                        "ROLE_CENTRAL_TRANSPLANTES"));
+                        .anyMatch(a -> a.getAuthority().equals(
+                                "ROLE_CENTRAL_TRANSPLANTES"));
 
         // PRIMEIRO USUÁRIO OBRIGATORIAMENTE ADMIN
         if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
@@ -75,7 +71,7 @@ public class UsuarioService implements UserDetailsService {
         if (isCentral) {
 
             if (usuario.getRole() == Role.MEDICO ||
-                usuario.getRole() == Role.ENFERMEIRO) {
+                    usuario.getRole() == Role.ENFERMEIRO) {
                 return;
             }
 
@@ -144,21 +140,6 @@ public class UsuarioService implements UserDetailsService {
         usuario.setDataAtualizacao(LocalDateTime.now());
 
         return toDTO(usuarioRepository.save(usuario));
-    }
-
-    public UsuarioDTO registrarPublico(Usuario usuario) {
-
-        if (usuario.getRole() == null) {
-            usuario.setRole(Role.MEDICO);
-        }
-
-        if (usuario.getRole() != Role.MEDICO &&
-                usuario.getRole() != Role.ENFERMEIRO) {
-            throw new IllegalArgumentException(
-                    "Cadastro público permite apenas MÉDICO ou ENFERMEIRO");
-        }
-
-        return registrar(usuario);
     }
 
     public UsuarioDTO registrarAdmin(Usuario usuario) {
