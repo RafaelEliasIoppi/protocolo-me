@@ -2,14 +2,19 @@ import { useState } from "react";
 import autenticarService from "../services/autenticarService";
 import { getApiErrorMessage } from "../utils/apiError";
 
+const estadoInicialFormulario = {
+  nome: "",
+  email: "",
+  senha: "",
+  role: "MEDICO"
+};
+
 function Login({ onLogin }) {
-  const [isRegister, setIsRegister] = useState(false);
-  const [form, setForm] = useState({
-    nome: "",
-    email: "",
-    senha: "",
-    role: "MEDICO"
-  });
+
+  // 🔥 CADASTRO PÚBLICO DESATIVADO
+  const [isRegister] = useState(false);
+
+  const [form, setForm] = useState(estadoInicialFormulario);
 
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState("");
@@ -31,7 +36,12 @@ function Login({ onLogin }) {
     setMensagem("");
   };
 
+  const limparFormulario = () => {
+    setForm(estadoInicialFormulario);
+  };
+
   const validarFormulario = () => {
+
     if (!form.email || !validarEmail(form.email)) {
       return "Email inválido";
     }
@@ -40,18 +50,17 @@ function Login({ onLogin }) {
       return "Senha deve ter pelo menos 6 caracteres";
     }
 
-    if (isRegister && (!form.nome || form.nome.trim().length < 3)) {
-      return "Nome deve ter pelo menos 3 caracteres";
-    }
-
     return null;
   };
 
   const fazerLogin = async (e) => {
+
     e.preventDefault();
+
     limparMensagens();
 
     const erroValidacao = validarFormulario();
+
     if (erroValidacao) {
       setErro(erroValidacao);
       return;
@@ -60,94 +69,94 @@ function Login({ onLogin }) {
     setCarregando(true);
 
     try {
-      const emailNormalizado = form.email.trim().toLowerCase();
 
-      if (isRegister) {
-        await autenticarService.registrar({
-          nome: form.nome.trim(),
-          email: emailNormalizado,
-          senha: form.senha,
-          role: form.role
-        });
+      const emailNormalizado =
+        form.email.trim().toLowerCase();
 
-        setMensagem("Usuário cadastrado com sucesso!");
-        setTimeout(() => setIsRegister(false), 1500);
+      const response = await autenticarService.login(
+        emailNormalizado,
+        form.senha
+      );
 
-      } else {
-        const response = await autenticarService.login(
-          emailNormalizado,
-          form.senha
-        );
+      // 🔐 TOKEN
+      localStorage.setItem(
+        "token",
+        response.token
+      );
 
-        // 🔐 SALVAR TOKEN
-        localStorage.setItem("token", response.token);
-        localStorage.setItem("usuario", JSON.stringify(response.usuario));
+      // 🔐 USUÁRIO
+      localStorage.setItem(
+        "usuario",
+        JSON.stringify(response.usuario)
+      );
 
-        setMensagem("Login realizado com sucesso!");
+      setMensagem("Login realizado com sucesso!");
 
-        // limpa senha da memória
-        setForm((prev) => ({ ...prev, senha: "" }));
+      // limpa senha memória
+      setForm((prev) => ({
+        ...prev,
+        senha: ""
+      }));
 
-        setTimeout(() => onLogin(), 1000);
-      }
+      setTimeout(() => onLogin(), 1000);
 
     } catch (error) {
-      const erroBackend = getApiErrorMessage(error);
+
+      const erroBackend =
+        getApiErrorMessage(error);
 
       setErro(
-        erroBackend === "Email já cadastrado"
-          ? "Este email já está em uso."
-          : erroBackend || "Erro na operação"
+        erroBackend || "Erro ao realizar login"
       );
+
     } finally {
+
       setCarregando(false);
+
     }
   };
 
   return (
     <div className="login-screen">
+
       <div className="login-card">
+
         <div className="login-hero">
-          <h2>{isRegister ? "Criar conta" : "Login"}</h2>
+
+          <h2>Login</h2>
+
           <p>
-            {isRegister
-              ? "Cadastre um novo usuário para acessar o sistema."
-              : "Acesse o sistema com seu email e senha."}
+            Acesse o sistema com seu email e senha.
           </p>
+
         </div>
 
         <div className="login-panel">
-          {erro && <div className="mensagem erro">{erro}</div>}
-          {mensagem && <div className="mensagem sucesso">{mensagem}</div>}
+
+          {erro && (
+            <div className="mensagem erro">
+              {erro}
+            </div>
+          )}
+
+          {mensagem && (
+            <div className="mensagem sucesso">
+              {mensagem}
+            </div>
+          )}
 
           <form onSubmit={fazerLogin}>
-
-            {isRegister && (
-              <>
-                <input
-                  type="text"
-                  placeholder="Nome"
-                  value={form.nome}
-                  onChange={(e) => atualizarCampoConta("nome", e.target.value)}
-                  disabled={carregando}
-                />
-
-                <select
-                  value={form.role}
-                  onChange={(e) => atualizarCampoConta("role", e.target.value)}
-                  disabled={carregando}
-                >
-                  <option value="MEDICO">Médico</option>
-                  <option value="ENFERMEIRO">Enfermeiro</option>
-                </select>
-              </>
-            )}
 
             <input
               type="email"
               placeholder="Email"
               value={form.email}
-              onChange={(e) => atualizarCampoConta("email", e.target.value)}
+              onChange={(e) =>
+                atualizarCampoConta(
+                  "email",
+                  e.target.value
+                )
+              }
               disabled={carregando}
             />
 
@@ -155,34 +164,30 @@ function Login({ onLogin }) {
               type="password"
               placeholder="Senha"
               value={form.senha}
-              onChange={(e) => atualizarCampoConta("senha", e.target.value)}
+              onChange={(e) =>
+                atualizarCampoConta(
+                  "senha",
+                  e.target.value
+                )
+              }
               disabled={carregando}
             />
 
-            <button type="submit" disabled={carregando}>
-              {carregando
-                ? "Processando..."
-                : isRegister
-                ? "Cadastrar"
-                : "Entrar"}
-            </button>
-          </form>
-
-          <div style={{ marginTop: 10 }}>
             <button
-              className="secondary-button"
-              onClick={() => {
-                setIsRegister(!isRegister);
-                limparMensagens();
-              }}
+              type="submit"
               disabled={carregando}
             >
-              {isRegister ? "Voltar ao login" : "Criar conta"}
+              {carregando
+                ? "Entrando..."
+                : "Entrar"}
             </button>
-          </div>
+
+          </form>
+
         </div>
 
       </div>
+
     </div>
   );
 }

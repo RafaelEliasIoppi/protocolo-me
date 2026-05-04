@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import autenticarService from "../services/autenticarService";
 import { getApiErrorMessage } from "../utils/apiError";
 
@@ -14,7 +14,7 @@ const estadoInicialFormulario = {
   nome: "",
   email: "",
   senha: "",
-  role: "CENTRAL_TRANSPLANTES",
+  role: "MEDICO",
 };
 
 const estadoInicialEdicao = {
@@ -27,44 +27,36 @@ const estadoInicialEdicao = {
 };
 
 function UsuariosAdminPage() {
-  const [formData, setFormData] = useState(estadoInicialFormulario);
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState(null);
-  const [formEdicao, setFormEdicao] = useState(estadoInicialEdicao);
+
+  const [formData, setFormData] = useState(
+    estadoInicialFormulario
+  );
+
+  const [usuarioSelecionado, setUsuarioSelecionado] =
+    useState(null);
+
+  const [formEdicao, setFormEdicao] =
+    useState(estadoInicialEdicao);
+
   const [novaSenha, setNovaSenha] = useState("");
 
   const [usuarios, setUsuarios] = useState([]);
+
   const [termoBusca, setTermoBusca] = useState("");
-  const [filtroRole, setFiltroRole] = useState("TODOS");
+
+  const [filtroRole, setFiltroRole] =
+    useState("TODOS");
+
   const [erro, setErro] = useState("");
+
   const [sucesso, setSucesso] = useState("");
 
-  const [carregando, setCarregando] = useState(false);
-  const [carregandoLista, setCarregandoLista] = useState(false);
+  const [carregando, setCarregando] =
+    useState(false);
 
-  // =========================
-  // LOAD
-  // =========================
-  const carregarUsuarios = async () => {
-    try {
-      setCarregandoLista(true);
-      const lista = await autenticarService.listarUsuarios();
-      setUsuarios(Array.isArray(lista) ? lista : []);
-    } catch (error) {
-      setErro(getApiErrorMessage(error, "Erro ao carregar usuários"));
-    } finally {
-      setCarregandoLista(false);
-    }
-  };
+  const [carregandoLista, setCarregandoLista] =
+    useState(false);
 
-  useEffect(() => {
-    carregarUsuarios();
-    setFormData(estadoInicialFormulario);
-    limparMensagens();
-  }, []);
-
-  // =========================
-  // UTIL
-  // =========================
   const limparMensagens = () => {
     setErro("");
     setSucesso("");
@@ -73,59 +65,139 @@ function UsuariosAdminPage() {
   const normalizarEmail = (email) =>
     email.trim().toLowerCase();
 
-  const usuariosFiltrados = useMemo(() => {
-    const busca = termoBusca.trim().toLowerCase();
+  const carregarUsuarios = useCallback(async () => {
 
-    return usuarios.filter((u) => {
-      const nome = (u.nome || "").toLowerCase();
-      const email = (u.email || "").toLowerCase();
-      const role = u.role || "";
+    try {
 
-      const passaRole = filtroRole === "TODOS" || role === filtroRole;
-      const passaBusca = !busca || nome.includes(busca) || email.includes(busca);
+      setCarregandoLista(true);
 
-      return passaRole && passaBusca;
-    });
-  }, [usuarios, termoBusca, filtroRole]);
+      const lista =
+        await autenticarService.listarUsuarios();
 
-  // =========================
-  // CADASTRO
-  // =========================
-  const criarUsuario = async (e) => {
-    e.preventDefault();
+      setUsuarios(
+        Array.isArray(lista) ? lista : []
+      );
+
+    } catch (error) {
+
+      setErro(
+        getApiErrorMessage(
+          error,
+          "Erro ao carregar usuários"
+        )
+      );
+
+    } finally {
+
+      setCarregandoLista(false);
+
+    }
+
+  }, []);
+
+  useEffect(() => {
+
+    setFormData(estadoInicialFormulario);
+
+    setUsuarioSelecionado(null);
+
     limparMensagens();
 
-    if (!formData.nome || !formData.email || !formData.senha) {
+    carregarUsuarios();
+
+  }, [carregarUsuarios]);
+
+  const usuariosFiltrados = useMemo(() => {
+
+    const busca =
+      termoBusca.trim().toLowerCase();
+
+    return usuarios.filter((u) => {
+
+      const nome =
+        (u.nome || "").toLowerCase();
+
+      const email =
+        (u.email || "").toLowerCase();
+
+      const role = u.role || "";
+
+      const passaRole =
+        filtroRole === "TODOS" ||
+        role === filtroRole;
+
+      const passaBusca =
+        !busca ||
+        nome.includes(busca) ||
+        email.includes(busca);
+
+      return passaRole && passaBusca;
+
+    });
+
+  }, [usuarios, termoBusca, filtroRole]);
+
+  const criarUsuario = async (e) => {
+
+    e.preventDefault();
+
+    limparMensagens();
+
+    if (
+      !formData.nome ||
+      !formData.email ||
+      !formData.senha
+    ) {
+
       setErro("Preencha todos os campos");
+
       return;
     }
 
     try {
+
       setCarregando(true);
 
       await autenticarService.registrarAdmin({
         ...formData,
-        email: normalizarEmail(formData.email),
         nome: formData.nome.trim(),
+        email: normalizarEmail(
+          formData.email
+        ),
       });
 
-      setSucesso("Usuário cadastrado com sucesso!");
-      setFormData(estadoInicialFormulario);
-      setNovaSenha("");
+      setSucesso(
+        "Usuário cadastrado com sucesso!"
+      );
+
+      setFormData(
+        estadoInicialFormulario
+      );
 
       await carregarUsuarios();
+
     } catch (error) {
-      setErro(getApiErrorMessage(error, "Erro ao cadastrar usuário"));
+
+      setErro(
+        getApiErrorMessage(
+          error,
+          "Erro ao cadastrar usuário"
+        )
+      );
+
     } finally {
+
       setCarregando(false);
+
     }
   };
 
-  // =========================
-  // EDIÇÃO
-  // =========================
   const abrirEdicao = (usuario) => {
+
+    limparMensagens();
+
     setUsuarioSelecionado(usuario);
+
     setFormEdicao({
       nome: usuario.nome || "",
       email: usuario.email || "",
@@ -134,31 +206,60 @@ function UsuariosAdminPage() {
       crm: usuario.crm || "",
       coren: usuario.coren || "",
     });
+
     setNovaSenha("");
-    limparMensagens();
+
   };
 
   const fecharEdicao = () => {
+
     setUsuarioSelecionado(null);
-    setFormEdicao(estadoInicialEdicao);
+
+    setFormEdicao(
+      estadoInicialEdicao
+    );
+
     setNovaSenha("");
+
+    limparMensagens();
+
   };
 
   const salvarEdicao = async (e) => {
+
     e.preventDefault();
 
     if (!usuarioSelecionado) return;
 
-    try {
-      setCarregando(true);
+    limparMensagens();
 
-      await autenticarService.atualizarUsuario(usuarioSelecionado.id, {
-        ...formEdicao,
-        email: normalizarEmail(formEdicao.email),
-      });
+    try {
 
       if (novaSenha.trim()) {
-        if (!window.confirm("Deseja realmente redefinir a senha?")) return;
+
+        const confirmar =
+          window.confirm(
+            "Deseja realmente redefinir a senha?"
+          );
+
+        if (!confirmar) {
+          return;
+        }
+      }
+
+      setCarregando(true);
+
+      await autenticarService.atualizarUsuario(
+        usuarioSelecionado.id,
+        {
+          ...formEdicao,
+          email: normalizarEmail(
+            formEdicao.email
+          ),
+        }
+      );
+
+      if (novaSenha.trim()) {
 
         await autenticarService.redefinirSenha(
           usuarioSelecionado.id,
@@ -166,48 +267,99 @@ function UsuariosAdminPage() {
         );
       }
 
-      setSucesso("Usuário atualizado com sucesso!");
+      setSucesso(
+        "Usuário atualizado com sucesso!"
+      );
+
       fecharEdicao();
+
       await carregarUsuarios();
 
     } catch (error) {
-      setErro(getApiErrorMessage(error, "Erro ao atualizar usuário"));
+
+      setErro(
+        getApiErrorMessage(
+          error,
+          "Erro ao atualizar usuário"
+        )
+      );
+
     } finally {
+
       setCarregando(false);
+
     }
   };
 
-  // =========================
-  // UI
-  // =========================
   return (
     <section className="usuarios-admin-page">
+
       <div className="brand-bar">
+
         <div>
-          <h1>Administração de Usuários</h1>
-          <p>Cadastre, atualize e gerencie perfis de acesso do sistema.</p>
+
+          <h1>
+            Administração de Usuários
+          </h1>
+
+          <p>
+            Cadastre, atualize e gerencie
+            perfis de acesso do sistema.
+          </p>
+
         </div>
+
       </div>
 
-      {erro && <div className="mensagem erro">{erro}</div>}
-      {sucesso && <div className="mensagem sucesso">{sucesso}</div>}
+      {erro && (
+        <div className="mensagem erro">
+          {erro}
+        </div>
+      )}
+
+      {sucesso && (
+        <div className="mensagem sucesso">
+          {sucesso}
+        </div>
+      )}
 
       <div className="overview-layout">
+
         <div className="panel usuarios-panel">
+
           <header>
+
             <div>
-              <h2>Cadastrar Usuário</h2>
-              <p className="note">Disponível apenas para perfil administrador.</p>
+
+              <h2>
+                Cadastrar Usuário
+              </h2>
+
+              <p className="note">
+                Disponível apenas para perfil
+                administrador.
+              </p>
+
             </div>
+
           </header>
 
-          <form className="usuarios-form" onSubmit={criarUsuario}>
+          <form
+            className="usuarios-form"
+            onSubmit={criarUsuario}
+            autoComplete="off"
+          >
+
             <input
               className="input-field"
               placeholder="Nome"
+              autoComplete="off"
               value={formData.nome}
               onChange={(e) =>
-                setFormData({ ...formData, nome: e.target.value })
+                setFormData((prev) => ({
+                  ...prev,
+                  nome: e.target.value
+                }))
               }
             />
 
@@ -215,9 +367,13 @@ function UsuariosAdminPage() {
               className="input-field"
               type="email"
               placeholder="Email"
+              autoComplete="off"
               value={formData.email}
               onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
+                setFormData((prev) => ({
+                  ...prev,
+                  email: e.target.value
+                }))
               }
             />
 
@@ -225,9 +381,13 @@ function UsuariosAdminPage() {
               className="input-field"
               type="password"
               placeholder="Senha"
+              autoComplete="new-password"
               value={formData.senha}
               onChange={(e) =>
-                setFormData({ ...formData, senha: e.target.value })
+                setFormData((prev) => ({
+                  ...prev,
+                  senha: e.target.value
+                }))
               }
             />
 
@@ -235,116 +395,237 @@ function UsuariosAdminPage() {
               className="select-field"
               value={formData.role}
               onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
+                setFormData((prev) => ({
+                  ...prev,
+                  role: e.target.value
+                }))
               }
             >
+
               {roleOpcoes.map((r) => (
-                <option key={r.value} value={r.value}>
+                <option
+                  key={r.value}
+                  value={r.value}
+                >
                   {r.label}
                 </option>
               ))}
+
             </select>
 
-            <button className="primary-button" disabled={carregando}>
-              {carregando ? "Salvando..." : "Cadastrar"}
+            <button
+              className="primary-button"
+              disabled={carregando}
+            >
+              {carregando
+                ? "Salvando..."
+                : "Cadastrar"}
             </button>
+
           </form>
+
         </div>
 
         <div className="panel usuarios-panel">
+
           <header>
+
             <div>
-              <h2>Usuários Cadastrados</h2>
-              <p className="note">Selecione um usuário para editar dados e permissões.</p>
+
+              <h2>
+                Usuários Cadastrados
+              </h2>
+
+              <p className="note">
+                Selecione um usuário para editar
+                dados e permissões.
+              </p>
+
             </div>
+
           </header>
 
           <div className="usuarios-filtros">
+
             <input
               className="input-field"
               type="text"
               placeholder="Buscar por nome ou email"
               value={termoBusca}
-              onChange={(e) => setTermoBusca(e.target.value)}
+              onChange={(e) =>
+                setTermoBusca(e.target.value)
+              }
             />
 
             <select
               className="select-field"
               value={filtroRole}
-              onChange={(e) => setFiltroRole(e.target.value)}
+              onChange={(e) =>
+                setFiltroRole(e.target.value)
+              }
             >
-              <option value="TODOS">Todos os perfis</option>
+
+              <option value="TODOS">
+                Todos os perfis
+              </option>
+
               {roleOpcoes.map((r) => (
-                <option key={r.value} value={r.value}>
+                <option
+                  key={r.value}
+                  value={r.value}
+                >
                   {r.label}
                 </option>
               ))}
+
             </select>
+
           </div>
 
           <p className="note usuarios-resumo-lista">
-            Exibindo {usuariosFiltrados.length} de {usuarios.length} usuários
+
+            Exibindo {usuariosFiltrados.length}
+            {" "}de{" "}
+            {usuarios.length} usuários
+
           </p>
 
           {carregandoLista ? (
+
             <p>Carregando...</p>
+
           ) : usuarios.length === 0 ? (
-            <p>Nenhum usuário cadastrado</p>
+
+            <p>
+              Nenhum usuário cadastrado
+            </p>
+
           ) : usuariosFiltrados.length === 0 ? (
-            <p>Nenhum usuário encontrado com os filtros atuais</p>
+
+            <p>
+              Nenhum usuário encontrado
+              com os filtros atuais
+            </p>
+
           ) : (
+
             <div className="usuarios-lista">
+
               {usuariosFiltrados.map((u) => {
-                const roleAtual = roleOpcoes.find((r) => r.value === u.role);
+
+                const roleAtual =
+                  roleOpcoes.find(
+                    (r) => r.value === u.role
+                  );
 
                 return (
-                  <div key={u.id} className="usuario-card">
+                  <div
+                    key={u.id}
+                    className="usuario-card"
+                  >
+
                     <div className="usuario-card-info">
-                      <strong>{u.nome}</strong>
-                      <span>{u.email}</span>
+
+                      <strong>
+                        {u.nome}
+                      </strong>
+
+                      <span>
+                        {u.email}
+                      </span>
+
                       <div className="usuario-meta">
-                        <span className="usuario-role-badge">{roleAtual?.label || u.role}</span>
-                        <span className={`usuario-status ${u.ativo ? "ativo" : "inativo"}`}>
-                          {u.ativo ? "Ativo" : "Inativo"}
+
+                        <span className="usuario-role-badge">
+                          {roleAtual?.label || u.role}
                         </span>
+
+                        <span
+                          className={`usuario-status ${
+                            u.ativo
+                              ? "ativo"
+                              : "inativo"
+                          }`}
+                        >
+                          {u.ativo
+                            ? "Ativo"
+                            : "Inativo"}
+                        </span>
+
                       </div>
+
                     </div>
-                    <button className="secondary-button" type="button" onClick={() => abrirEdicao(u)}>
+
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      onClick={() =>
+                        abrirEdicao(u)
+                      }
+                    >
                       Editar
                     </button>
+
                   </div>
                 );
               })}
+
             </div>
           )}
+
         </div>
+
       </div>
 
-      {/* EDIÇÃO */}
       {usuarioSelecionado && (
+
         <div className="panel usuarios-panel usuarios-edicao-panel">
+
           <header>
+
             <div>
-              <h2>Editando Usuário</h2>
-              <p className="note">Atualize os campos e salve as alterações.</p>
+
+              <h2>
+                Editando Usuário
+              </h2>
+
+              <p className="note">
+                Atualize os campos e salve
+                as alterações.
+              </p>
+
             </div>
+
           </header>
 
-          <form className="usuarios-form" onSubmit={salvarEdicao}>
+          <form
+            className="usuarios-form"
+            onSubmit={salvarEdicao}
+            autoComplete="off"
+          >
+
             <input
               className="input-field"
+              autoComplete="off"
               value={formEdicao.nome}
               onChange={(e) =>
-                setFormEdicao({ ...formEdicao, nome: e.target.value })
+                setFormEdicao((prev) => ({
+                  ...prev,
+                  nome: e.target.value
+                }))
               }
             />
 
             <input
               className="input-field"
               type="email"
+              autoComplete="off"
               value={formEdicao.email}
               onChange={(e) =>
-                setFormEdicao({ ...formEdicao, email: e.target.value })
+                setFormEdicao((prev) => ({
+                  ...prev,
+                  email: e.target.value
+                }))
               }
             />
 
@@ -352,47 +633,78 @@ function UsuariosAdminPage() {
               className="select-field"
               value={formEdicao.role}
               onChange={(e) =>
-                setFormEdicao({ ...formEdicao, role: e.target.value })
+                setFormEdicao((prev) => ({
+                  ...prev,
+                  role: e.target.value
+                }))
               }
             >
+
               {roleOpcoes.map((r) => (
-                <option key={r.value} value={r.value}>
+                <option
+                  key={r.value}
+                  value={r.value}
+                >
                   {r.label}
                 </option>
               ))}
+
             </select>
 
             <input
               className="input-field"
               type="password"
               placeholder="Nova senha (opcional)"
+              autoComplete="new-password"
               value={novaSenha}
-              onChange={(e) => setNovaSenha(e.target.value)}
+              onChange={(e) =>
+                setNovaSenha(e.target.value)
+              }
             />
 
             <label className="usuario-ativo-toggle">
+
               <input
                 type="checkbox"
                 checked={formEdicao.ativo}
                 onChange={(e) =>
-                  setFormEdicao({ ...formEdicao, ativo: e.target.checked })
+                  setFormEdicao((prev) => ({
+                    ...prev,
+                    ativo: e.target.checked
+                  }))
                 }
               />
+
               Usuário ativo
+
             </label>
 
             <div className="action-row">
-              <button className="primary-button" disabled={carregando}>
-                {carregando ? "Salvando..." : "Salvar"}
+
+              <button
+                className="primary-button"
+                disabled={carregando}
+              >
+                {carregando
+                  ? "Salvando..."
+                  : "Salvar"}
               </button>
 
-              <button className="secondary-button" type="button" onClick={fecharEdicao}>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={fecharEdicao}
+              >
                 Cancelar
               </button>
+
             </div>
+
           </form>
+
         </div>
       )}
+
     </section>
   );
 }

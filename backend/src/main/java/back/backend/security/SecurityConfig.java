@@ -63,13 +63,12 @@ public class SecurityConfig {
 
             // ---------- PUBLIC ----------
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
             .requestMatchers("/h2-console/**").permitAll()
 
             // ---------- USUÁRIOS ----------
             .requestMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
-            .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+            .requestMatchers("/api/usuarios/**").hasAnyRole("ADMIN", "CENTRAL_TRANSPLANTES")
 
             // ---------- PACIENTES ----------
             .requestMatchers(HttpMethod.GET, "/api/pacientes/**")

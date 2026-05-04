@@ -41,22 +41,50 @@ public class UsuarioService implements UserDetailsService {
 
     public void validarPermissaoCriacaoAdmin(Usuario usuario) {
 
-        long totalAdmins = usuarioRepository.countByRole(Role.ADMIN);
+        long totalAdmins =
+                usuarioRepository.countByRole(Role.ADMIN);
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth =
+                SecurityContextHolder.getContext().getAuthentication();
 
         boolean isAdmin = auth != null
                 && auth.isAuthenticated()
                 && auth.getAuthorities().stream()
-                        .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+                        .anyMatch(a ->
+                                a.getAuthority().equals("ROLE_ADMIN"));
 
+        boolean isCentral = auth != null
+                && auth.isAuthenticated()
+                && auth.getAuthorities().stream()
+                        .anyMatch(a ->
+                                a.getAuthority().equals(
+                                        "ROLE_CENTRAL_TRANSPLANTES"));
+
+        // PRIMEIRO USUÁRIO OBRIGATORIAMENTE ADMIN
         if (totalAdmins == 0 && usuario.getRole() != Role.ADMIN) {
-            throw new ConflitoNegocioException("Primeiro usuário deve ser ADMIN");
+            throw new ConflitoNegocioException(
+                    "Primeiro usuário deve ser ADMIN");
         }
 
-        if (totalAdmins > 0 && !isAdmin) {
-            throw new ConflitoNegocioException("Apenas ADMIN pode cadastrar usuários");
+        // ADMIN pode criar qualquer perfil
+        if (isAdmin) {
+            return;
         }
+
+        // CENTRAL pode criar apenas MEDICO e ENFERMEIRO
+        if (isCentral) {
+
+            if (usuario.getRole() == Role.MEDICO ||
+                usuario.getRole() == Role.ENFERMEIRO) {
+                return;
+            }
+
+            throw new ConflitoNegocioException(
+                    "CENTRAL_TRANSPLANTES pode criar apenas MÉDICO ou ENFERMEIRO");
+        }
+
+        throw new ConflitoNegocioException(
+                "Sem permissão para cadastrar usuários");
     }
 
     // ================= AUTH =================
