@@ -206,7 +206,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
 
         <div className="form-row">
           <div className="form-group">
-            <label htmlFor="telefone">Telefone</label>
+            <label htmlFor="telefone">Telefone *</label>
             <input
               type="tel"
               id="telefone"
@@ -219,7 +219,7 @@ const HospitalForm = ({ onSuccess, hospitalParaEditar }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">Email *</label>
             <input
               type="email"
               id="email"

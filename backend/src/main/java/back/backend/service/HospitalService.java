@@ -25,11 +25,8 @@ public class HospitalService {
     }
 
     // ================= CREATE =================
-
     public HospitalDTO criarHospital(Hospital hospital) {
-
         validarHospital(hospital);
-
         String cnpjNormalizado = normalizarCnpj(hospital.getCnpj());
 
         hospitalRepository.findByCnpj(cnpjNormalizado)
@@ -47,9 +44,10 @@ public class HospitalService {
     }
 
     // ================= READ =================
-
     public List<HospitalDTO> listarTodos() {
-        return hospitalRepository.findAll().stream().map(this::toDTO).toList();
+        return hospitalRepository.findAll().stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     public Optional<Hospital> buscarPorId(Long id) {
@@ -71,7 +69,9 @@ public class HospitalService {
     }
 
     public List<HospitalDTO> listarPorStatus(Hospital.StatusHospital status) {
-        return hospitalRepository.findByStatus(status).stream().map(this::toDTO).toList();
+        return hospitalRepository.findByStatus(status).stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     public List<HospitalDTO> listarPorStatus(String status) {
@@ -79,19 +79,19 @@ public class HospitalService {
     }
 
     public List<HospitalDTO> listarPorCidade(String cidade) {
-        return hospitalRepository.findByCidadeIgnoreCase(cidade.trim())
-                .stream().map(this::toDTO).toList();
+        return hospitalRepository.findByCidadeIgnoreCase(cidade.trim()).stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     public List<HospitalDTO> listarPorEstado(String estado) {
-        return hospitalRepository.findByEstadoIgnoreCase(estado.trim())
-                .stream().map(this::toDTO).toList();
+        return hospitalRepository.findByEstadoIgnoreCase(estado.trim()).stream()
+                .map(this::toDTO)
+                .toList();
     }
 
     // ================= UPDATE =================
-
     public HospitalDTO atualizarHospital(Long id, Hospital atualizado) {
-
         Hospital hospital = hospitalRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado: " + id));
 
@@ -108,14 +108,11 @@ public class HospitalService {
     }
 
     // ================= STATUS =================
-
     public HospitalDTO alterarStatus(Long id, Hospital.StatusHospital status) {
-
         Hospital hospital = hospitalRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado: " + id));
 
         hospital.setStatus(status);
-
         return toDTO(hospitalRepository.save(hospital));
     }
 
@@ -124,43 +121,32 @@ public class HospitalService {
     }
 
     // ================= DELETE =================
-
     public void deletarHospital(Long id) {
-
         if (!hospitalRepository.existsById(id)) {
             throw new RecursoNaoEncontradoException("Hospital não encontrado: " + id);
         }
-
         hospitalRepository.deleteById(id);
     }
 
     // ================= HELPERS =================
-
     private void validarHospital(Hospital hospital) {
-
         if (hospital.getNome() == null || hospital.getNome().isBlank()) {
             throw new IllegalArgumentException("Nome do hospital é obrigatório");
         }
-
         if (hospital.getCnpj() == null || hospital.getCnpj().isBlank()) {
             throw new IllegalArgumentException("CNPJ é obrigatório");
         }
     }
 
     private String normalizarCnpj(String cnpj) {
-
         if (cnpj == null || cnpj.isBlank()) {
             throw new IllegalArgumentException("CNPJ obrigatório");
         }
-
         String n = cnpj.replaceAll("\\D", "");
-
         if (n.length() != 14) {
             throw new IllegalArgumentException("CNPJ inválido");
         }
-
-        return n.replaceAll("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})",
-                "$1.$2.$3/$4-$5");
+        return n.replaceAll("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})", "$1.$2.$3/$4-$5");
     }
 
     private HospitalDTO toDTO(Hospital hospital) {
