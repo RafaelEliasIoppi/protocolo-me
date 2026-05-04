@@ -33,11 +33,11 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
 
         // 🔥 IGNORA LOGIN E REGISTER
-        if (path.startsWith("/api/usuarios")) {
-            filterChain.doFilter(request, response);
+            if (path.equals("/api/usuarios/login") ||
+               (path.equals("/api/usuarios") && request.getMethod().equals("POST"))) {
+                  filterChain.doFilter(request, response);
             return;
         }
-
         final String authHeader = request.getHeader("Authorization");
 
         String username = null;

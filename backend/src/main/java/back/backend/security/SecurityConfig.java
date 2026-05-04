@@ -59,67 +59,64 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
-            // =========================
-            // AUTORIZAÇÃO
-            // =========================
-            .authorizeHttpRequests(auth -> auth
-                // ---------- PUBLIC ----------
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
+          .authorizeHttpRequests(auth -> auth
 
-                // ---------- USUÁRIOS ----------
-                .requestMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
-                .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
+            // ---------- PUBLIC ----------
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/usuarios/login").permitAll()
+            .requestMatchers("/h2-console/**").permitAll()
 
-                // ---------- PACIENTES ----------
-                .requestMatchers(HttpMethod.GET, "/api/pacientes/**")
-                    .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
-                .requestMatchers(HttpMethod.POST, "/api/pacientes/**")
-                    .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
-                .requestMatchers(HttpMethod.PUT, "/api/pacientes/**")
-                    .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
-                .requestMatchers(HttpMethod.PATCH, "/api/pacientes/**")
-                    .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
-                .requestMatchers(HttpMethod.DELETE, "/api/pacientes/**")
-                    .hasAnyRole("ADMIN","MEDICO")
+            // ---------- USUÁRIOS ----------
+            .requestMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
+            .requestMatchers("/api/usuarios/**").hasRole("ADMIN")
 
-                // ---------- HOSPITAIS ----------
-                .requestMatchers(HttpMethod.GET, "/api/hospitais/**")
-                    .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
-                .requestMatchers("/api/hospitais/**")
-                    .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+            // ---------- PACIENTES ----------
+            .requestMatchers(HttpMethod.GET, "/api/pacientes/**")
+                .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
+            .requestMatchers(HttpMethod.POST, "/api/pacientes/**")
+                .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
+            .requestMatchers(HttpMethod.PUT, "/api/pacientes/**")
+                .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
+            .requestMatchers(HttpMethod.PATCH, "/api/pacientes/**")
+                .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
+            .requestMatchers(HttpMethod.DELETE, "/api/pacientes/**")
+                .hasAnyRole("ADMIN","MEDICO")
 
-                // ---------- CENTRAIS ----------
-                .requestMatchers(HttpMethod.GET, "/api/centrais-transplantes/**")
-                    .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
-                .requestMatchers("/api/centrais-transplantes/**")
-                    .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
+            // ---------- HOSPITAIS ----------
+            .requestMatchers(HttpMethod.GET, "/api/hospitais/**")
+                .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
+            .requestMatchers("/api/hospitais/**")
+                .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
 
-                // ---------- PROTOCOLOS ----------
-                .requestMatchers(HttpMethod.GET, "/api/protocolos-me/**")
-                    .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
-                .requestMatchers("/api/protocolos-me/**")
-                    .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
+            // ---------- CENTRAIS ----------
+            .requestMatchers(HttpMethod.GET, "/api/centrais-transplantes/**")
+                .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
+            .requestMatchers("/api/centrais-transplantes/**")
+                .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN")
 
-                // ---------- EXAMES ----------
-                .requestMatchers(HttpMethod.GET, "/api/exames-me/**")
-                    .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
-                .requestMatchers("/api/exames-me/**")
-                    .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
+            // ---------- PROTOCOLOS ----------
+            .requestMatchers(HttpMethod.GET, "/api/protocolos-me/**")
+                .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
+            .requestMatchers("/api/protocolos-me/**")
+                .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN","CENTRAL_TRANSPLANTES")
 
-                // ---------- ESTATÍSTICAS ----------
-                .requestMatchers(HttpMethod.GET,
-                        "/api/centrais-transplantes/estatisticas/doadores-receptores")
-                    .hasRole("CENTRAL_TRANSPLANTES")
-                .requestMatchers("/api/estatisticas-transplantes/**")
-                    .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN","MEDICO")
+            // ---------- EXAMES ----------
+            .requestMatchers(HttpMethod.GET, "/api/exames-me/**")
+                .hasAnyRole("ADMIN","MEDICO","ENFERMEIRO","COORDENADOR_TRANSPLANTES","CENTRAL_TRANSPLANTES")
+            .requestMatchers("/api/exames-me/**")
+                .hasAnyRole("MEDICO","ENFERMEIRO","ADMIN")
 
-                // ---------- DEFAULT ----------
-                .anyRequest().authenticated()
-            )
+            // ---------- ESTATÍSTICAS ----------
+            .requestMatchers(HttpMethod.GET,
+                    "/api/centrais-transplantes/estatisticas/doadores-receptores")
+                .hasRole("CENTRAL_TRANSPLANTES")
+            .requestMatchers("/api/estatisticas-transplantes/**")
+                .hasAnyRole("CENTRAL_TRANSPLANTES","ADMIN","MEDICO")
+
+            // ---------- DEFAULT ----------
+            .anyRequest().authenticated()
+        )
 
             // =========================
             // HEADERS (H2)
