@@ -29,6 +29,13 @@ Leia primeiro: [GUIA_MESTRA_DE_INICIO.md](GUIA_MESTRA_DE_INICIO.md)
 - [AUDITORIA_NOMES_FRONTEND.md](AUDITORIA_NOMES_FRONTEND.md): auditoria de nomes genéricos encontrados no frontend.
 - [RELATORIO_FINAL_REFATORACAO_NOMES.md](RELATORIO_FINAL_REFATORACAO_NOMES.md): **LEIA** - Resumo completo da refatoração de 26 funções (140+ referências atualizadas).
 
+### 🔒 Segurança & Row-Level Security (RLS)
+
+- [RESUMO_SEGURANCA_ACOES_IMEDIATAS.md](RESUMO_SEGURANCA_ACOES_IMEDIATAS.md): **LEIA PRIMEIRO** - 3 ações críticas e executivo de segurança
+- [RELATORIO_SEGURANCA_USUARIOS_RLS.md](RELATORIO_SEGURANCA_USUARIOS_RLS.md): análise completa de segurança, vulnerabilidades e fluxos de usuários
+- [GUIA_IMPLEMENTACAO_RLS.md](GUIA_IMPLEMENTACAO_RLS.md): passo-a-passo prático para implementar RLS no Supabase
+- [SQL_RLS_MIGRATIONS.sql](SQL_RLS_MIGRATIONS.sql): SQL pronto para executar no console Supabase
+
 ### Documentos gerais
 
 - [CHECKLIST_INTERATIVO_MEDICO.md](CHECKLIST_INTERATIVO_MEDICO.md): validação guiada do fluxo médico.
