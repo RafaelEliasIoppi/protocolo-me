@@ -65,6 +65,11 @@ public class SecurityConfig {
 
                         // ---------- USUÁRIOS ----------
                         .requestMatchers(HttpMethod.PATCH, "/api/usuarios/minha-senha").authenticated()
+                        // permitir registro público de usuários
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios").permitAll()
+                        // permitir tentativa de registro de admin (bootstrap); serviço valida
+                        // permissões
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/admin/registrar").permitAll()
                         .requestMatchers("/api/usuarios/**").hasAnyRole("ADMIN", "CENTRAL_TRANSPLANTES")
 
                         // ---------- PACIENTES ----------

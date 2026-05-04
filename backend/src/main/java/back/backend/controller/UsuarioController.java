@@ -38,6 +38,16 @@ public class UsuarioController {
     }
 
     // =========================
+    // REGISTRO PÚBLICO
+    // =========================
+    @PostMapping
+    public ResponseEntity<UsuarioDTO> registrarPublico(@Valid @RequestBody UsuarioRequestDTO request) {
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(usuarioService.registrar(usuarioRequestMapper.toEntity(request)));
+    }
+
+    // =========================
     // LOGIN
     // =========================
     @PostMapping("/login")

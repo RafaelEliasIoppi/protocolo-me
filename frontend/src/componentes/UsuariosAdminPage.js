@@ -300,7 +300,14 @@ function UsuariosAdminPage() {
       setCarregando(true);
 
       await autenticarService.atualizarUsuario(usuario.id, {
+        nome: usuario.nome || "",
+        email: usuario.email || "",
+        role: usuario.role || "MEDICO",
         ativo: !usuario.ativo,
+        crm: usuario.crm || "",
+        coren: usuario.coren || "",
+        hospitalId: usuario.hospitalId ?? null,
+        centralTransplantesId: usuario.centralTransplantesId ?? null,
       });
 
       setSucesso(
@@ -599,8 +606,12 @@ function UsuariosAdminPage() {
                       onClick={() =>
                         alternarStatusUsuario(u)
                       }
+                      disabled={u.role === "ADMIN" && (u.email || "").toLowerCase() === "admin@protocolo.me"}
+                      title={u.role === "ADMIN" && (u.email || "").toLowerCase() === "admin@protocolo.me" ? "Admin principal não pode ser desativado" : undefined}
                     >
-                      {u.ativo ? "Desativar" : "Ativar"}
+                      {u.role === "ADMIN" && (u.email || "").toLowerCase() === "admin@protocolo.me"
+                        ? "Admin principal"
+                        : (u.ativo ? "Desativar" : "Ativar")}
                     </button>
 
                     <button
@@ -714,6 +725,7 @@ function UsuariosAdminPage() {
               <input
                 type="checkbox"
                 checked={formEdicao.ativo}
+                disabled={usuarioSelecionado.role === "ADMIN" && (usuarioSelecionado.email || "").toLowerCase() === "admin@protocolo.me"}
                 onChange={(e) =>
                   setFormEdicao((prev) => ({
                     ...prev,
@@ -725,6 +737,12 @@ function UsuariosAdminPage() {
               Usuário ativo
 
             </label>
+
+            {usuarioSelecionado.role === "ADMIN" && (usuarioSelecionado.email || "").toLowerCase() === "admin@protocolo.me" && (
+              <p className="note">
+                O admin principal permanece ativo por regra do sistema.
+              </p>
+            )}
 
             <div className="action-row">
 

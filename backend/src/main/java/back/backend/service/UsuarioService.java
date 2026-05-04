@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import back.backend.dto.UsuarioDTO;
 import back.backend.exception.AutenticacaoException;
@@ -33,6 +34,9 @@ public class UsuarioService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final UsuarioMapper usuarioMapper;
 
+    @Value("${app.seed.admin-email:admin@protocolo.me}")
+    private String adminPrincipalEmail;
+
     // ================= ADMIN =================
 
     public long countAdmins() {
@@ -42,6 +46,12 @@ public class UsuarioService implements UserDetailsService {
     public void validarPermissaoCriacaoAdmin(Usuario usuario) {
 
         long totalAdmins = usuarioRepository.countByRole(Role.ADMIN);
+
+        // Se não existe nenhum admin e o usuário a ser criado é ADMIN,
+        // permitir bootstrap (primeiro admin) mesmo sem autenticação.
+        if (totalAdmins == 0 && usuario.getRole() == Role.ADMIN) {
+            return;
+        }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -159,6 +169,10 @@ public class UsuarioService implements UserDetailsService {
 
         Usuario usuario = buscarOuFalhar(id);
 
+        if (Boolean.FALSE.equals(dados.getAtivo()) && isAdminPrincipal(usuario)) {
+            throw new ConflitoNegocioException("Não é possível desativar o admin principal");
+        }
+
         if (dados.getEmail() != null) {
             usuario.setEmail(normalizarEmail(dados.getEmail()));
         }
@@ -267,6 +281,12 @@ public class UsuarioService implements UserDetailsService {
             throw new IllegalArgumentException(
                     "Senha deve ter no mínimo 6 caracteres");
         }
+    }
+
+    private boolean isAdminPrincipal(Usuario usuario) {
+        return usuario.getRole() == Role.ADMIN
+                && usuario.getEmail() != null
+                && usuario.getEmail().equalsIgnoreCase(adminPrincipalEmail);
     }
 
     private UsuarioDTO toDTO(Usuario usuario) {

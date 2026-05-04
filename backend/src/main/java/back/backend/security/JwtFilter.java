@@ -32,8 +32,12 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // Ignora apenas o login; o restante de /api/usuarios exige autenticação.
-        if (path.equals("/api/usuarios/login")) {
+        // Ignora endpoints públicos relacionados a autenticação/registro;
+        // o restante de /api/usuarios exige autenticação.
+        String method = request.getMethod();
+        if (path.equals("/api/usuarios/login")
+                || (path.equals("/api/usuarios") && "POST".equalsIgnoreCase(method))
+                || path.equals("/api/usuarios/admin/registrar")) {
             filterChain.doFilter(request, response);
             return;
         }

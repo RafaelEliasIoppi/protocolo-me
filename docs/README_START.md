@@ -79,12 +79,14 @@ npm start
 O backend usa Supabase/PostgreSQL por padrão. Crie o projeto no Supabase e exporte estas variáveis antes de subir o backend:
 
 ```bash
-export SUPABASE_DB_URL='jdbc:postgresql://db.<project-ref>.supabase.co:5432/postgres?sslmode=require'
-export SUPABASE_DB_USER=postgres
-export SUPABASE_DB_PASSWORD='sua-senha-do-supabase'
+export DB_USER='postgres.<project-ref>'
+export DB_PASSWORD='<senha>'
+export DATABASE_URL='jdbc:postgresql://<host>:6543/postgres?pgbouncer=true'
+export DIRECT_URL='jdbc:postgresql://<host>:5432/postgres'
 ```
 
 Depois execute o backend normalmente. O schema continua sendo atualizado com `ddl-auto=update` por padrão.
+Se preferir, coloque essas variáveis no arquivo `.env` na raiz do projeto; o backend carrega esse arquivo automaticamente.
 
 ## Para parar
 

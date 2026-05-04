@@ -457,9 +457,9 @@ a {
 }
 
 .usuario-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
   gap: 10px;
   border: 1px solid var(--border);
   background: var(--surface-soft);
@@ -476,15 +476,18 @@ a {
 .usuario-card-info {
   display: grid;
   gap: 5px;
+  min-width: 0;
 }
 
 .usuario-card-info strong {
   font-size: 1rem;
+  overflow-wrap: anywhere;
 }
 
 .usuario-card-info span {
   color: var(--muted);
   font-size: 0.92rem;
+  overflow-wrap: anywhere;
 }
 
 .usuario-meta {
@@ -492,6 +495,7 @@ a {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .usuario-role-badge {
@@ -537,6 +541,8 @@ a {
 
 .usuarios-edicao-panel {
   margin-top: 4px;
+  width: min(100%, 780px);
+  justify-self: start;
 }
 
 .mensagem {
@@ -641,8 +647,7 @@ a {
   }
 
   .usuario-card {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr;
   }
 
   .usuarios-filtros {
@@ -650,6 +655,10 @@ a {
   }
 
   .usuario-card .secondary-button {
+    width: 100%;
+  }
+
+  .usuarios-edicao-panel {
     width: 100%;
   }
 
