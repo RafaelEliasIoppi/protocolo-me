@@ -16,6 +16,7 @@ public class PacienteDTO {
     private String hospitalOrigem;
 
     private String leito;
+    private LocalDate dataInternacao;
     private String diagnosticoPrincipal;
     private String historicoMedico;
 
@@ -60,6 +61,9 @@ public class PacienteDTO {
 
     public String getLeito() { return leito; }
     public void setLeito(String leito) { this.leito = leito; }
+
+    public LocalDate getDataInternacao() { return dataInternacao; }
+    public void setDataInternacao(LocalDate dataInternacao) { this.dataInternacao = dataInternacao; }
 
     public String getDiagnosticoPrincipal() { return diagnosticoPrincipal; }
     public void setDiagnosticoPrincipal(String diagnosticoPrincipal) { this.diagnosticoPrincipal = diagnosticoPrincipal; }

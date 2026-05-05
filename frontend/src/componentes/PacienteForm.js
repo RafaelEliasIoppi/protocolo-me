@@ -293,9 +293,28 @@ const PacienteForm = ({
     if (onCancel) onCancel();
   };
 
-  const formatarData = (data) => {
+ const formatarData = (data) => {
     if (!data) return '-';
-    return new Date(data).toLocaleDateString('pt-BR');
+
+    try {
+      // Se vier no formato yyyy-MM-dd
+      if (typeof data === 'string' && data.includes('-')) {
+        const apenasData = data.split('T')[0];
+        const [ano, mes, dia] = apenasData.split('-');
+
+        return `${dia}/${mes}/${ano}`;
+      }
+
+      const dataObj = new Date(data);
+
+      if (isNaN(dataObj.getTime())) {
+        return '-';
+      }
+
+      return dataObj.toLocaleDateString('pt-BR');
+    } catch (e) {
+      return '-';
+    }
   };
 
   const formatarStatus = (status) => {
@@ -630,7 +649,7 @@ const PacienteForm = ({
                       <p><strong>CPF:</strong> {formatarCpf(pItem.cpf)}</p>
                       <p><strong>Gênero:</strong> {pItem.genero}</p>
                       <p><strong>Data Nascimento:</strong> {formatarData(pItem.dataNascimento)}</p>
-                      <p><strong>Hospital:</strong> {pItem.hospital?.nome || pItem.hospital?.nomeHospital || '-'}</p>
+                      <p><strong>Hospital:</strong>{" "}{pItem.hospitalNome || pItem.hospital?.nome || pItem.hospital?.nomeHospital ||"-"}</p>
                       <p><strong>Leito:</strong> {pItem.leito || '-'}</p>
                       <p><strong>Data Internação:</strong> {formatarData(pItem.dataInternacao)}</p>
                       <p><strong>Diagnóstico:</strong> {pItem.diagnosticoPrincipal || '-'}</p>
