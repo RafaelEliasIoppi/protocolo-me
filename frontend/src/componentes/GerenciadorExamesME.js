@@ -21,6 +21,35 @@ const GerenciadorExamesME = ({ protocoloId, onAtualizacao }) => {
   const [carregando, setCarregando] = useState(false);
   const montadoRef = useRef(true);
 
+  const normalizarExames = (dados) => {
+    if (Array.isArray(dados)) return dados;
+    if (Array.isArray(dados?.content)) return dados.content;
+    if (Array.isArray(dados?.data)) return dados.data;
+    return [];
+  };
+
+  const carregarExames = async (protocoloAtual = protocoloId) => {
+    if (!protocoloAtual) {
+      setExames([]);
+      return [];
+    }
+
+    try {
+      const dados = await exameService.listarPorProtocolo(protocoloAtual);
+      const lista = normalizarExames(dados);
+      if (!montadoRef.current) {
+        return lista;
+      }
+      setExames(lista);
+      return lista;
+    } catch {
+      if (montadoRef.current) {
+        setErro('Erro ao carregar exames');
+      }
+      return [];
+    }
+  };
+
   // Limpar mensagens após 5 segundos
   useEffect(() => {
     if (erro) {
@@ -87,24 +116,8 @@ const GerenciadorExamesME = ({ protocoloId, onAtualizacao }) => {
     let ativo = true;
 
     const carregar = async () => {
-      if (!protocoloId) {
-        setExames([]);
-        return;
-      }
-
-      try {
-        // Busca a lista no backend e atualiza a tela.
-        const dados = await exameService.listarPorProtocolo(protocoloId);
-        if (!ativo || !montadoRef.current) {
-          return;
-        }
-        setExames(dados);
-      } catch {
-        if (!ativo || !montadoRef.current) {
-          return;
-        }
-        setErro('Erro ao carregar exames');
-      }
+      if (!ativo) return;
+      await carregarExames(protocoloId);
     };
 
     carregar();
@@ -149,7 +162,7 @@ const GerenciadorExamesME = ({ protocoloId, onAtualizacao }) => {
       // Envia o exame para criação.
       await exameService.criar(payload);
 
-      // Recarrega a lista completa do backend para garantir sincronização
+      await carregarExames();
 
       // Limpa o formulário
       setNovoExame({
@@ -180,7 +193,7 @@ const GerenciadorExamesME = ({ protocoloId, onAtualizacao }) => {
 
     try {
       await exameService.deletar(id);
-      // Recarrega a lista completa do backend
+      await carregarExames();
       setSucesso('Exame excluído');
       if (onAtualizacao) onAtualizacao();
     } catch (err) {
@@ -203,7 +216,7 @@ const GerenciadorExamesME = ({ protocoloId, onAtualizacao }) => {
         exame.responsavel
       );
 
-      // Recarrega a lista completa do backend para manter sincronização
+      await carregarExames();
       setExameSelecionado(null);
       setSucesso('Resultado atualizado');
       if (onAtualizacao) onAtualizacao();
