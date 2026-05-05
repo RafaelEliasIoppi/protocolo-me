@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import pacienteService from "../services/pacienteService";
-import "../styles/Dashboard.css";
+import "../styles/PainelPrincipalPage.css";
 
 function PainelPrincipalPage({ onLogout, theme, setTheme, role }) {
   const [pacientes, setPacientes] = useState([]);

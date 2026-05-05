@@ -1,0 +1,31 @@
+/* AlterarSenhaPage - estilos exclusivos da página de troca de senha */
+
+.alterar-senha-page {
+    display: grid;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.alterar-senha-page .form-panel.card {
+    width: 100%;
+}
+
+.alterar-senha-page .form-row {
+    display: grid;
+    gap: 12px;
+}
+
+.alterar-senha-page .primary-button {
+    width: fit-content;
+}
+
+@media (max-width: 768px) {
+    .alterar-senha-page {
+        max-width: 100%;
+    }
+
+    .alterar-senha-page .primary-button {
+        width: 100%;
+    }
+}

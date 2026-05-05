@@ -10,6 +10,10 @@
   --danger: #f43f5e;
   --border: rgba(148, 163, 184, 0.18);
   --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  --form-max-width: 1200px;
+  --form-padding: 36px;
+  --form-grid-min: 300px;
+  --form-modal-max: 900px;
 }
 
 [data-theme="light"] {
@@ -151,89 +155,6 @@ a {
 :root[data-theme="light"] .secondary-button:hover,
 :root[data-theme="light"] .login-panel .secondary-button:hover {
   background: #cbd5e1;
-}
-
-.dashboard-shell {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 20px;
-}
-
-.sidebar {
-  position: sticky;
-  top: 24px;
-  align-self: start;
-  display: grid;
-  gap: 20px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: var(--shadow);
-}
-
-.sidebar h2 {
-  margin: 0;
-}
-
-.sidebar p {
-  margin: 8px 0 0;
-  color: var(--muted);
-}
-
-.sidebar-nav {
-  display: grid;
-  gap: 10px;
-}
-
-.dashboard-main {
-  display: grid;
-  gap: 20px;
-}
-
-.brand-bar,
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 18px;
-}
-
-.brand-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.brand-bar h1 {
-  margin: 0;
-  font-size: clamp(1.7rem, 2.5vw, 2.3rem);
-}
-
-.brand-bar p {
-  margin: 8px 0 0;
-  color: var(--muted);
-}
-
-.action-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.panel header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.panel h2,
-.panel h3 {
-  margin: 0;
 }
 
 .note {

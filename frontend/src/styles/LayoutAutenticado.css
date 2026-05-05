@@ -1,0 +1,281 @@
+/* LayoutAutenticado - estilos do layout usado por páginas autenticadas */
+
+.dashboard-shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+}
+
+.sidebar {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    display: grid;
+    gap: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.sidebar h2 {
+    margin: 0;
+}
+
+.sidebar p {
+    margin: 8px 0 0;
+    color: var(--muted);
+}
+
+.sidebar-nav {
+    display: grid;
+    gap: 10px;
+}
+
+.dashboard-main {
+    display: grid;
+    gap: 20px;
+}
+
+/* Small responsive tweaks are still handled in App.css */
+
+/* Shared page component styles previously in App.css - moved here to scope to authenticated layout */
+.brand-bar,
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+}
+
+.brand-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.brand-bar h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 2.5vw, 2.3rem);
+}
+
+.brand-bar p {
+    margin: 8px 0 0;
+    color: var(--muted);
+}
+
+.action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.panel header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.panel h2,
+.panel h3 {
+    margin: 0;
+}
+
+.note {
+    color: var(--muted);
+    margin: 6px 0 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+.stat-card {
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--muted);
+}
+
+.stat-card strong {
+    font-size: 1.6rem;
+}
+
+.list-panel {
+    display: grid;
+    gap: 10px;
+}
+
+.patient-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface-soft);
+}
+
+.patient-info {
+    display: grid;
+    gap: 4px;
+}
+
+.patient-info h4 {
+    margin: 0;
+}
+
+.patient-actions {
+    display: grid;
+    align-content: center;
+    gap: 8px;
+}
+
+.status-pill {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: #fff;
+    background: #64748b;
+}
+
+.status-open {
+    background: #0ea5e9;
+}
+
+.status-pending {
+    background: #f59e0b;
+}
+
+.status-closed {
+    background: #16a34a;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.edit-button,
+.delete-button {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+.edit-button {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--text);
+}
+
+.delete-button {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--text);
+}
+
+.filter-panel {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.form-panel.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+}
+
+.overview-layout {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+}
+
+.overview-main {
+    display: grid;
+    gap: 14px;
+}
+
+.overview-panels-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.chart-card {
+    display: grid;
+    gap: 8px;
+}
+
+.chart-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.chart-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.3);
+    overflow: hidden;
+}
+
+.chart-progress {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #0ea5e9, #22d3ee);
+}
+
+.chart-progress.accent {
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+}
+
+.chart-progress.success {
+    background: linear-gradient(90deg, #22c55e, #84cc16);
+}
+
+.notifications-grid {
+    display: grid;
+    gap: 10px;
+}
+
+.notification-card {
+    border: 1px solid var(--border);
+    background: var(--surface-soft);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.mensagem {
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.mensagem.erro {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fecaca;
+}
+
+.mensagem.sucesso {
+    background: rgba(34, 197, 94, 0.16);
+    color: #bbf7d0;
+}

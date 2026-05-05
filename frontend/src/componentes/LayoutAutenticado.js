@@ -1,5 +1,7 @@
 import { Link, Outlet } from "react-router-dom";
 
+import "../styles/LayoutAutenticado.css";
+
 function LayoutAutenticado({ usuario, theme, setTheme, onLogout }) {
   const role = usuario?.role;
 

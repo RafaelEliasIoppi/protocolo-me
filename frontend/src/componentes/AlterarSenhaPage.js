@@ -1,6 +1,6 @@
 import { useState } from "react";
 import usuarioService from "../services/usuarioService";
-import "../styles/Dashboard.css";
+import "../styles/AlterarSenhaPage.css";
 import { getApiErrorMessage } from "../utils/apiError";
 
 function AlterarSenhaPage() {
@@ -49,7 +49,7 @@ function AlterarSenhaPage() {
   };
 
   return (
-    <section className="dashboard">
+    <section className="alterar-senha-page">
       <div className="panel">
         <h2>Alterar Senha</h2>
         <p className="note">Informe a senha atual e digite a nova senha duas vezes.</p>
