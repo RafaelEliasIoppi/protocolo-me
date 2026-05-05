@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import autenticarService from "../services/autenticarService";
-import { getApiErrorMessage } from "../utils/apiError";
+import centralTransplantesService from "../services/centralTransplantesService";
 import "../styles/UsuariosAdminPage.css";
+import { getApiErrorMessage } from "../utils/apiError";
 
 const roleOpcoes = [
   { value: "ADMIN", label: "Administrador" },
@@ -16,6 +17,7 @@ const estadoInicialFormulario = {
   email: "",
   senha: "",
   role: "MEDICO",
+  centralTransplantesId: null,
 };
 
 const estadoInicialEdicao = {
@@ -25,6 +27,7 @@ const estadoInicialEdicao = {
   ativo: true,
   crm: "",
   coren: "",
+  centralTransplantesId: null,
 };
 
 const ADMIN_PRINCIPAL_EMAIL = "admin@protocolo.me";
@@ -72,6 +75,18 @@ function UsuariosAdminPage() {
     setSucesso("");
   };
 
+  const [centrais, setCentrais] = useState([]);
+
+  const carregarCentrais = async () => {
+    try {
+      const lista = await centralTransplantesService.listar();
+      const dados = Array.isArray(lista?.data) ? lista.data : Array.isArray(lista) ? lista : [];
+      setCentrais(dados);
+    } catch (e) {
+      setCentrais([]);
+    }
+  };
+
   const normalizarEmail = (email) =>
     email.trim().toLowerCase();
 
@@ -87,6 +102,10 @@ function UsuariosAdminPage() {
 
     if ((formData.senha || "").trim().length < 6) {
       return "A senha deve ter pelo menos 6 caracteres";
+    }
+
+    if (formData.role === "MEDICO" && !formData.centralTransplantesId) {
+      return "Selecione a Central de Transplantes para usuários com perfil Médico";
     }
 
     return null;
@@ -108,6 +127,10 @@ function UsuariosAdminPage() {
 
     if (usuarioSelecionado && isAdminPrincipal(usuarioSelecionado) && formEdicao.ativo === false) {
       return "O admin principal não pode ser desativado";
+    }
+
+    if (formEdicao.role === "MEDICO" && !formEdicao.centralTransplantesId) {
+      return "Selecione a Central de Transplantes para usuários com perfil Médico";
     }
 
     return null;
@@ -152,6 +175,7 @@ function UsuariosAdminPage() {
     limparMensagens();
 
     carregarUsuarios();
+    carregarCentrais();
 
   }, [carregarUsuarios]);
 
@@ -251,6 +275,7 @@ function UsuariosAdminPage() {
       ativo: usuario.ativo ?? true,
       crm: usuario.crm || "",
       coren: usuario.coren || "",
+      centralTransplantesId: usuario.centralTransplantesId ?? null,
     });
 
     setNovaSenha("");
@@ -517,6 +542,30 @@ function UsuariosAdminPage() {
 
             </select>
 
+            {formData.role === "MEDICO" && (
+              <select
+                className="select-field"
+                value={formData.centralTransplantesId ?? ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    centralTransplantesId: e.target.value ? parseInt(e.target.value, 10) : null
+                  }))
+                }
+              >
+                <option value="">-- Selecione a Central --</option>
+                {centrais.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nome} {c.cidade ? `(${c.cidade}/${c.estado})` : ''}</option>
+                ))}
+              </select>
+            )}
+
+            {formData.role === "MEDICO" && centrais.length === 0 && (
+              <p className="note" style={{ color: "orange" }}>
+                ⚠️ Nenhuma central de transplantes cadastrada. Acesse <a href="/cadastros/centrais">Cadastro de Centrais</a> para criar uma.
+              </p>
+            )}
+
             <button
               className="primary-button"
               disabled={carregando}
@@ -772,6 +821,30 @@ function UsuariosAdminPage() {
               ))}
 
             </select>
+
+            {formEdicao.role === "MEDICO" && (
+              <select
+                className="select-field"
+                value={formEdicao.centralTransplantesId ?? ""}
+                onChange={(e) =>
+                  setFormEdicao((prev) => ({
+                    ...prev,
+                    centralTransplantesId: e.target.value ? parseInt(e.target.value, 10) : null
+                  }))
+                }
+              >
+                <option value="">-- Selecione a Central --</option>
+                {centrais.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nome} {c.cidade ? `(${c.cidade}/${c.estado})` : ''}</option>
+                ))}
+              </select>
+            )}
+
+            {formEdicao.role === "MEDICO" && centrais.length === 0 && (
+              <p className="note" style={{ color: "orange" }}>
+                ⚠️ Nenhuma central de transplantes cadastrada. Acesse <a href="/cadastros/centrais">Cadastro de Centrais</a> para criar uma antes de vincular ao médico.
+              </p>
+            )}
 
             <input
               className="input-field"

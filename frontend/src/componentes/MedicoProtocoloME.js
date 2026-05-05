@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import centralTransplantesService from "../services/centralTransplantesService";
 import pacienteService from "../services/pacienteService";
 import protocoloService from "../services/protocoloService";
@@ -9,6 +9,7 @@ import EntrevistaFamiliarManager from "./EntrevistaFamiliarManager";
 import GerenciadorExamesME from "./GerenciadorExamesME";
 
 function MedicoProtocoloME() {
+  console.log("✨ MedicoProtocoloME RENDERIZADO!");
   const [pacientesProtocolo, setPacientesProtocolo] = useState([]);
   const [pacientesDisponiveis, setPacientesDisponiveis] = useState([]);
   const [carregando, setCarregando] = useState(false);
@@ -22,7 +23,6 @@ function MedicoProtocoloME() {
   const [abaProtocoloAberta, setAbaProtocoloAberta] = useState("exames");
   const [semCentraisCadastradas, setSemCentraisCadastradas] = useState(false);
   const [alertaCentral, setAlertaCentral] = useState("");
-  const montadoRef = useRef(true);
 
   const statusAtivos = [
     "NOTIFICADO",
@@ -96,26 +96,18 @@ function MedicoProtocoloME() {
     return false;
   };
 
-  // Carregar pacientes em protocolo e disponíveis
   useEffect(() => {
-    return () => {
-      montadoRef.current = false;
-    };
-  }, []);
-
-  useEffect(() => {
+    console.log("🚀 MedicoProtocoloME MONTADO!");
     let ativo = true;
 
     const carregar = async () => {
+      if (!ativo) return;
+      console.log("🔄 Iniciando carregamento de dados...");
       await Promise.all([
         carregarStatusCentrais(),
         carregarPacientesProtocolo(),
         carregarPacientesDisponiveis(),
       ]);
-
-      if (!ativo || !montadoRef.current) {
-        return;
-      }
     };
 
     carregar();
@@ -149,9 +141,10 @@ function MedicoProtocoloME() {
   }, [pacientesProtocolo, mostraExames, protocoloSelecionado?.id]);
 
   const carregarStatusCentrais = async () => {
+    console.log("📍 carregarStatusCentrais INICIADO");
     try {
       const lista = await centralTransplantesService.listarDados();
-      if (!montadoRef.current) return;
+      console.log("✓ carregarStatusCentrais COMPLETADO:", lista);
       const centrais = Array.isArray(lista) ? lista : [];
       const naoPossuiCentrais = centrais.length === 0;
 
@@ -162,22 +155,23 @@ function MedicoProtocoloME() {
           : "",
       );
     } catch (e) {
-      if (!montadoRef.current) return;
+      console.error("❌ carregarStatusCentrais ERRO:", e);
       setSemCentraisCadastradas(false);
       setAlertaCentral("");
     }
   };
 
   const carregarPacientesProtocolo = async () => {
+    console.log("📍 carregarPacientesProtocolo INICIADO");
     try {
       const protocolos = await protocoloService.listar();
-      if (!montadoRef.current) return [];
+      console.log("✓ carregarPacientesProtocolo COMPLETADO:", protocolos);
       const pacientesMapeados = mapearProtocolosParaPacientes(protocolos);
       setPacientesProtocolo(pacientesMapeados);
       setErro("");
       return pacientesMapeados;
     } catch (e) {
-      if (!montadoRef.current) return [];
+      console.error("❌ carregarPacientesProtocolo ERRO:", e);
       console.error("Erro ao carregar pacientes em protocolo:", e);
       tratarErroAutenticacaoOuPermissao(e, "Não foi possível carregar os protocolos de ME.");
       return [];
@@ -190,7 +184,6 @@ function MedicoProtocoloME() {
 
       // Buscar apenas o protocolo atualizado para evitar forçar re-render da lista inteira
       const protocoloAtualizado = await protocoloService.obter(protocoloSelecionado.id);
-      if (!montadoRef.current) return;
 
       // Atualiza o modal/seleção atual com os dados retornados
       setProtocoloSelecionado(protocoloAtualizado);
@@ -205,7 +198,6 @@ function MedicoProtocoloME() {
         return p;
       }));
     } catch (e) {
-      if (!montadoRef.current) return;
       console.error('Erro ao atualizar protocolo selecionado:', e);
       // Em casos excepcionais, recarrega tudo (fallback) — mas evitamos isso para não causar piscar.
       await carregarPacientesProtocolo();
@@ -213,14 +205,29 @@ function MedicoProtocoloME() {
   };
 
   const carregarPacientesDisponiveis = async () => {
+    console.log("📍 carregarPacientesDisponiveis INICIADO");
     try {
       const lista = await pacienteService.listar({ status: 'INTERNADO' });
-      if (!montadoRef.current) return;
+      console.log("✓ carregarPacientesDisponiveis RECEBIDO:", lista);
+
+      console.log("📋 Lista bruta recebida (após check montado):", lista);
+      console.log("🔧 Chamando normalizarLista...");
       const pacientes = normalizarLista(lista);
-      const semProtocolo = pacientes.filter((p) => !Array.isArray(p.protocolosME) || p.protocolosME.length === 0);
+      console.log("✅ Pacientes normalizados:", pacientes);
+
+      console.log("🔍 Executando filter...");
+      const semProtocolo = pacientes.filter((p) => {
+        const temProtocolo = Array.isArray(p.protocolosME) && p.protocolosME.length > 0;
+        console.log(`  - Paciente ${p.id} (${p.nome}): temProtocolo=${temProtocolo}, protocolosME=${p.protocolosME}`);
+        return !temProtocolo;
+      });
+      console.log("🎯 Pacientes SEM protocolo (disponíveis):", semProtocolo);
+
+      console.log("📤 Chamando setPacientesDisponiveis...");
       setPacientesDisponiveis(semProtocolo);
+      console.log("✓ carregarPacientesDisponiveis COMPLETADO");
     } catch (e) {
-      if (!montadoRef.current) return;
+      console.error("❌ carregarPacientesDisponiveis ERRO:", e);
       console.error("Erro ao carregar pacientes disponíveis:", e);
       tratarErroAutenticacaoOuPermissao(e, "Não foi possível carregar os pacientes internados para iniciar protocolo.");
     }
@@ -257,17 +264,11 @@ function MedicoProtocoloME() {
       // Recarregar listas
       await carregarPacientesProtocolo();
       await carregarPacientesDisponiveis();
-
-      if (!montadoRef.current) return;
-
       setTimeout(() => setSucesso(""), 3000);
     } catch (e) {
-      if (!montadoRef.current) return;
       setErro(getApiErrorMessage(e, "Erro ao iniciar protocolo ME"));
     } finally {
-      if (montadoRef.current) {
-        setCarregando(false);
-      }
+      setCarregando(false);
     }
   };
 
