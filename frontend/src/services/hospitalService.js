@@ -10,20 +10,11 @@ const normalizarListaHospitais = (dados) => {
 export const hospitalService = {
   listar: async () => {
     try {
-      console.log('[hospitalService.listar] Iniciando requisição GET /api/hospitais...');
       const response = await api.get('/api/hospitais');
-      console.log('[hospitalService.listar] Resposta bruta:', response);
-      console.log('[hospitalService.listar] response.data:', response.data);
-      console.log('[hospitalService.listar] Tipo de response.data:', typeof response.data);
-      console.log('[hospitalService.listar] É Array?', Array.isArray(response.data));
       const resultado = normalizarListaHospitais(response.data);
-      console.log('[hospitalService.listar] Resultado normalizado:', resultado);
-      console.log('[hospitalService.listar] Quantidade:', resultado.length);
       return resultado;
     } catch (error) {
-      console.error('[hospitalService.listar] ❌ Erro ao fazer requisição:', error);
-      console.error('[hospitalService.listar] Error.message:', error.message);
-      console.error('[hospitalService.listar] Error.response:', error.response);
+      console.error('[hospitalService.listar] Erro ao fazer requisição:', error?.message || error);
       throw error;
     }
   },
