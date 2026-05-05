@@ -14,7 +14,7 @@ public interface PacienteMapper {
     @Mapping(target = "hospitalNome", expression = "java(entity.getHospital() != null ? entity.getHospital().getNome() : null)")
     @Mapping(target = "dataInternacao", source = "dataInternacao")
     @Mapping(target = "status", expression = "java(entity.getStatus() != null ? entity.getStatus().name() : null)")
-    @Mapping(target = "statusEntrevistaFamiliar", expression = "java(entity.getStatusEntrevistaFamiliar())")
+    @Mapping(target = "statusEntrevistaFamiliar",expression = "java(entity.getStatusEntrevistaFamiliar())")
     @Mapping(target = "observacoesEntrevistaFamiliar", ignore = true)
     @Mapping(target = "dataEntrevistaFamiliar", ignore = true)
     PacienteDTO toDTO(Paciente entity);

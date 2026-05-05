@@ -147,10 +147,9 @@ const GerenciadorExamesME = ({ protocoloId, onAtualizacao }) => {
       };
 
       // Envia o exame para criação.
-      const criado = await exameService.criar(payload);
+      await exameService.criar(payload);
 
       // Recarrega a lista completa do backend para garantir sincronização
-      await carregarExames();
 
       // Limpa o formulário
       setNovoExame({
@@ -182,7 +181,6 @@ const GerenciadorExamesME = ({ protocoloId, onAtualizacao }) => {
     try {
       await exameService.deletar(id);
       // Recarrega a lista completa do backend
-      await carregarExames();
       setSucesso('Exame excluído');
       if (onAtualizacao) onAtualizacao();
     } catch (err) {
@@ -199,14 +197,13 @@ const GerenciadorExamesME = ({ protocoloId, onAtualizacao }) => {
 
     try {
       // Persiste as alterações feitas no cartão de edição inline.
-      const atualizado = await exameService.atualizarResultado(
+      await exameService.atualizarResultado(
         exame.id,
         exame.resultadoPositivo,
         exame.responsavel
       );
 
       // Recarrega a lista completa do backend para manter sincronização
-      await carregarExames();
       setExameSelecionado(null);
       setSucesso('Resultado atualizado');
       if (onAtualizacao) onAtualizacao();
