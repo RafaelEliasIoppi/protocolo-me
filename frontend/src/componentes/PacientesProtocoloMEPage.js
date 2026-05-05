@@ -22,7 +22,15 @@ function PacientesProtocoloMEPage() {
       const dados = hospitalId
         ? await pacienteService.listarEmProtocoloMEPorHospital(hospitalId)
         : await pacienteService.listarEmProtocoloME();
-      setPacientes(Array.isArray(dados) ? dados : []);
+
+      const normalizarLista = (dados) => {
+        if (Array.isArray(dados)) return dados;
+        if (Array.isArray(dados?.content)) return dados.content;
+        if (Array.isArray(dados?.data)) return dados.data;
+        return [];
+      };
+
+      setPacientes(normalizarLista(dados));
     } catch (err) {
       setErro("Erro ao carregar pacientes em protocolo de ME");
       console.error("Erro:", err);

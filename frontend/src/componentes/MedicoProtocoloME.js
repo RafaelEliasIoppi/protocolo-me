@@ -73,6 +73,13 @@ function MedicoProtocoloME() {
     return Array.from(porPaciente.values());
   };
 
+  const normalizarLista = (dados) => {
+    if (Array.isArray(dados)) return dados;
+    if (Array.isArray(dados?.content)) return dados.content;
+    if (Array.isArray(dados?.data)) return dados.data;
+    return [];
+  };
+
   const tratarErroAutenticacaoOuPermissao = (e, fallbackMensagem) => {
     const status = e?.response?.status;
     if (status === 401) {
@@ -207,9 +214,9 @@ function MedicoProtocoloME() {
 
   const carregarPacientesDisponiveis = async () => {
     try {
-      const lista = await pacienteService.listarPorStatus("INTERNADO");
+      const lista = await pacienteService.listar({ status: 'INTERNADO' });
       if (!montadoRef.current) return;
-      const pacientes = Array.isArray(lista) ? lista : [];
+      const pacientes = normalizarLista(lista);
       const semProtocolo = pacientes.filter((p) => !Array.isArray(p.protocolosME) || p.protocolosME.length === 0);
       setPacientesDisponiveis(semProtocolo);
     } catch (e) {
