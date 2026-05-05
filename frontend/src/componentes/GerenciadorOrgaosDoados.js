@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import apiClient from '../services/apiClient';
-import '../styles/OrgaoDoadoManager.css';
+import clienteHttpService from '../services/clienteHttpService';
+import '../styles/GerenciadorOrgaosDoados.css';
 import { formatarCpf } from '../utils/cpf';
 
-const OrgaoDoadoManager = ({ protocoloId }) => {
+const GerenciadorOrgaosDoados = ({ protocoloId }) => {
   const [orgaos, setOrgaos] = useState([]);
   const [formOrgao, setFormOrgao] = useState({
     nomeOrgao: '',
@@ -74,7 +74,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     setCarregando(true);
     setErro('');
     try {
-      const response = await apiClient.get(`/api/orgaos-doados/protocolo/${protocoloId}`);
+      const response = await clienteHttpService.get(`/api/orgaos-doados/protocolo/${protocoloId}`);
       setOrgaos(response.data || []);
     } catch (err) {
       setErro('Erro ao carregar órgãos doados');
@@ -86,7 +86,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
 
   const carregarEstatisticas = async () => {
     try {
-      const response = await apiClient.get(`/api/orgaos-doados/protocolo/${protocoloId}/estatisticas`);
+      const response = await clienteHttpService.get(`/api/orgaos-doados/protocolo/${protocoloId}/estatisticas`);
       setEstatisticas(response.data);
     } catch (err) {
       console.error('Erro ao carregar estatísticas:', err);
@@ -154,10 +154,10 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
       };
 
       if (orgaoEditando) {
-        await apiClient.put(`/api/orgaos-doados/${orgaoEditando.id}`, dadosOrgao);
+        await clienteHttpService.put(`/api/orgaos-doados/${orgaoEditando.id}`, dadosOrgao);
         setSucesso('Órgão atualizado com sucesso');
       } else {
-        await apiClient.post('/api/orgaos-doados', dadosOrgao);
+        await clienteHttpService.post('/api/orgaos-doados', dadosOrgao);
         setSucesso('Órgão doado registrado com sucesso');
       }
 
@@ -189,7 +189,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
   const deletarOrgao = async (id) => {
     if (window.confirm('Tem certeza que deseja deletar este órgão doado?')) {
       try {
-        await apiClient.delete(`/api/orgaos-doados/${id}`);
+        await clienteHttpService.delete(`/api/orgaos-doados/${id}`);
         setSucesso('Órgão removido com sucesso');
         carregarOrgaos();
         carregarEstatisticas();
@@ -249,7 +249,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
       }
 
       try {
-        await apiClient.post(`/api/orgaos-doados/${modalAcao.orgaoId}/implantar`, null, {
+        await clienteHttpService.post(`/api/orgaos-doados/${modalAcao.orgaoId}/implantar`, null, {
           params: {
             hospitalReceptor: modalAcao.hospitalReceptor.trim(),
             pacienteReceptor: modalAcao.pacienteReceptor.trim()
@@ -272,7 +272,7 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
     }
 
     try {
-      await apiClient.post(`/api/orgaos-doados/${modalAcao.orgaoId}/descartar`, null, {
+      await clienteHttpService.post(`/api/orgaos-doados/${modalAcao.orgaoId}/descartar`, null, {
         params: {
           motivo: modalAcao.motivo.trim()
         }
@@ -668,4 +668,4 @@ const OrgaoDoadoManager = ({ protocoloId }) => {
   );
 };
 
-export default OrgaoDoadoManager;
+export default GerenciadorOrgaosDoados;

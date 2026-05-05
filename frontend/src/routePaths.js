@@ -1,7 +1,7 @@
 // Rotas da aplicação
 // Este arquivo pode ser expandido conforme necessário para roteamento SPA
 
-export const routes = {
+export const routePaths = {
   HOME: '/',
   LOGIN: '/login',
   DASHBOARD: '/dashboard',
@@ -14,4 +14,4 @@ export const routes = {
   ESTATISTICAS: '/estatisticas'
 };
 
-export default routes;
+export default routePaths;

@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react";
 import {
-  STATUS_ATIVOS,
-  centralDashboardService,
-  construirMapaCidadesHospitais,
-  mapearProtocolosParaPacientes,
-  obterCidadeHospitalNotificante,
-  obterExamesPendentes,
-  obterNomeHospital
+    STATUS_ATIVOS,
+    centralDashboardService,
+    construirMapaCidadesHospitais,
+    mapearProtocolosParaPacientes,
+    obterCidadeHospitalNotificante,
+    obterExamesPendentes,
+    obterNomeHospital
 } from "../services/centralDashboardService";
 import "../styles/CentralDashboardPage.css";
 import { formatarCpf } from "../utils/cpf";
-import CentralPacientesPainel from "./CentralPacientesPainel";
+import PainelPacientesCentral from "./PainelPacientesCentral";
 
 const CHAVE_CONFIG_ESTATISTICA_CENTRAL = "central_dashboard_estatisticas_campos";
 const CHAVE_CONFIG_TELAO = "central_dashboard_telao_config";
@@ -89,7 +89,7 @@ const carregarConfiguracaoCampos = () => {
   }
 };
 
-function CentralDashboardPage({ telaoMode = false }) {
+function PainelCentralPage({ telaoMode = false }) {
   const estatisticasIniciais = {
     totalProtocolos: 0,
     doadoresEmAvaliacao: 0,
@@ -843,7 +843,7 @@ function CentralDashboardPage({ telaoMode = false }) {
       </div>
       )}
 
-      <CentralPacientesPainel
+      <PainelPacientesCentral
         modoTelao={modoTelao}
         pacientes={pacientes}
         pacientesFiltrados={pacientesFiltrados}
@@ -869,4 +869,4 @@ function CentralDashboardPage({ telaoMode = false }) {
   );
 }
 
-export default CentralDashboardPage;
+export default PainelCentralPage;

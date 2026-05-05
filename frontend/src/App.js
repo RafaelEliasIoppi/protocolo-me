@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import "./App.css";
 import AlterarSenhaPage from "./componentes/AlterarSenhaPage";
-import AppLayout from "./componentes/AppLayout";
 import CentraisPage from "./componentes/CentraisPage";
-import CentralDashboardPage from "./componentes/CentralDashboardPage";
-import Dashboard from "./componentes/Dashboard";
 import EstatisticasPage from "./componentes/EstatisticasPage";
 import HospitaisPage from "./componentes/HospitaisPage";
-import HospitalStatus from "./componentes/HospitalStatus";
-import Login from "./componentes/login";
+import LayoutAutenticado from "./componentes/LayoutAutenticado";
+import LoginPage from "./componentes/LoginPage";
 import MedicoProtocoloME from "./componentes/MedicoProtocoloME";
 import PacienteCadastroPage from "./componentes/PacienteCadastroPage";
 import PacientesPage from "./componentes/PacientesPage";
 import PacientesProtocoloMEPage from "./componentes/PacientesProtocoloMEPage";
+import PainelCentralPage from "./componentes/PainelCentralPage";
+import PainelPrincipalPage from "./componentes/PainelPrincipalPage";
+import StatusHospitaisPage from "./componentes/StatusHospitaisPage";
 import UsuariosAdminPage from "./componentes/UsuariosAdminPage";
 import autenticarService from "./services/autenticarService";
 
@@ -70,21 +70,21 @@ function App() {
           path="/dashboard-central/telao"
           element={
             <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES"]}>
-              <CentralDashboardPage telaoMode />
+                <PainelCentralPage telaoMode />
             </GuardedRoute>
           }
         />
 
         <Route
           path="/login"
-          element={isLogged ? <Navigate to="/dashboard" replace /> : <Login onLogin={completarLogin} />}
+          element={isLogged ? <Navigate to="/dashboard" replace /> : <LoginPage onLogin={completarLogin} />}
         />
 
         <Route
           path="/"
           element={
             <GuardedRoute isLogged={isLogged}>
-              <AppLayout
+              <LayoutAutenticado
                 usuario={usuario}
                 theme={theme}
                 setTheme={setTheme}
@@ -96,19 +96,19 @@ function App() {
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route
             path="dashboard"
-            element={<Dashboard onLogout={desconectar} theme={theme} setTheme={setTheme} role={usuario?.role} />}
+            element={<PainelPrincipalPage onLogout={desconectar} theme={theme} setTheme={setTheme} role={usuario?.role} />}
           />
           <Route
             path="alterar-senha"
             element={<AlterarSenhaPage />}
           />
           <Route
-            path="dashboard-central"
-            element={
-              <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES"]}>
-                <CentralDashboardPage />
-              </GuardedRoute>
-            }
+              path="dashboard-central"
+              element={
+                <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES"]}>
+                  <PainelCentralPage />
+                </GuardedRoute>
+              }
           />
           <Route
             path="estatisticas"
@@ -162,7 +162,7 @@ function App() {
             path="cadastros/hospitais/status"
             element={
               <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES"]}>
-                <HospitalStatus />
+                <StatusHospitaisPage />
               </GuardedRoute>
             }
           />

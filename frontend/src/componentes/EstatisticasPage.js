@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import apiClient from '../services/apiClient';
+import clienteHttpService from '../services/clienteHttpService';
 import '../styles/EstatisticasPage.css';
 import { formatarCpf } from '../utils/cpf';
 
@@ -174,7 +174,7 @@ const EstatisticasPage = () => {
 
   const carregarAnosDisponiveis = async () => {
     try {
-      const response = await apiClient.get('/api/estatisticas-transplantes/anos-disponiveis');
+      const response = await clienteHttpService.get('/api/estatisticas-transplantes/anos-disponiveis');
       setAnosDisponiveis(response.data);
       if (response.data.length > 0) {
         const anoMaisRecente = response.data[0];
@@ -194,7 +194,7 @@ const EstatisticasPage = () => {
     setErro('');
     try {
       const params = ano ? { ano } : {};
-      const response = await apiClient.get('/api/estatisticas-transplantes/gerais', { params });
+      const response = await clienteHttpService.get('/api/estatisticas-transplantes/gerais', { params });
       setEstatisticasGerais(response.data);
     } catch (err) {
       setErro('Erro ao carregar estatísticas gerais');
@@ -209,7 +209,7 @@ const EstatisticasPage = () => {
     setErro('');
     try {
       const params = ano ? { ano } : {};
-      const response = await apiClient.get('/api/estatisticas-transplantes/por-paciente', { params });
+      const response = await clienteHttpService.get('/api/estatisticas-transplantes/por-paciente', { params });
       setEstatisticasPorPaciente(response.data);
     } catch (err) {
       setErro('Erro ao carregar estatísticas por paciente');
@@ -231,7 +231,7 @@ const EstatisticasPage = () => {
       if (ano) params.ano = ano;
       if (periodicidadeAtual) params.periodicidade = periodicidadeAtual;
       if (periodicidadeAtual === 'MENSAL' && mesAtual) params.mes = parseInt(mesAtual, 10);
-      const response = await apiClient.get('/api/estatisticas-transplantes/protocolo-me', { params });
+      const response = await clienteHttpService.get('/api/estatisticas-transplantes/protocolo-me', { params });
       setEstatisticasProtocolo(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       setErro('Erro ao carregar estatisticas por protocolo');
@@ -244,7 +244,7 @@ const EstatisticasPage = () => {
   const carregarAuditoriaProtocolos = async (ano = anoSelecionado) => {
     try {
       const params = ano ? { ano } : {};
-      const response = await apiClient.get('/api/estatisticas-transplantes/protocolo-me/auditoria', { params });
+      const response = await clienteHttpService.get('/api/estatisticas-transplantes/protocolo-me/auditoria', { params });
       setProtocolosSemEstatistica(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('Erro ao carregar auditoria de protocolos', err);
@@ -276,7 +276,7 @@ const EstatisticasPage = () => {
 
   const selecionarProtocolo = async (item) => {
     try {
-      const response = await apiClient.get(`/api/estatisticas-transplantes/protocolo-me/${item.protocoloMEId}`);
+      const response = await clienteHttpService.get(`/api/estatisticas-transplantes/protocolo-me/${item.protocoloMEId}`);
       const data = response.data || {};
       setProtocoloSelecionado(data);
       setCamposForm(aplicarPadraoCamposSimNao(data.campos));
@@ -293,7 +293,7 @@ const EstatisticasPage = () => {
     try {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
       const camposNormalizados = aplicarPadraoCamposSimNao(camposForm);
-      await apiClient.put(`/api/estatisticas-transplantes/protocolo-me/${protocoloSelecionado.protocoloMEId}`, {
+      await clienteHttpService.put(`/api/estatisticas-transplantes/protocolo-me/${protocoloSelecionado.protocoloMEId}`, {
         protocoloMEId: protocoloSelecionado.protocoloMEId,
         anoCompetencia: protocoloSelecionado.anoCompetencia || anoSelecionado,
         mesCompetencia: periodicidade === 'MENSAL' ? (mesSelecionado ? parseInt(mesSelecionado, 10) : null) : null,

@@ -1,4 +1,4 @@
-import api from './apiClient';
+import api from './clienteHttpService';
 
 export const exameService = {
   listar: async (protocoloId) => {
@@ -37,7 +37,7 @@ export const exameService = {
   atualizarResultado: async (id, resultadoPositivo, responsavel = '') => {
     // O backend espera 'resultado' (String) e 'resultado_positivo' (Boolean)
     const resultado = resultadoPositivo ? 'POSITIVO' : 'NEGATIVO';
-    
+
     const response = await api.post(
       `/api/exames-me/${id}/resultado`,
       {},

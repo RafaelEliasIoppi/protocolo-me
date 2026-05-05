@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import hospitalService from "../services/hospitalService";
+import "../styles/HospitaisPage.css";
 import HospitalForm from "./HospitalForm";
 
 function HospitaisPage() {
@@ -40,7 +41,7 @@ function HospitaisPage() {
   };
 
   return (
-    <section>
+    <section className="hospitais-page">
       <div className="brand-bar">
         <div>
           <h1>Cadastro de Hospitais</h1>
@@ -61,7 +62,7 @@ function HospitaisPage() {
         }}
       />
 
-      <div className="panel" style={{ marginTop: 24 }}>
+      <div className="panel hospitais-lista-panel">
         <header>
           <div>
             <h2>Hospitais Cadastrados</h2>
@@ -70,7 +71,7 @@ function HospitaisPage() {
         </header>
 
         {hospitais.length === 0 ? (
-          <p className="note">Nenhum hospital encontrado.</p>
+          <p className="note empty-state">Nenhum hospital encontrado.</p>
         ) : (
           <div className="list-panel">
             {hospitais.map((hospital) => (

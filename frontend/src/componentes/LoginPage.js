@@ -1,5 +1,6 @@
 import { useState } from "react";
 import autenticarService from "../services/autenticarService";
+import "../styles/LoginPage.css";
 import { getApiErrorMessage } from "../utils/apiError";
 
 const estadoInicialFormulario = {
@@ -9,7 +10,7 @@ const estadoInicialFormulario = {
   role: "MEDICO"
 };
 
-function Login({ onLogin }) {
+function LoginPage({ onLogin }) {
 
   // Cadastro restrito desativado na tela de login.
   const [isRegister] = useState(false);
@@ -117,7 +118,7 @@ function Login({ onLogin }) {
   };
 
   return (
-    <div className="login-screen">
+    <div className="login-screen login-page">
 
       <div className="login-card">
 
@@ -192,4 +193,4 @@ function Login({ onLogin }) {
   );
 }
 
-export default Login;
+export default LoginPage;

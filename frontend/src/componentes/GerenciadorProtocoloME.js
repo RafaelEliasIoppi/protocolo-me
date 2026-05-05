@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import protocoloService from '../services/protocoloService';
-import '../styles/ProtocoloMEManager.css';
-import OrgaoDoadoManager from './OrgaoDoadoManager';
+import '../styles/GerenciadorProtocoloME.css';
+import GerenciadorOrgaosDoados from './GerenciadorOrgaosDoados';
 
-const ProtocoloMEManager = () => {
+const GerenciadorProtocoloME = () => {
   const [protocolos, setProtocolos] = useState([]);
   const [formProtocolo, setFormProtocolo] = useState({
     numeroProtocolo: '',
@@ -408,7 +408,7 @@ const ProtocoloMEManager = () => {
 
               {protocolosExpandidos.has(protocolo.id) && (
                 <div className="protocolo-orgaos-section">
-                  <OrgaoDoadoManager protocoloId={protocolo.id} />
+                  <GerenciadorOrgaosDoados protocoloId={protocolo.id} />
                 </div>
               )}
             </div>
@@ -423,4 +423,4 @@ const ProtocoloMEManager = () => {
   );
 };
 
-export default ProtocoloMEManager;
+export default GerenciadorProtocoloME;

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import pacienteService from "../services/pacienteService";
 import "../styles/Dashboard.css";
 
-function Dashboard({ onLogout, theme, setTheme, role }) {
+function PainelPrincipalPage({ onLogout, theme, setTheme, role }) {
   const [pacientes, setPacientes] = useState([]);
   const [protocolosME, setProtocolosME] = useState([]);
   const [notificacoes, setNotificacoes] = useState([]);
@@ -133,7 +133,7 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
           <p>Sistema de Protocolo ME</p>
         </div>
         <div>
-          <button className="secondary-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
+          <button className="secondary-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark") }>
             {theme === "dark" ? "Claro" : "Escuro"}
           </button>
           <button className="secondary-button" onClick={onLogout}>Sair</button>
@@ -247,4 +247,4 @@ function Dashboard({ onLogout, theme, setTheme, role }) {
   );
 }
 
-export default Dashboard;
+export default PainelPrincipalPage;

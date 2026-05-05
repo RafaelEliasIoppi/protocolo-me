@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import exameService from '../services/exameService';
-import '../styles/ExameMEManager.css';
+import '../styles/GerenciadorExamesME.css';
 
-const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
+const GerenciadorExamesME = ({ protocoloId, onAtualizacao }) => {
   // Lista de exames já registrados para este protocolo.
   const [exames, setExames] = useState([]);
 
@@ -328,4 +328,4 @@ const ExameMEManager = ({ protocoloId, onAtualizacao }) => {
   );
 };
 
-export default ExameMEManager;
+export default GerenciadorExamesME;

@@ -1,6 +1,6 @@
 import { Link, Outlet } from "react-router-dom";
 
-function AppLayout({ usuario, theme, setTheme, onLogout }) {
+function LayoutAutenticado({ usuario, theme, setTheme, onLogout }) {
   const role = usuario?.role;
 
   return (
@@ -55,4 +55,4 @@ function AppLayout({ usuario, theme, setTheme, onLogout }) {
   );
 }
 
-export default AppLayout;
+export default LayoutAutenticado;

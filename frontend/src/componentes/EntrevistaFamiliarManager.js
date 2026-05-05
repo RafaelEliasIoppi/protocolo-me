@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import apiClient from "../services/apiClient";
+import clienteHttpService from "../services/clienteHttpService";
 import "../styles/EntrevistaFamiliarManager.css";
 import { getApiErrorMessage } from "../utils/apiError";
 import GerenciadorAnexos from "./GerenciadorAnexos";
@@ -24,7 +24,7 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
   const carregarProtocolo = async () => {
     setCarregando(true);
     try {
-      const response = await apiClient.get(`/api/protocolos-me/${protocoloMEId}`);
+      const response = await clienteHttpService.get(`/api/protocolos-me/${protocoloMEId}`);
       setProtocolo(response.data);
       const resultadoFinal = response.data.status === "FINALIZADO"
         ? (response.data.autopsiaAutorizada ? "POSITIVO" : "NEGATIVO")
@@ -87,7 +87,7 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
     setErro("");
     setSucesso("");
     try {
-      await apiClient.post(`/api/protocolos-me/${protocoloMEId}/marcar-entrevista`);
+      await clienteHttpService.post(`/api/protocolos-me/${protocoloMEId}/marcar-entrevista`);
       setSucesso("Protocolo marcado para entrevista familiar");
       await carregarProtocolo();
       if (typeof onAtualizacao === "function") {
@@ -115,7 +115,7 @@ function EntrevistaFamiliarManager({ protocoloMEId, onAtualizacao }) {
     setErro("");
     setSucesso("");
     try {
-      await apiClient.post(
+      await clienteHttpService.post(
         `/api/protocolos-me/${protocoloMEId}/resultado-entrevista`,
         null,
         {

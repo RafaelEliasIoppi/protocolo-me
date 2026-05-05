@@ -1,7 +1,7 @@
-import apiClient from './apiClient';
 import autenticarService from './autenticarService';
+import clienteHttpService from './clienteHttpService';
 
-jest.mock('./apiClient');
+jest.mock('./clienteHttpService');
 
 describe('autenticarService', () => {
   beforeEach(() => {
@@ -22,20 +22,20 @@ describe('autenticarService', () => {
           }
         }
       };
-      apiClient.post.mockResolvedValue(response);
+      clienteHttpService.post.mockResolvedValue(response);
 
       const result = await autenticarService.login('teste@email.com', 'senha123');
 
       expect(result).toEqual(response.data);
       expect(localStorage.getItem('token')).toBe('test-token-123');
-      expect(apiClient.post).toHaveBeenCalledWith('/api/usuarios/login', {
+      expect(clienteHttpService.post).toHaveBeenCalledWith('/api/usuarios/login', {
         email: 'teste@email.com',
         senha: 'senha123'
       });
     });
 
     it('deve falhar no login com credenciais inválidas', async () => {
-      apiClient.post.mockRejectedValue(new Error('Unauthorized'));
+      clienteHttpService.post.mockRejectedValue(new Error('Unauthorized'));
 
       await expect(autenticarService.login('teste@email.com', 'senhaerrada'))
         .rejects.toThrow();

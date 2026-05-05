@@ -4,7 +4,7 @@ import pacienteService from "../services/pacienteService";
 import protocoloService from "../services/protocoloService";
 import "../styles/PacientesProtocoloMEPage.css";
 import { formatarCpf } from "../utils/cpf";
-import OrgaoDoadoManager from "./OrgaoDoadoManager";
+import GerenciadorOrgaosDoados from "./GerenciadorOrgaosDoados";
 
 function PacientesProtocoloMEPage() {
   const [pacientes, setPacientes] = useState([]);
@@ -240,7 +240,7 @@ function PacientesProtocoloMEPage() {
 
                             {protocolosComOrgaosAbertos.has(protocolo.id) && (
                               <div className="protocolo-orgaos-manager">
-                                <OrgaoDoadoManager protocoloId={protocolo.id} />
+                                <GerenciadorOrgaosDoados protocoloId={protocolo.id} />
                               </div>
                             )}
                           </li>

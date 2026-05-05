@@ -1,5 +1,5 @@
-import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import "../styles/PacienteCadastroPage.css";
 import PacienteForm from "./PacienteForm";
 
 function PacienteCadastroPage() {
@@ -8,7 +8,7 @@ function PacienteCadastroPage() {
   const pacienteParaEditar = location.state?.paciente || null;
 
   return (
-    <section>
+    <section className="paciente-cadastro-page">
       <div className="brand-bar">
         <div>
           <h1>{pacienteParaEditar ? "Editar Paciente" : "Novo Cadastro de Paciente"}</h1>

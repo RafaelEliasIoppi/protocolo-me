@@ -67,7 +67,7 @@ const serializarSecoesRelatorio = (secoes) => {
     .join("\n\n");
 };
 
-function CentralPacientesPainel({
+function PainelPacientesCentral({
   modoTelao,
   pacientes,
   pacientesFiltrados,
@@ -635,4 +635,4 @@ function CentralPacientesPainel({
   );
 }
 
-export default CentralPacientesPainel;
+export default PainelPacientesCentral;

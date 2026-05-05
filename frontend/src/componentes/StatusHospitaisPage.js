@@ -3,7 +3,7 @@ import hospitalService from '../services/hospitalService';
 import '../styles/HospitalStatus.css';
 import { formatarTelefone } from '../utils/telefone';
 
-const HospitalStatus = () => {
+const StatusHospitaisPage = () => {
   const [hospitais, setHospitais] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
@@ -144,4 +144,4 @@ const HospitalStatus = () => {
   );
 };
 
-export default HospitalStatus;
+export default StatusHospitaisPage;

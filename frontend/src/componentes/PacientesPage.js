@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import pacienteService from "../services/pacienteService";
+import "../styles/PacientesPage.css";
 import PacienteForm from "./PacienteForm";
 
 function PacientesPage() {
@@ -49,7 +50,7 @@ function PacientesPage() {
   }, []);
 
   return (
-    <section>
+    <section className="pacientes-page">
       <div className="brand-bar">
         <div>
           <h1>Cadastro de Pacientes</h1>

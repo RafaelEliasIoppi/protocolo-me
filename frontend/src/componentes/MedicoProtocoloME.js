@@ -6,7 +6,7 @@ import "../styles/MedicoProtocoloME.css";
 import { getApiErrorMessage } from "../utils/apiError";
 import { formatarCpf } from "../utils/cpf";
 import EntrevistaFamiliarManager from "./EntrevistaFamiliarManager";
-import ExameMEManager from "./ExameMEManager";
+import GerenciadorExamesME from "./GerenciadorExamesME";
 
 function MedicoProtocoloME() {
   const [pacientesProtocolo, setPacientesProtocolo] = useState([]);
@@ -767,7 +767,7 @@ function MedicoProtocoloME() {
                   onAtualizacao={atualizarPainelAposExame}
                 />
               ) : (
-                <ExameMEManager
+                <GerenciadorExamesME
                   protocoloId={protocoloSelecionado.id}
                   onAtualizacao={atualizarPainelAposExame}
                 />

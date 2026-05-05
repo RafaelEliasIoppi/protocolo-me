@@ -1,4 +1,4 @@
-import api from './apiClient';
+import api from './clienteHttpService';
 
 export const usuarioService = {
   alterarMinhaSenha: async ({ senhaAtual, senhaNova, confirmarSenha }) => {

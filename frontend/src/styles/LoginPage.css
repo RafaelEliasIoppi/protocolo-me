@@ -1,0 +1,40 @@
+.login-page {
+    position: relative;
+}
+
+.login-page::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(14, 165, 233, 0.18), transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(16, 185, 129, 0.16), transparent 26%),
+        radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.14), transparent 28%);
+    opacity: 0.9;
+}
+
+.login-page .login-card {
+    position: relative;
+    z-index: 1;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+}
+
+.login-page .login-hero {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.2), transparent 92%);
+}
+
+.login-page .login-hero h2 {
+    letter-spacing: 0.01em;
+}
+
+.login-page .login-panel button[type="submit"] {
+    min-height: 44px;
+}
+
+@media (max-width: 640px) {
+    .login-page .login-card {
+        width: min(100%, 460px);
+    }
+}

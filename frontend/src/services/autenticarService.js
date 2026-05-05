@@ -1,4 +1,4 @@
-import api from "./apiClient";
+import api from "./clienteHttpService";
 
 const TOKEN_KEY = "token";
 const USER_KEY = "usuario";
