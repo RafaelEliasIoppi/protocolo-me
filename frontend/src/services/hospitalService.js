@@ -1,9 +1,31 @@
 import api from './clienteHttpService';
 
+const normalizarListaHospitais = (dados) => {
+  if (Array.isArray(dados)) return dados;
+  if (Array.isArray(dados?.content)) return dados.content;
+  if (Array.isArray(dados?.data)) return dados.data;
+  return [];
+};
+
 export const hospitalService = {
   listar: async () => {
-    const response = await api.get('/api/hospitais');
-    return response.data;
+    try {
+      console.log('[hospitalService.listar] Iniciando requisição GET /api/hospitais...');
+      const response = await api.get('/api/hospitais');
+      console.log('[hospitalService.listar] Resposta bruta:', response);
+      console.log('[hospitalService.listar] response.data:', response.data);
+      console.log('[hospitalService.listar] Tipo de response.data:', typeof response.data);
+      console.log('[hospitalService.listar] É Array?', Array.isArray(response.data));
+      const resultado = normalizarListaHospitais(response.data);
+      console.log('[hospitalService.listar] Resultado normalizado:', resultado);
+      console.log('[hospitalService.listar] Quantidade:', resultado.length);
+      return resultado;
+    } catch (error) {
+      console.error('[hospitalService.listar] ❌ Erro ao fazer requisição:', error);
+      console.error('[hospitalService.listar] Error.message:', error.message);
+      console.error('[hospitalService.listar] Error.response:', error.response);
+      throw error;
+    }
   },
 
   obter: async (id) => {
@@ -47,7 +69,7 @@ export const hospitalService = {
     }
 
     const response = await api.get('/api/hospitais');
-    const hospitais = Array.isArray(response.data) ? response.data : [];
+    const hospitais = normalizarListaHospitais(response.data);
     return {
       total: hospitais.length,
       ativos: hospitais.filter((h) => h?.status === 'ATIVO').length,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import hospitalService from '../services/hospitalService';
 import pacienteService from '../services/pacienteService';
 import '../styles/PacienteForm.css';
@@ -35,7 +35,6 @@ const PacienteForm = ({
   somenteFormulario = false,
 }) => {
   const [formData, setFormData] = useState(formDataPadrao);
-
   const [hospitais, setHospitais] = useState([]);
   const [pacientes, setPacientes] = useState([]);
   const [editandoId, setEditandoId] = useState(null);
@@ -43,9 +42,9 @@ const PacienteForm = ({
   const [filtroHospital, setFiltroHospital] = useState('');
   const [busca, setBusca] = useState('');
   const [mensagem, setMensagem] = useState({ tipo: '', texto: '' });
+  const [erroHospitais, setErroHospitais] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [estatisticas, setEstatisticas] = useState(null);
-  const montadoRef = useRef(true);
 
   const statusOpcoes = [
     'PRE_INTERNACAO',
@@ -58,7 +57,6 @@ const PacienteForm = ({
   ];
 
   const statusOpcoesManuais = statusOpcoes.filter((s) => s !== 'EM_PROTOCOLO_ME');
-
   const generoOpcoes = ['MASCULINO', 'FEMININO', 'OUTRO'];
 
   const normalizarLista = (dados) => {
@@ -74,22 +72,60 @@ const PacienteForm = ({
     return texto ? texto : null;
   };
 
-  // Carregar hospitais e pacientes ao montar
+  // Carregar hospitais, pacientes e estatísticas ao montar
   useEffect(() => {
+    let ativo = true;
+
+    const carregarTudo = async () => {
+      // Hospitais
+      try {
+        const dados = await hospitalService.listar();
+        if (!ativo) return;
+        setErroHospitais('');
+        setHospitais(normalizarLista(dados));
+      } catch (error) {
+        if (!ativo) return;
+        console.error('[PacienteForm] Erro ao carregar hospitais:', error);
+        setHospitais([]);
+        setErroHospitais('Não foi possível carregar os hospitais cadastrados. Verifique permissões ou conexão com o servidor.');
+      }
+
+      // Pacientes
+      try {
+        setCarregando(true);
+        const dados = await pacienteService.listar();
+        if (!ativo) return;
+        const lista = normalizarLista(dados);
+        setPacientes(lista);
+        setMensagem({ tipo: 'sucesso', texto: `${lista.length} pacientes encontrados` });
+      } catch (error) {
+        if (!ativo) return;
+        console.error('Erro ao carregar pacientes:', error);
+        setPacientes([]);
+        setMensagem({ tipo: 'erro', texto: 'Erro ao carregar pacientes' });
+      } finally {
+        if (ativo) setCarregando(false);
+      }
+
+      // Estatísticas
+      try {
+        const dados = await pacienteService.obterEstatisticas();
+        if (!ativo) return;
+        setEstatisticas(dados);
+      } catch (error) {
+        if (!ativo) return;
+        console.error('Erro ao carregar estatísticas:', error);
+      }
+    };
+
+    carregarTudo();
+
     return () => {
-      montadoRef.current = false;
+      ativo = false;
     };
   }, []);
 
-  // Carregar hospitais e pacientes ao montar
-  useEffect(() => {
-    carregarHospitais();
-    carregarPacientes();
-    carregarEstatisticas();
-
-  }, []);
-
-  // Se veio um paciente como prop, editar
+  // Se veio um paciente como prop, preencher formulário
   useEffect(() => {
     if (paciente) {
       setFormData({
@@ -118,70 +154,31 @@ const PacienteForm = ({
     setEditandoId(null);
   }, [paciente]);
 
-  const carregarHospitais = async () => {
-    try {
-      const dados = await hospitalService.listar();
-      if (!montadoRef.current) return;
-      setHospitais(normalizarLista(dados));
-    } catch (error) {
-      if (!montadoRef.current) return;
-      console.error('Erro ao carregar hospitais:', error);
-      setHospitais([]);
-    }
-  };
-
   const carregarPacientes = async () => {
     try {
       setCarregando(true);
-      let url = '/api/pacientes';
 
+      let dados;
       if (busca) {
-        const dados = await pacienteService.buscarPorNome(busca);
-        if (!montadoRef.current) return;
-        const listaPacientes = normalizarLista(dados);
-        setPacientes(listaPacientes);
-        const total = listaPacientes.length;
-        setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
-        return;
+        dados = await pacienteService.buscarPorNome(busca);
       } else if (filtroStatus && filtroHospital) {
-        const dados = await pacienteService.listarPorHospitalEStatus(filtroHospital, filtroStatus);
-        if (!montadoRef.current) return;
-        const listaPacientes = normalizarLista(dados);
-        setPacientes(listaPacientes);
-        const total = listaPacientes.length;
-        setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
-        return;
+        dados = await pacienteService.listarPorHospitalEStatus(filtroHospital, filtroStatus);
       } else if (filtroStatus) {
-        const dados = await pacienteService.listarPorStatus(filtroStatus);
-        if (!montadoRef.current) return;
-        const listaPacientes = normalizarLista(dados);
-        setPacientes(listaPacientes);
-        const total = listaPacientes.length;
-        setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
-        return;
+        dados = await pacienteService.listarPorStatus(filtroStatus);
       } else if (filtroHospital) {
-        const dados = await pacienteService.listarPorHospital(filtroHospital);
-        if (!montadoRef.current) return;
-        const listaPacientes = normalizarLista(dados);
-        setPacientes(listaPacientes);
-        const total = listaPacientes.length;
-        setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
-        return;
+        dados = await pacienteService.listarPorHospital(filtroHospital);
+      } else {
+        dados = await pacienteService.listar();
       }
 
-      const dados = await pacienteService.listar();
-      if (!montadoRef.current) return;
-      const listaPacientes = normalizarLista(dados);
-      setPacientes(listaPacientes);
-      const total = listaPacientes.length;
-      setMensagem({ tipo: 'sucesso', texto: `${total} pacientes encontrados` });
+      const lista = normalizarLista(dados);
+      setPacientes(lista);
+      setMensagem({ tipo: 'sucesso', texto: `${lista.length} pacientes encontrados` });
     } catch (error) {
-      if (!montadoRef.current) return;
       console.error('Erro ao carregar pacientes:', error);
       setPacientes([]);
       setMensagem({ tipo: 'erro', texto: 'Erro ao carregar pacientes' });
     } finally {
-      if (!montadoRef.current) return;
       setCarregando(false);
     }
   };
@@ -189,10 +186,8 @@ const PacienteForm = ({
   const carregarEstatisticas = async () => {
     try {
       const dados = await pacienteService.obterEstatisticas();
-      if (!montadoRef.current) return;
       setEstatisticas(dados);
     } catch (error) {
-      if (!montadoRef.current) return;
       console.error('Erro ao carregar estatísticas:', error);
     }
   };
@@ -202,12 +197,7 @@ const PacienteForm = ({
 
     if (name === 'telefoneResponsavel') {
       const telefoneNumerico = value.replace(/\D/g, '').slice(0, 11);
-      const telefoneFormatado = formatarTelefone(telefoneNumerico);
-
-      setFormData({
-        ...formData,
-        [name]: telefoneFormatado
-      });
+      setFormData({ ...formData, [name]: formatarTelefone(telefoneNumerico) });
       return;
     }
 
@@ -217,18 +207,11 @@ const PacienteForm = ({
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-
-      setFormData({
-        ...formData,
-        [name]: cpfFormatado
-      });
+      setFormData({ ...formData, [name]: cpfFormatado });
       return;
     }
 
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
   const salvarPaciente = async (e) => {
@@ -238,16 +221,12 @@ const PacienteForm = ({
 
       const dadosPaciente = {
         ...formData,
-        // Normalizar CPF: remover formatação (pontos e traços)
-        // Frontend exibe "123.456.789-10" mas envia "12345678910"
         cpf: formData.cpf.replace(/\D/g, ''),
         dataNascimento: valorOuNull(formData.dataNascimento),
         dataInternacao: valorOuNull(formData.dataInternacao),
         dataEntrevistaFamiliar: valorOuNull(formData.dataEntrevistaFamiliar),
         status: editandoId ? formData.status : 'INTERNADO',
-        hospital: {
-          id: parseInt(formData.hospitalId)
-        }
+        hospital: { id: parseInt(formData.hospitalId) }
       };
 
       if (editandoId) {
@@ -265,8 +244,7 @@ const PacienteForm = ({
       carregarEstatisticas();
     } catch (error) {
       console.error('Erro ao salvar paciente:', error);
-      const mensagemErro = getApiErrorMessage(error, 'Erro ao salvar paciente');
-      setMensagem({ tipo: 'erro', texto: mensagemErro });
+      setMensagem({ tipo: 'erro', texto: getApiErrorMessage(error, 'Erro ao salvar paciente') });
     } finally {
       setCarregando(false);
     }
@@ -310,30 +288,9 @@ const PacienteForm = ({
   };
 
   const limparFormulario = () => {
-    setFormData({
-      nome: '',
-      cpf: '',
-      dataNascimento: '',
-      genero: '',
-      hospitalId: '',
-      leito: '',
-      dataInternacao: '',
-      diagnosticoPrincipal: '',
-      historicoMedico: '',
-      nomeResponsavel: '',
-      telefoneResponsavel: '',
-      emailResponsavel: '',
-      statusEntrevistaFamiliar: '',
-      observacoesEntrevistaFamiliar: '',
-      dataEntrevistaFamiliar: '',
-      status: 'INTERNADO'
-    });
+    setFormData(formDataPadrao);
     setEditandoId(null);
     if (onCancel) onCancel();
-  };
-
-  const aplicarFiltro = () => {
-    carregarPacientes();
   };
 
   const formatarData = (data) => {
@@ -403,223 +360,220 @@ const PacienteForm = ({
 
       {/* Formulário */}
       {!somenteListagem && (
-      <form onSubmit={salvarPaciente} className="paciente-form">
-        <h2>{editandoId ? 'Editar Paciente' : 'Novo Paciente'}</h2>
+        <form onSubmit={salvarPaciente} className="paciente-form">
+          <h2>{editandoId ? 'Editar Paciente' : 'Novo Paciente'}</h2>
 
-        <div className="form-row">
+          <div className="form-row">
+            <div className="form-group">
+              <label>Nome *</label>
+              <input
+                type="text"
+                name="nome"
+                value={formData.nome}
+                onChange={atualizarCampoFormulario}
+                required
+                placeholder="Nome completo"
+              />
+            </div>
+            <div className="form-group">
+              <label>CPF *</label>
+              <input
+                type="text"
+                name="cpf"
+                value={formData.cpf}
+                onChange={atualizarCampoFormulario}
+                maxLength={14}
+                required
+                placeholder="XXX.XXX.XXX-XX"
+                disabled={editandoId !== null}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Data de Nascimento *</label>
+              <input
+                type="date"
+                name="dataNascimento"
+                value={formData.dataNascimento}
+                onChange={atualizarCampoFormulario}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Gênero *</label>
+              <select
+                name="genero"
+                value={formData.genero}
+                onChange={atualizarCampoFormulario}
+                required
+              >
+                <option value="">Selecione...</option>
+                {generoOpcoes.map(g => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Hospital *</label>
+              <select
+                name="hospitalId"
+                value={formData.hospitalId}
+                onChange={atualizarCampoFormulario}
+                required
+              >
+                <option value="">Selecione um hospital...</option>
+                {hospitais.map(h => (
+                  <option key={h.id} value={h.id}>{h.nome || h.nomeHospital || 'Hospital sem nome'}</option>
+                ))}
+              </select>
+              {erroHospitais && <small className="erro-hospitais">{erroHospitais}</small>}
+            </div>
+            <div className="form-group">
+              <label>Leito</label>
+              <input
+                type="text"
+                name="leito"
+                value={formData.leito}
+                onChange={atualizarCampoFormulario}
+                placeholder="Ex: UTI 205"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Data de Internação</label>
+              <input
+                type="date"
+                name="dataInternacao"
+                value={formData.dataInternacao}
+                onChange={atualizarCampoFormulario}
+              />
+            </div>
+            <div className="form-group">
+              {editandoId ? (
+                <>
+                  <label>Status</label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={atualizarCampoFormulario}
+                    disabled={formData.status === 'EM_PROTOCOLO_ME'}
+                  >
+                    {statusOpcoesManuais.map(s => (
+                      <option key={s} value={s}>{formatarStatus(s)}</option>
+                    ))}
+                  </select>
+                  {formData.status === 'EM_PROTOCOLO_ME' && (
+                    <small>Paciente em protocolo ME: status controlado automaticamente pelo protocolo.</small>
+                  )}
+                </>
+              ) : (
+                <>
+                  <label>Status</label>
+                  <input type="text" value="Internado" disabled />
+                  <small>O status Em Protocolo ME é definido automaticamente ao iniciar o protocolo.</small>
+                </>
+              )}
+            </div>
+          </div>
+
           <div className="form-group">
-            <label>Nome *</label>
+            <label>Entrevista Familiar</label>
             <input
               type="text"
-              name="nome"
-              value={formData.nome}
-              onChange={atualizarCampoFormulario}
-              required
-              placeholder="Nome completo"
+              value={formatarStatusEntrevista(formData.statusEntrevistaFamiliar)}
+              disabled
             />
-          </div>
-          <div className="form-group">
-            <label>CPF *</label>
-            <input
-              type="text"
-              name="cpf"
-              value={formData.cpf}
-              onChange={atualizarCampoFormulario}
-              maxLength={14}
-              required
-              placeholder="XXX.XXX.XXX-XX"
-              disabled={editandoId !== null}
-            />
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label>Data de Nascimento *</label>
-            <input
-              type="date"
-              name="dataNascimento"
-              value={formData.dataNascimento}
-              onChange={atualizarCampoFormulario}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Gênero *</label>
-            <select
-              name="genero"
-              value={formData.genero}
-              onChange={atualizarCampoFormulario}
-              required
-            >
-              <option value="">Selecione...</option>
-              {generoOpcoes.map(g => (
-                <option key={g} value={g}>{g}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label>Hospital *</label>
-            <select
-              name="hospitalId"
-              value={formData.hospitalId}
-              onChange={atualizarCampoFormulario}
-              required
-            >
-              <option value="">Selecione um hospital...</option>
-              {hospitais.map(h => (
-                <option key={h.id} value={h.id}>{h.nome || h.nomeHospital || 'Hospital sem nome'}</option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Leito</label>
-            <input
-              type="text"
-              name="leito"
-              value={formData.leito}
-              onChange={atualizarCampoFormulario}
-              placeholder="Ex: UTI 205"
-            />
-          </div>
-        </div>
-
-        <div className="form-row">
-          <div className="form-group">
-            <label>Data de Internação</label>
-            <input
-              type="date"
-              name="dataInternacao"
-              value={formData.dataInternacao}
-              onChange={atualizarCampoFormulario}
-            />
-          </div>
-          <div className="form-group">
-            {editandoId ? (
-              <>
-                <label>Status</label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={atualizarCampoFormulario}
-                  disabled={formData.status === 'EM_PROTOCOLO_ME'}
-                >
-                  {statusOpcoesManuais.map(s => (
-                    <option key={s} value={s}>{formatarStatus(s)}</option>
-                  ))}
-                </select>
-                {formData.status === 'EM_PROTOCOLO_ME' && (
-                  <small>Paciente em protocolo ME: status controlado automaticamente pelo protocolo.</small>
-                )}
-              </>
-            ) : (
-              <>
-                <label>Status</label>
-                <input type="text" value="Internado" disabled />
-                <small>O status Em Protocolo ME é definido automaticamente ao iniciar o protocolo.</small>
-              </>
+            <small>O resultado da entrevista é sincronizado automaticamente a partir do protocolo.</small>
+            {formData.dataEntrevistaFamiliar && (
+              <small>Última atualização: {formatarData(formData.dataEntrevistaFamiliar)}</small>
+            )}
+            {formData.observacoesEntrevistaFamiliar && (
+              <textarea value={formData.observacoesEntrevistaFamiliar} disabled rows="3" />
             )}
           </div>
-        </div>
 
-        <div className="form-group">
-          <label>Entrevista Familiar</label>
-          <input
-            type="text"
-            value={formatarStatusEntrevista(formData.statusEntrevistaFamiliar)}
-            disabled
-          />
-          <small>O resultado da entrevista é sincronizado automaticamente a partir do protocolo.</small>
-          {formData.dataEntrevistaFamiliar && (
-            <small>Última atualização: {formatarData(formData.dataEntrevistaFamiliar)}</small>
-          )}
-          {formData.observacoesEntrevistaFamiliar && (
+          <div className="form-group">
+            <label>Diagnóstico Principal</label>
             <textarea
-              value={formData.observacoesEntrevistaFamiliar}
-              disabled
+              name="diagnosticoPrincipal"
+              value={formData.diagnosticoPrincipal}
+              onChange={atualizarCampoFormulario}
+              placeholder="Descreva o diagnóstico principal..."
               rows="3"
             />
-          )}
-        </div>
+          </div>
 
-        <div className="form-group">
-          <label>Diagnóstico Principal</label>
-          <textarea
-            name="diagnosticoPrincipal"
-            value={formData.diagnosticoPrincipal}
-            onChange={atualizarCampoFormulario}
-            placeholder="Descreva o diagnóstico principal..."
-            rows="3"
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Histórico Médico</label>
-          <textarea
-            name="historicoMedico"
-            value={formData.historicoMedico}
-            onChange={atualizarCampoFormulario}
-            placeholder="Descreva o histórico médico..."
-            rows="3"
-          />
-        </div>
-
-        <h3>Responsável</h3>
-        <div className="form-row">
           <div className="form-group">
-            <label>Nome do Responsável</label>
-            <input
-              type="text"
-              name="nomeResponsavel"
-              value={formData.nomeResponsavel}
+            <label>Histórico Médico</label>
+            <textarea
+              name="historicoMedico"
+              value={formData.historicoMedico}
               onChange={atualizarCampoFormulario}
-              placeholder="Nome"
+              placeholder="Descreva o histórico médico..."
+              rows="3"
             />
           </div>
-          <div className="form-group">
-            <label>Telefone</label>
-            <input
-              type="tel"
-              name="telefoneResponsavel"
-              value={formData.telefoneResponsavel}
-              onChange={atualizarCampoFormulario}
-              maxLength={15}
-              placeholder="(XX) XXXXX-XXXX"
-            />
-          </div>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              name="emailResponsavel"
-              value={formData.emailResponsavel}
-              onChange={atualizarCampoFormulario}
-              placeholder="email@example.com"
-            />
-          </div>
-        </div>
 
-        <div className="form-actions">
-          <button type="submit" className="btn-salvar" disabled={carregando}>
-            {carregando ? 'Salvando...' : (editandoId ? 'Atualizar' : 'Criar')} Paciente
-          </button>
-          {editandoId ? (
-            <button type="button" className="btn-cancelar" onClick={limparFormulario}>
-              Cancelar
+          <h3>Responsável</h3>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Nome do Responsável</label>
+              <input
+                type="text"
+                name="nomeResponsavel"
+                value={formData.nomeResponsavel}
+                onChange={atualizarCampoFormulario}
+                placeholder="Nome"
+              />
+            </div>
+            <div className="form-group">
+              <label>Telefone</label>
+              <input
+                type="tel"
+                name="telefoneResponsavel"
+                value={formData.telefoneResponsavel}
+                onChange={atualizarCampoFormulario}
+                maxLength={15}
+                placeholder="(XX) XXXXX-XXXX"
+              />
+            </div>
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                name="emailResponsavel"
+                value={formData.emailResponsavel}
+                onChange={atualizarCampoFormulario}
+                placeholder="email@example.com"
+              />
+            </div>
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn-salvar" disabled={carregando}>
+              {carregando ? 'Salvando...' : (editandoId ? 'Atualizar' : 'Criar')} Paciente
             </button>
-          ) : onCancel ? (
-            <button type="button" className="btn-cancelar" onClick={onCancel}>
-              Voltar
-            </button>
-          ) : null}
-        </div>
-      </form>
+            {editandoId ? (
+              <button type="button" className="btn-cancelar" onClick={limparFormulario}>
+                Cancelar
+              </button>
+            ) : onCancel ? (
+              <button type="button" className="btn-cancelar" onClick={onCancel}>
+                Voltar
+              </button>
+            ) : null}
+          </div>
+        </form>
       )}
 
-      {/* Filtros */}
+      {/* Filtros e Listagem */}
       {!paciente && !somenteFormulario && (
         <>
           <div className="filtros-section">
@@ -652,13 +606,12 @@ const PacienteForm = ({
                   ))}
                 </select>
               </div>
-              <button className="btn-filtrar" onClick={aplicarFiltro} disabled={carregando}>
+              <button className="btn-filtrar" onClick={carregarPacientes} disabled={carregando}>
                 Aplicar Filtros
               </button>
             </div>
           </div>
 
-          {/* Lista de Pacientes */}
           <div className="pacientes-list">
             <h2>Pacientes ({pacientes.length})</h2>
             {carregando && <p className="carregando">Carregando...</p>}
@@ -714,7 +667,5 @@ const PacienteForm = ({
     </div>
   );
 };
-
-
 
 export default PacienteForm;

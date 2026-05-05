@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Carregamento de Hospitais</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+        }
+
+        .test-section h2 {
+            color: #007bff;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .button-group {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        button.danger:hover {
+            background: #c82333;
+        }
+
+        .output {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        .warning {
+            color: #ffc107;
+        }
+
+        .info {
+            color: #17a2b8;
+        }
+
+        .form-group {
+            margin: 10px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔍 Teste de Carregamento de Hospitais</h1>
+
+        <div class="test-section">
+            <h2>1️⃣ Login e Autenticação</h2>
+            <div class="grid">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" value="debug@test.com" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="senha">Senha:</label>
+                    <input type="password" id="senha" value="Test123!" placeholder="Sua senha">
+                </div>
+            </div>
+            <div class="button-group">
+                <button onclick="testarLogin()">🔓 Fazer Login</button>
+                <button class="danger" onclick="limparToken()">🔒 Limpar Token</button>
+            </div>
+            <div id="loginOutput" class="output"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2️⃣ Carregar Hospitais (API Test)</h2>
+            <div class="button-group">
+                <button onclick="testarHospitais()">📋 GET /api/hospitais</button>
+            </div>
+            <div id="hospitalOutput" class="output"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3️⃣ Acessar Página de Cadastro de Pacientes</h2>
+            <p>Forma 1: Direto no navegador</p>
+            <div class="button-group">
+                <button onclick="window.location.href = 'http://localhost:3000/cadastros/pacientes/novo'">
+                    🚀 Abrir Formulário
+                </button>
+            </div>
+            <p style="font-size: 0.9em; color: #666; margin-top: 10px;">
+                ⚠️ Aviso: Abrir em nova aba. Verifique o console do navegador (F12) para logs.
+            </p>
+        </div>
+
+        <div class="test-section">
+            <h2>4️⃣ Verificar Console</h2>
+            <p>Abra as ferramentas de desenvolvimento (F12) e procure por:</p>
+            <ul style="margin-left: 20px; margin-top: 10px; color: #666;">
+                <li><code>[PacienteForm]</code> - logs do componente</li>
+                <li><code>[hospitalService.listar]</code> - logs do serviço</li>
+                <li>Erros em vermelho que possam indicar o problema</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Estado Atual</h2>
+            <button onclick="mostrarEstado()">Mostrar Estado</button>
+            <div id="stateOutput" class="output"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:2500';
+
+        function log(output, message, type = 'info') {
+            const now = new Date().toLocaleTimeString();
+            const codes = {
+                'info': '❌',
+                'success': '✅',
+                'error': '❌',
+                'warning': '⚠️'
+            };
+            const line = `\n[${now}] ${codes[type]} ${message}`;
+            output.innerHTML += line;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        async function testarLogin() {
+            const output = document.getElementById('loginOutput');
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+
+            output.innerHTML = '';
+            log(output, `Fazendo login com ${email}...`);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/usuarios/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    log(output, `❌ Erro: ${data.mensagem}`, 'error');
+                    return;
+                }
+
+                const json = await response.json();
+                const token = json.token;
+                localStorage.setItem('token', token);
+                localStorage.setItem('usuario', JSON.stringify(json.usuario));
+
+                log(output, `✅ Login bem-sucedido!`, 'success');
+                log(output, `📌 Role: ${json.usuario.role}`, 'success');
+                log(output, `⏰ Token expira em: ${new Date(json.tokenExpiraEm).toLocaleString()}`, 'info');
+            } catch (error) {
+                log(output, `❌ Erro na requisição: ${error.message}`, 'error');
+            }
+        }
+
+        async function testarHospitais() {
+            const output = document.getElementById('hospitalOutput');
+            output.innerHTML = '';
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                log(output, 'Faça login primeiro!', 'error');
+                return;
+            }
+
+            log(output, 'Chamando GET /api/hospitais...');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/hospitais`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    log(output, `Erro HTTP ${response.status}`, 'error');
+                    const data = await response.json();
+                    log(output, JSON.stringify(data, null, 2), 'error');
+                    return;
+                }
+
+                const hospitais = await response.json();
+                log(output, `✅ Sucesso! Recebidos ${hospitais.length} hospitais`, 'success');
+
+                if (Array.isArray(hospitais)) {
+                    hospitais.forEach((h, i) => {
+                        log(output, `\n[${i}] ${h.nome}`, 'info');
+                        log(output, `    ID: ${h.id}, CNPJ: ${h.cnpj}`, 'info');
+                        log(output, `    Cidade: ${h.cidade}, ${h.estado}`, 'info');
+                        log(output, `    Status: ${h.status}`, 'info');
+                    });
+                }
+
+                log(output, '\n JSON Completo:', 'warning');
+                log(output, JSON.stringify(hospitais, null, 2), 'warning');
+            } catch (error) {
+                log(output, `❌ Erro na requisição: ${error.message}`, 'error');
+            }
+        }
+
+        function limparToken() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('usuario');
+            document.getElementById('loginOutput').innerHTML = '<span class="warning">Token removido do localStorage</span>';
+        }
+
+        function mostrarEstado() {
+            const output = document.getElementById('stateOutput');
+            output.innerHTML = '';
+
+            const token = localStorage.getItem('token');
+            const usuario = localStorage.getItem('usuario');
+
+            log(output, 'Token armazenado?', token ? 'success' : 'error');
+            if (token) log(output, `Primeiros 50 caracteres: ${token.substring(0, 50)}...`, 'info');
+
+            log(output, '\nUsuário armazenado?', usuario ? 'success' : 'error');
+            if (usuario) {
+                try {
+                    const u = JSON.parse(usuario);
+                    log(output, `Email: ${u.email}`, 'info');
+                    log(output, `Role: ${u.role}`, 'info');
+                    log(output, `ID: ${u.id}`, 'info');
+                } catch (e) {
+                    log(output, `Erro ao parsear: ${e.message}`, 'error');
+                }
+            }
+
+            log(output, '\nURL atual: ' + window.location.href, 'info');
+            log(output, 'API Base: ' + API_BASE, 'info');
+        }
+
+        // Mostrar estado ao carregar
+        window.addEventListener('load', mostrarEstado);
+
+        // Traduzir automaticamente
+        console.log = ((originnal) => {
+            return (...args) => {
+                originnal.apply(console, args);
+            };
+        })(console.log);
+    </script>
+</body>
+
+</html>

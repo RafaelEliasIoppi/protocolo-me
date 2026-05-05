@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import hospitalService from '../services/hospitalService';
 import pacienteService from '../services/pacienteService';
 import '../styles/CentralPacienteEditForm.css';
@@ -25,6 +25,7 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
   const [hospitais, setHospitais] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [mensagem, setMensagem] = useState({ tipo: '', texto: '' });
+  const montadoRef = useRef(true);
 
   const statusOpcoes = [
     'PRE_INTERNACAO',
@@ -45,8 +46,22 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
   };
 
   useEffect(() => {
+    return () => {
+      montadoRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    montadoRef.current = true;
     carregarPacienteEHospitais();
   }, [pacienteId]);
+
+  const normalizarListaHospitais = (dados) => {
+    if (Array.isArray(dados)) return dados;
+    if (Array.isArray(dados?.content)) return dados.content;
+    if (Array.isArray(dados?.data)) return dados.data;
+    return [];
+  };
 
   const carregarPacienteEHospitais = async () => {
     try {
@@ -54,21 +69,21 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
 
       // Carregar hospitais
       const hospitaisDados = await hospitalService.listar();
-      const listaHospitais = Array.isArray(hospitaisDados)
-        ? hospitaisDados
-        : hospitaisDados?.content || [];
+      if (!montadoRef.current) return;
+      const listaHospitais = normalizarListaHospitais(hospitaisDados);
       setHospitais(listaHospitais);
 
       // Carregar paciente se tiver ID
       if (pacienteId) {
         const paciente = await pacienteService.obter(pacienteId);
+        if (!montadoRef.current) return;
 
         setFormData({
           nome: paciente.nome || '',
           cpf: paciente.cpf || '',
           dataNascimento: paciente.dataNascimento || '',
           genero: paciente.genero || '',
-          hospitalId: paciente.hospitalId || '',
+          hospitalId: paciente.hospital?.id || paciente.hospitalId || '',
           leito: paciente.leito || '',
           dataInternacao: paciente.dataInternacao || '',
           diagnosticoPrincipal: paciente.diagnosticoPrincipal || '',
@@ -80,9 +95,11 @@ const CentralPacienteEditForm = ({ pacienteId, onSave, onCancel }) => {
         });
       }
     } catch (error) {
+      if (!montadoRef.current) return;
       console.error('Erro ao carregar dados:', error);
       setMensagem({ tipo: 'erro', texto: 'Erro ao carregar dados do paciente' });
     } finally {
+      if (!montadoRef.current) return;
       setCarregando(false);
     }
   };
