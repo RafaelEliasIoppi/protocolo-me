@@ -14,7 +14,13 @@ function PacientesProtocoloMEPage() {
   const [hospitais, setHospitais] = useState([]);
   const [protocolosComOrgaosAbertos, setProtocolosComOrgaosAbertos] = useState(new Set());
 
-  // Carregar pacientes em protocolo de ME
+  const normalizarLista = (dados) => {
+    if (Array.isArray(dados)) return dados;
+    if (Array.isArray(dados?.content)) return dados.content;
+    if (Array.isArray(dados?.data)) return dados.data;
+    return [];
+  };
+
   const carregarPacientesProtocoloME = async (hospitalId = "") => {
     setCarregando(true);
     setErro("");
@@ -23,94 +29,60 @@ function PacientesProtocoloMEPage() {
         ? await pacienteService.listarEmProtocoloMEPorHospital(hospitalId)
         : await pacienteService.listarEmProtocoloME();
 
-      const normalizarLista = (dados) => {
-        if (Array.isArray(dados)) return dados;
-        if (Array.isArray(dados?.content)) return dados.content;
-        if (Array.isArray(dados?.data)) return dados.data;
-        return [];
-      };
-
       setPacientes(normalizarLista(dados));
     } catch (err) {
       setErro("Erro ao carregar pacientes em protocolo de ME");
-      console.error("Erro:", err);
+      console.error(err);
     } finally {
       setCarregando(false);
     }
   };
 
-  // Carregar lista de hospitais para filtro
   const carregarHospitais = async () => {
     try {
       const dados = await hospitalService.listar();
       setHospitais(Array.isArray(dados) ? dados : []);
     } catch (err) {
-      console.error("Erro ao carregar hospitais:", err);
+      console.error(err);
     }
   };
 
-  // Inicializar
   useEffect(() => {
     carregarHospitais();
     carregarPacientesProtocoloME();
   }, []);
 
-  // Se hotel for alterado, recarregar pacientes
   const filtrarPorHospital = (e) => {
     const hospitalId = e.target.value;
     setFiltroHospital(hospitalId);
-    if (hospitalId) {
-      carregarPacientesProtocoloME(hospitalId);
-    } else {
-      carregarPacientesProtocoloME("");
-    }
-  };
-
-  const formatarStatusEntrevista = (status) => {
-    const mapa = {
-      NAO_INICIADA: "Não iniciada",
-      EM_ANDAMENTO: "Em andamento",
-      AUTORIZADA: "Autorizada",
-      RECUSADA: "Recusada"
-    };
-
-    return mapa[status] || status || "Não iniciada";
+    carregarPacientesProtocoloME(hospitalId);
   };
 
   const toggleOrgaosDoados = (protocoloId) => {
     setProtocolosComOrgaosAbertos((prev) => {
-      const novoSet = new Set(prev);
-      if (novoSet.has(protocoloId)) {
-        novoSet.delete(protocoloId);
-      } else {
-        novoSet.add(protocoloId);
-      }
-      return novoSet;
+      const novo = new Set(prev);
+      novo.has(protocoloId) ? novo.delete(protocoloId) : novo.add(protocoloId);
+      return novo;
     });
   };
 
   const editarNumeroProtocolo = async (protocolo) => {
-    const numeroAtual = protocolo?.numeroProtocolo || "";
-    const numeroNovo = window.prompt("Informe o novo numero do protocolo:", numeroAtual);
-    if (numeroNovo === null) return;
-    if (!numeroNovo.trim()) {
-      setErro("Numero do protocolo nao pode ficar vazio");
-      return;
-    }
+    const numeroNovo = window.prompt(
+      "Informe o novo numero do protocolo:",
+      protocolo?.numeroProtocolo || ""
+    );
+
+    if (!numeroNovo?.trim()) return;
 
     try {
       await protocoloService.atualizar(protocolo.id, {
-        numeroProtocolo: numeroNovo.trim(),
-        diagnosticoBasico: protocolo.diagnosticoBasico,
-        causaMorte: protocolo.causaMorte,
-        observacoes: protocolo.observacoes,
-        medicoResponsavel: protocolo.medicoResponsavel,
-        enfermeiro: protocolo.enfermeiro,
-        orgaosDisponiveis: protocolo.orgaosDisponiveis
+        ...protocolo,
+        numeroProtocolo: numeroNovo.trim()
       });
+
       await carregarPacientesProtocoloME(filtroHospital);
     } catch (err) {
-      setErro(err?.response?.data?.mensagem || "Erro ao atualizar numero do protocolo");
+      setErro("Erro ao atualizar protocolo");
     }
   };
 
@@ -119,9 +91,13 @@ function PacientesProtocoloMEPage() {
       <div className="brand-bar">
         <div>
           <h1>Pacientes em Protocolo de Morte Encefálica</h1>
-          <p>Visualize apenas pacientes que já iniciaram o protocolo de ME.</p>
+          <p>Visualize apenas pacientes em protocolo ME.</p>
         </div>
-        <button className="secondary-button" onClick={() => carregarPacientesProtocoloME(filtroHospital)}>
+
+        <button
+          className="secondary-button"
+          onClick={() => carregarPacientesProtocoloME(filtroHospital)}
+        >
           🔄 Atualizar
         </button>
       </div>
@@ -130,143 +106,50 @@ function PacientesProtocoloMEPage() {
 
       <div className="panel">
         <div className="filtro-section">
-          <label htmlFor="filtro-hospital">Filtrar por Hospital:</label>
-          <select
-            id="filtro-hospital"
-            value={filtroHospital}
-            onChange={filtrarPorHospital}
-            className="select-filtro"
-          >
-            <option value="">Todos os Hospitais</option>
-            {hospitais.map((hospital) => (
-              <option key={hospital.id} value={hospital.id}>
-                {hospital.nomeHospital || hospital.nome}
+          <label>Filtrar por Hospital:</label>
+          <select value={filtroHospital} onChange={filtrarPorHospital}>
+            <option value="">Todos</option>
+            {hospitais.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.nomeHospital || h.nome}
               </option>
             ))}
           </select>
         </div>
 
         {carregando ? (
-          <div className="carregando">⏳ Carregando pacientes...</div>
+          <div>Carregando...</div>
         ) : pacientes.length > 0 ? (
-          <div className="pacientes-container">
-            <div className="info-resumo">
-              <p>
-                <strong>Total de pacientes em protocolo ME:</strong> {pacientes.length}
-              </p>
-            </div>
+          <div className="pacientes-grid">
+            {pacientes.map((paciente) => (
+              <div key={paciente.id} className="paciente-card">
+                <h3>{paciente.nome}</h3>
 
-            <div className="pacientes-grid">
-              {pacientes.map((paciente) => (
-                <div key={paciente.id} className="paciente-card protocolo-me">
-                  <div className="card-header">
-                    <h3>{paciente.nome}</h3>
-                    <span className="badge badge-protocolo">EM PROTOCOLO ME</span>
-                  </div>
+                <p>CPF: {formatarCpf(paciente.cpf)}</p>
+                <p>Hospital: {paciente.hospital?.nomeHospital}</p>
 
-                  <div className="card-body">
-                    <div className="info-row">
-                      <label>CPF:</label>
-                      <span>{formatarCpf(paciente.cpf)}</span>
-                    </div>
-                    <div className="info-row">
-                      <label>Data de Nascimento:</label>
-                      <span>
-                        {new Date(paciente.dataNascimento).toLocaleDateString("pt-BR")}
-                      </span>
-                    </div>
-                    <div className="info-row">
-                      <label>Gênero:</label>
-                      <span>{paciente.genero}</span>
-                    </div>
-                    <div className="info-row">
-                      <label>Hospital:</label>
-                      <span>{paciente.hospital?.nomeHospital || "N/A"}</span>
-                    </div>
-                    <div className="info-row">
-                      <label>Leito:</label>
-                      <span>{paciente.leito || "N/A"}</span>
-                    </div>
-                    <div className="info-row">
-                      <label>Data de Internação:</label>
-                      <span>
-                        {paciente.dataInternacao
-                          ? new Date(paciente.dataInternacao).toLocaleDateString("pt-BR")
-                          : "N/A"}
-                      </span>
-                    </div>
-                    <div className="info-row">
-                      <label>Status:</label>
-                      <span className="status-badge status-ativo">{paciente.status}</span>
-                    </div>
-                    <div className="info-row">
-                      <label>Entrevista Familiar:</label>
-                      <span className="status-badge status-ativo">
-                        {formatarStatusEntrevista(paciente.statusEntrevistaFamiliar)}
-                      </span>
-                    </div>
-                    {paciente.diagnosticoPrincipal && (
-                      <div className="info-row">
-                        <label>Diagnóstico:</label>
-                        <span className="diagnostico">
-                          {paciente.diagnosticoPrincipal}
-                        </span>
-                      </div>
+                {paciente.protocolosME?.map((protocolo) => (
+                  <div key={protocolo.id}>
+                    <p>Protocolo: {protocolo.numeroProtocolo}</p>
+
+                    <button onClick={() => editarNumeroProtocolo(protocolo)}>
+                      Editar protocolo
+                    </button>
+
+                    <button onClick={() => toggleOrgaosDoados(protocolo.id)}>
+                      Órgãos
+                    </button>
+
+                    {protocolosComOrgaosAbertos.has(protocolo.id) && (
+                      <GerenciadorOrgaosDoados protocoloId={protocolo.id} />
                     )}
                   </div>
-
-                  {paciente.protocolosME && paciente.protocolosME.length > 0 && (
-                    <div className="card-protocols">
-                      <h4>Protocolos ME Associados:</h4>
-                      <ul className="protocol-list">
-                        {paciente.protocolosME.map((protocolo) => (
-                          <li key={protocolo.id}>
-                            <strong>Número:</strong> {protocolo.numeroProtocolo}
-                            <br />
-                            <strong>Status:</strong> {protocolo.status}
-                            <br />
-                            <strong>Hospital Origem:</strong> {protocolo.hospitalOrigem}
-
-                            <div className="protocolo-acoes">
-                              <button
-                                type="button"
-                                className="btn-orgaos-doados"
-                                onClick={() => editarNumeroProtocolo(protocolo)}
-                              >
-                                Editar numero do protocolo
-                              </button>
-                              <button
-                                type="button"
-                                className="btn-orgaos-doados"
-                                onClick={() => toggleOrgaosDoados(protocolo.id)}
-                              >
-                                {protocolosComOrgaosAbertos.has(protocolo.id)
-                                  ? "Ocultar Órgãos Doados"
-                                  : "Informar Órgãos Doados"}
-                              </button>
-                            </div>
-
-                            {protocolosComOrgaosAbertos.has(protocolo.id) && (
-                              <div className="protocolo-orgaos-manager">
-                                <GerenciadorOrgaosDoados protocoloId={protocolo.id} />
-                              </div>
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ))}
           </div>
         ) : (
-          <div className="panel">
-            <p className="note">
-              ✓ Nenhum paciente em protocolo de ME no momento
-              {filtroHospital && " neste hospital"}
-            </p>
-          </div>
+          <p>Nenhum paciente em protocolo ME</p>
         )}
       </div>
     </section>
