@@ -153,6 +153,7 @@ public class ProtocoloMEDTO {
     private PacienteResumoDTO paciente;
 
     private List<OrgaoDoadoDTO> orgaosDoados;
+    private List<ExameMEDTO> exames;
 
     public ProtocoloMEDTO() {
     }
@@ -509,5 +510,13 @@ public class ProtocoloMEDTO {
 
     public void setOrgaosDoados(List<OrgaoDoadoDTO> orgaosDoados) {
         this.orgaosDoados = orgaosDoados;
+    }
+
+    public List<ExameMEDTO> getExames() {
+        return exames;
+    }
+
+    public void setExames(List<ExameMEDTO> exames) {
+        this.exames = exames;
     }
 }

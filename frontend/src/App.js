@@ -13,6 +13,7 @@ import PacientesPage from "./componentes/PacientesPage";
 import PacientesProtocoloMEPage from "./componentes/PacientesProtocoloMEPage";
 import PainelCentralPage from "./componentes/PainelCentralPage";
 import PainelPrincipalPage from "./componentes/PainelPrincipalPage";
+import RelatoriosBibliotecaPage from "./componentes/RelatoriosBibliotecaPage";
 import StatusHospitaisPage from "./componentes/StatusHospitaisPage";
 import UsuariosAdminPage from "./componentes/UsuariosAdminPage";
 import autenticarService from "./services/autenticarService";
@@ -147,6 +148,14 @@ function App() {
             element={
               <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES", "ADMIN", "MEDICO"]}>
                 <PacientesProtocoloMEPage />
+              </GuardedRoute>
+            }
+          />
+          <Route
+            path="biblioteca-relatorios"
+            element={
+              <GuardedRoute isLogged={isLogged} allowedRoles={["CENTRAL_TRANSPLANTES", "ADMIN", "COORDENADOR_TRANSPLANTES"]}>
+                <RelatoriosBibliotecaPage />
               </GuardedRoute>
             }
           />

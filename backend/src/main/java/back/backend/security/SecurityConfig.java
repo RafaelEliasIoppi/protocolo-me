@@ -97,6 +97,10 @@ public class SecurityConfig {
                         .hasAnyRole("CENTRAL_TRANSPLANTES", "ADMIN")
 
                         // ---------- PROTOCOLOS ----------
+                        // permitir somente CENTRAIS/COORDENADORES atualizarem o relatorio final
+                        .requestMatchers(HttpMethod.PATCH, "/api/protocolos-me/*/relatorio-final")
+                        .hasAnyRole("CENTRAL_TRANSPLANTES", "COORDENADOR_TRANSPLANTES")
+
                         .requestMatchers(HttpMethod.GET, "/api/protocolos-me/**")
                         .hasAnyRole("ADMIN", "MEDICO", "ENFERMEIRO", "COORDENADOR_TRANSPLANTES", "CENTRAL_TRANSPLANTES")
                         .requestMatchers("/api/protocolos-me/**")

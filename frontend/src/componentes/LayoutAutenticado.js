@@ -23,6 +23,9 @@ function LayoutAutenticado({ usuario, theme, setTheme, onLogout }) {
           {(role === "CENTRAL_TRANSPLANTES" || role === "ADMIN") && (
             <Link className="secondary-button" to="/dashboard-central">Painel da Central</Link>
           )}
+          {(role === "CENTRAL_TRANSPLANTES" || role === "ADMIN" || role === "COORDENADOR_TRANSPLANTES") && (
+            <Link className="secondary-button" to="/biblioteca-relatorios">Biblioteca de Relatórios</Link>
+          )}
           {(role === "MEDICO" || role === "ENFERMEIRO") && (
              <Link className="secondary-button" to="/protocolo-me-medico">Meu Protocolo ME</Link>
            )}

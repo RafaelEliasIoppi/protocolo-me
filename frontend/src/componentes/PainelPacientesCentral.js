@@ -240,6 +240,10 @@ function PainelPacientesCentral({
     janela.print();
   };
 
+  // verificar se o usuário atual pode editar relatórios
+  const usuarioAtual = JSON.parse(localStorage.getItem("usuario") || "{}");
+  const podeEditarRelatorio = usuarioAtual?.role === "CENTRAL_TRANSPLANTES" || usuarioAtual?.role === "COORDENADOR_TRANSPLANTES";
+
   return (
     <>
       {/* Modal de Validação */}
@@ -501,13 +505,15 @@ function PainelPacientesCentral({
                             <div className="relatorio-secoes-header">
                               <strong>Partes do relatório final</strong>
                               <div className="action-row relatorio-secoes-acoes">
-                                <button
-                                  className="modal-report-button"
-                                  type="button"
-                                  onClick={() => adicionarSecao(protocoloResumo.protocoloId)}
-                                >
-                                  + Adicionar parte
-                                </button>
+                                {podeEditarRelatorio && (
+                                  <button
+                                    className="modal-report-button"
+                                    type="button"
+                                    onClick={() => adicionarSecao(protocoloResumo.protocoloId)}
+                                  >
+                                    + Adicionar parte
+                                  </button>
+                                )}
                                 <button
                                   className="modal-report-button"
                                   type="button"
@@ -534,14 +540,17 @@ function PainelPacientesCentral({
                                       e.target.value
                                     )}
                                     placeholder="Titulo da parte"
+                                    readOnly={!podeEditarRelatorio}
                                   />
-                                  <button
-                                    className="secondary-button relatorio-secao-remover"
-                                    type="button"
-                                    onClick={() => removerSecao(protocoloResumo.protocoloId, indiceSecao)}
-                                  >
-                                    Remover
-                                  </button>
+                                  {podeEditarRelatorio && (
+                                    <button
+                                      className="secondary-button relatorio-secao-remover"
+                                      type="button"
+                                      onClick={() => removerSecao(protocoloResumo.protocoloId, indiceSecao)}
+                                    >
+                                      Remover
+                                    </button>
+                                  )}
                                 </div>
                                 <textarea
                                   value={secao.conteudo || ""}
@@ -554,15 +563,22 @@ function PainelPacientesCentral({
                                   placeholder="Descreva esta parte do relatório"
                                   rows={4}
                                   style={{ width: "100%" }}
+                                  readOnly={!podeEditarRelatorio}
                                 />
                               </div>
                             ))}
-                            <button
-                              className="modal-report-button"
-                              onClick={() => salvarConclusaoProtocolo(protocoloResumo.protocoloId)}
-                            >
-                              Salvar relatório
-                            </button>
+                            {podeEditarRelatorio ? (
+                              <button
+                                className="modal-report-button"
+                                onClick={() => salvarConclusaoProtocolo(protocoloResumo.protocoloId)}
+                              >
+                                Salvar relatório
+                              </button>
+                            ) : (
+                              <div style={{ fontStyle: 'italic', color: '#6b7280', marginTop: '8px' }}>
+                                Apenas usuários da Central (Coordenador/Operador) podem editar este relatório.
+                              </div>
+                            )}
                           </div>
                           {Array.isArray(protocoloResumo.anexos) && protocoloResumo.anexos.length > 0 && (
                             <ul className="lista-faltantes" style={{ marginTop: "0.5rem" }}>
