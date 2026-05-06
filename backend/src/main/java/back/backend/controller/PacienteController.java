@@ -61,6 +61,11 @@ public class PacienteController {
         return ResponseEntity.ok(pacienteService.listarPorStatus(status));
     }
 
+    @GetMapping("/status/{status}/sem-protocolo-ativo")
+    public ResponseEntity<List<PacienteEmProtocoloDTO>> listarPorStatusSemProtocoloAtivo(@PathVariable String status) {
+        return ResponseEntity.ok(pacienteService.listarPorStatusSemProtocoloAtivo(status));
+    }
+
     @GetMapping("/hospital/{hospitalId}/status/{status}")
     public ResponseEntity<List<PacienteDTO>> listarPorHospitalEStatus(
             @PathVariable Long hospitalId,
@@ -71,7 +76,8 @@ public class PacienteController {
 
     @Transactional
     @PutMapping("/{id:\\d+}")
-    public ResponseEntity<PacienteDTO> atualizar(@PathVariable Long id, @Valid @RequestBody PacienteRequestDTO request) {
+    public ResponseEntity<PacienteDTO> atualizar(@PathVariable Long id,
+            @Valid @RequestBody PacienteRequestDTO request) {
         return ResponseEntity.ok(pacienteService.atualizarPaciente(id, pacienteRequestMapper.toEntity(request)));
     }
 

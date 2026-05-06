@@ -67,6 +67,11 @@ export const pacienteService = {
     return response.data;
   },
 
+  listarPorStatusSemProtocoloAtivo: async (status) => {
+    const response = await api.get(`/api/pacientes/status/${status}/sem-protocolo-ativo`);
+    return response.data;
+  },
+
   buscarPorNome: async (nome) => {
     const response = await api.get(`/api/pacientes/buscar?nome=${encodeURIComponent(nome)}`);
     return response.data;

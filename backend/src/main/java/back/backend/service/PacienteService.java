@@ -43,7 +43,7 @@ public class PacienteService {
         paciente.setCpf(normalizarCpf(paciente.getCpf()));
 
         if (paciente.getStatus() == null ||
-            paciente.getStatus() == Paciente.StatusPaciente.EM_PROTOCOLO_ME) {
+                paciente.getStatus() == Paciente.StatusPaciente.EM_PROTOCOLO_ME) {
             paciente.setStatus(Paciente.StatusPaciente.INTERNADO);
         }
 
@@ -64,12 +64,11 @@ public class PacienteService {
         }
 
         if (atualizado.getHospital() != null &&
-            atualizado.getHospital().getId() != null) {
+                atualizado.getHospital().getId() != null) {
 
             Hospital hospital = hospitalRepository.findById(
-                    atualizado.getHospital().getId()
-            ).orElseThrow(() ->
-                    new RecursoNaoEncontradoException("Hospital não encontrado"));
+                    atualizado.getHospital().getId())
+                    .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado"));
 
             paciente.setHospital(hospital);
         }
@@ -84,8 +83,7 @@ public class PacienteService {
 
     public PacienteDTO atualizarStatus(Long id, String novoStatus) {
         try {
-            Paciente.StatusPaciente status =
-                    Paciente.StatusPaciente.valueOf(novoStatus.toUpperCase());
+            Paciente.StatusPaciente status = Paciente.StatusPaciente.valueOf(novoStatus.toUpperCase());
 
             return atualizarStatus(id, status);
 
@@ -108,8 +106,7 @@ public class PacienteService {
 
     public PacienteDTO obterPacientePorCpf(String cpf) {
         return toDTO(pacienteRepository.findByCpf(normalizarCpf(cpf))
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Paciente não encontrado")));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Paciente não encontrado")));
     }
 
     public List<PacienteDTO> listarTodos() {
@@ -129,8 +126,7 @@ public class PacienteService {
 
     public List<PacienteDTO> listarPorHospital(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Hospital não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado"));
         return pacienteRepository.findByHospital(hospital)
                 .stream()
                 .map(this::toDTO)
@@ -149,10 +145,22 @@ public class PacienteService {
         }
     }
 
+    public List<PacienteEmProtocoloDTO> listarPorStatusSemProtocoloAtivo(String status) {
+        try {
+            Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
+            return pacienteRepository.findByStatus(statusEnum)
+                    .stream()
+                    .filter(this::naoPossuiProtocoloAtivo)
+                    .map(this::toPacienteEmProtocoloDTO)
+                    .toList();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Status inválido: " + status);
+        }
+    }
+
     public List<PacienteDTO> listarPorHospitalEStatus(Long hospitalId, String status) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Hospital não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado"));
         try {
             Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
             return pacienteRepository.findByHospitalAndStatus(hospital, statusEnum)
@@ -167,17 +175,16 @@ public class PacienteService {
     public List<PacienteEmProtocoloDTO> listarEmProtocoloME() {
         return pacienteRepository.findPacientesEmProtocoloME()
                 .stream()
-            .map(this::toPacienteEmProtocoloDTO)
+                .map(this::toPacienteEmProtocoloDTO)
                 .toList();
     }
 
     public List<PacienteEmProtocoloDTO> listarEmProtocoloMEPorHospital(Long hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Hospital não encontrado"));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Hospital não encontrado"));
         return pacienteRepository.findPacientesEmProtocoloMEPorHospital(hospital)
                 .stream()
-            .map(this::toPacienteEmProtocoloDTO)
+                .map(this::toPacienteEmProtocoloDTO)
                 .toList();
     }
 
@@ -209,14 +216,14 @@ public class PacienteService {
 
         Paciente paciente = buscarPacienteEntityPorId(id);
 
-        List<ProtocoloME> protocolos =
-                Optional.ofNullable(paciente.getProtocolosME())
-                        .orElse(new ArrayList<>());
+        List<ProtocoloME> protocolos = Optional.ofNullable(paciente.getProtocolosME())
+                .orElse(new ArrayList<>());
 
         for (ProtocoloME protocolo : protocolos) {
 
             Long protocoloId = protocolo.getId();
-            if (protocoloId == null) continue;
+            if (protocoloId == null)
+                continue;
 
             estatisticaProtocoloMERepository.deleteByProtocoloMEId(protocoloId);
             anexoDocumentoRepository.deleteByProtocoloMEId(protocoloId);
@@ -247,11 +254,33 @@ public class PacienteService {
         dto.setStatus(Optional.ofNullable(paciente.getStatus()).map(Enum::name).orElse(null));
         dto.setStatusEntrevistaFamiliar(paciente.getStatusEntrevistaFamiliar());
 
-        Optional.ofNullable(paciente.getHospital()).ifPresent(h -> 
-            dto.setHospital(new PacienteEmProtocoloDTO.HospitalResumoDTO(h.getId(), h.getNome()))
-        );
+        Optional.ofNullable(paciente.getHospital())
+                .ifPresent(h -> dto.setHospital(new PacienteEmProtocoloDTO.HospitalResumoDTO(h.getId(), h.getNome())));
 
         return dto;
+    }
+
+    private boolean naoPossuiProtocoloAtivo(Paciente paciente) {
+        List<ProtocoloME> protocolos = Optional.ofNullable(paciente.getProtocolosME())
+                .orElse(Collections.emptyList());
+
+        return protocolos.stream().noneMatch(protocolo -> {
+            if (protocolo == null || protocolo.getStatus() == null) {
+                return false;
+            }
+
+            return switch (protocolo.getStatus()) {
+                case NOTIFICADO,
+                        EM_PROCESSO,
+                        MORTE_CEREBRAL_CONFIRMADA,
+                        ENTREVISTA_FAMILIAR,
+                        FAMILIA_RECUSOU,
+                        DOACAO_AUTORIZADA,
+                        CONTRAINDICADO,
+                        FINALIZADO ->
+                    true;
+            };
+        });
     }
 
     private void validarPaciente(Paciente paciente) {
@@ -274,8 +303,7 @@ public class PacienteService {
             throw new IllegalArgumentException("Hospital obrigatório");
         }
 
-        Optional<Paciente> existente =
-                pacienteRepository.findByCpf(paciente.getCpf());
+        Optional<Paciente> existente = pacienteRepository.findByCpf(paciente.getCpf());
 
         if (existente.isPresent() &&
                 !existente.get().getId().equals(paciente.getId())) {
@@ -288,23 +316,33 @@ public class PacienteService {
     }
 
     private void copiarCampos(Paciente destino, Paciente origem) {
-        if (origem.getNome() != null) destino.setNome(origem.getNome());
-        if (origem.getDataNascimento() != null) destino.setDataNascimento(origem.getDataNascimento());
-        if (origem.getGenero() != null) destino.setGenero(origem.getGenero());
-        if (origem.getLeito() != null) destino.setLeito(origem.getLeito());
-        if (origem.getDataInternacao() != null) destino.setDataInternacao(origem.getDataInternacao());
-        if (origem.getDiagnosticoPrincipal() != null) destino.setDiagnosticoPrincipal(origem.getDiagnosticoPrincipal());
-        if (origem.getHistoricoMedico() != null) destino.setHistoricoMedico(origem.getHistoricoMedico());
-        if (origem.getNomeResponsavel() != null) destino.setNomeResponsavel(origem.getNomeResponsavel());
-        if (origem.getTelefoneResponsavel() != null) destino.setTelefoneResponsavel(origem.getTelefoneResponsavel());
-        if (origem.getEmailResponsavel() != null) destino.setEmailResponsavel(origem.getEmailResponsavel());
-        if (origem.getStatus() != null) destino.setStatus(origem.getStatus());
+        if (origem.getNome() != null)
+            destino.setNome(origem.getNome());
+        if (origem.getDataNascimento() != null)
+            destino.setDataNascimento(origem.getDataNascimento());
+        if (origem.getGenero() != null)
+            destino.setGenero(origem.getGenero());
+        if (origem.getLeito() != null)
+            destino.setLeito(origem.getLeito());
+        if (origem.getDataInternacao() != null)
+            destino.setDataInternacao(origem.getDataInternacao());
+        if (origem.getDiagnosticoPrincipal() != null)
+            destino.setDiagnosticoPrincipal(origem.getDiagnosticoPrincipal());
+        if (origem.getHistoricoMedico() != null)
+            destino.setHistoricoMedico(origem.getHistoricoMedico());
+        if (origem.getNomeResponsavel() != null)
+            destino.setNomeResponsavel(origem.getNomeResponsavel());
+        if (origem.getTelefoneResponsavel() != null)
+            destino.setTelefoneResponsavel(origem.getTelefoneResponsavel());
+        if (origem.getEmailResponsavel() != null)
+            destino.setEmailResponsavel(origem.getEmailResponsavel());
+        if (origem.getStatus() != null)
+            destino.setStatus(origem.getStatus());
     }
 
     private Paciente buscarPacienteEntityPorId(Long id) {
         return pacienteRepository.findById(id)
-                .orElseThrow(() ->
-                        new RecursoNaoEncontradoException("Paciente não encontrado: " + id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Paciente não encontrado: " + id));
     }
 
     private PacienteDTO toDTO(Paciente paciente) {
