@@ -25,15 +25,15 @@ function MedicoProtocoloME() {
   const montadoRef = useRef(true);
 
   const statusAtivos = [
-    "NOTIFICADO",
-    "EM_PROCESSO",
-    "MORTE_CEREBRAL_CONFIRMADA",
-    "ENTREVISTA_FAMILIAR",
-    "DOACAO_AUTORIZADA",
-    "FAMILIA_RECUSOU",
-    "CONTRAINDICADO",
-    "FINALIZADO"
-  ];
+  "NOTIFICADO",
+  "EM_PROCESSO",
+  "MORTE_CEREBRAL_CONFIRMADA",
+  "ENTREVISTA_FAMILIAR",
+  "DOACAO_AUTORIZADA",
+  "FAMILIA_RECUSOU",
+  "CONTRAINDICADO",
+  "FINALIZADO"
+];
 
   const mapearProtocolosParaPacientes = (protocolos) => {
     if (!Array.isArray(protocolos)) {
@@ -206,51 +206,47 @@ function MedicoProtocoloME() {
   };
 
   const carregarPacientesDisponiveis = async () => {
-    try {
-      console.log("🔍 [1] Chamando listarPorStatus('INTERNADO')...");
-      const lista = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
+  try {
+    console.log("🔍 Buscando pacientes INTERNADOS sem protocolo ativo...");
 
-      console.log("🔍 [2] Retorno bruto da API:", lista);
-      console.log("🔍 [2] Tipo do retorno:", typeof lista, Array.isArray(lista) ? "(é array)" : "(NÃO é array)");
-      if (!montadoRef.current) return;
-      const pacientes = Array.isArray(lista) ? lista : [];
-      console.log("🔍 [3] Total de pacientes internados:", pacientes.length);
+    const lista = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
 
-      if (pacientes.length > 0) {
-        console.log("🔍 [3] Primeiro paciente (exemplo):", pacientes[0]);
-        console.log("🔍 [3] Estrutura protocolosME:", pacientes.map(p => ({
-          id: p.id,
-          nome: p.nome,
-          temProtocolosME: !!p.protocolosME,
-          ehArray: Array.isArray(p.protocolosME),
-          tamanho: p.protocolosME?.length || 'undefined'
-        })));
-      }
+    if (!montadoRef.current) return;
 
-      // Filtro refinado: mantém apenas pacientes que NÃO possuem
-      // nenhum protocolo com status considerado ativo em `statusAtivos`.
-      const semProtocolo = pacientes.filter((p) => {
-        if (!Array.isArray(p.protocolosME)) {
-          console.warn(`⚠️ Paciente ${p.nome} veio sem protocolosME`);
-          return false;
-        }
+    const pacientes = Array.isArray(lista) ? lista : [];
 
-        const temProtocoloAtivo = p.protocolosME.some((pr) =>
-          statusAtivos.includes(pr?.status)
-        );
+    console.log("✅ Pacientes disponíveis:", pacientes.map(p => p.nome));
 
-        return !temProtocoloAtivo;
-      });
-
-      console.log("🔍 [4] Após filtro (sem protocolo ativo):", semProtocolo.length);
-      console.log("🔍 [4] Pacientes disponíveis:", semProtocolo.map(p => p.nome));
-      setPacientesDisponiveis(semProtocolo);
-    } catch (e) {
-      if (!montadoRef.current) return;
-      console.error("Erro ao carregar pacientes disponíveis:", e);
-      tratarErroAutenticacaoOuPermissao(e, "Não foi possível carregar os pacientes internados para iniciar protocolo.");
+    // 🔥 AQUI ESTÁ A CORREÇÃO: se backend não devolveu candidatos, tenta fallback
+    if (pacientes.length > 0) {
+      setPacientesDisponiveis(pacientes);
+      setMostrarTodosPacientes(false);
+      return;
     }
-  };
+
+    console.warn('Fallback: nenhum paciente retornado pela rota específica; tentando listar pacientes INTERNADOS.');
+    try {
+      const fallbackLista = await pacienteService.listarPorStatus("INTERNADO");
+      const fallbackPacientes = Array.isArray(fallbackLista) ? fallbackLista : [];
+      setPacientesDisponiveis(fallbackPacientes);
+      setMostrarTodosPacientes(true); // indica que estamos num fallback sem garantia de protocolo ativo
+      console.log("🔁 Fallback - pacientes internados (sem validação de protocolos):", fallbackPacientes.map(p => p.nome));
+    } catch (fallbackErr) {
+      console.error('Erro no fallback ao carregar pacientes internados:', fallbackErr);
+      setPacientesDisponiveis([]);
+    }
+
+  } catch (e) {
+    if (!montadoRef.current) return;
+
+    console.error("❌ Erro ao carregar pacientes disponíveis:", e);
+
+    tratarErroAutenticacaoOuPermissao(
+      e,
+      "Não foi possível carregar os pacientes internados para iniciar protocolo."
+    );
+  }
+};
 
   const iniciarProtocoloME = async (e) => {
     e.preventDefault();
