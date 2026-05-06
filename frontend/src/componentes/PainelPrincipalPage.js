@@ -32,7 +32,14 @@ function PainelPrincipalPage({ onLogout, theme, setTheme, role }) {
           try {
             const protocolosData = await pacienteService.listarEmProtocoloME();
             if (ativo) {
-              setProtocolosME(Array.isArray(protocolosData) ? protocolosData : []);
+              const normalizarLista = (dados) => {
+                if (Array.isArray(dados)) return dados;
+                if (Array.isArray(dados?.content)) return dados.content;
+                if (Array.isArray(dados?.data)) return dados.data;
+                return [];
+              };
+
+              setProtocolosME(normalizarLista(protocolosData));
             }
           } catch (error) {
             console.error("Erro ao carregar protocolos ME:", error);

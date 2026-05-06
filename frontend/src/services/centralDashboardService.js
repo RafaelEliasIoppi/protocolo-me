@@ -305,6 +305,11 @@ export const centralDashboardService = {
     return response.data;
   },
 
+  listarRelatoriosGerados: async () => {
+    const response = await api.get(`/api/relatorios`);
+    return response.data;
+  },
+
   salvarRelatorioFinalProtocolo: async (protocoloId, payload) => {
     const response = await api.patch(`/api/protocolos-me/${protocoloId}/relatorio-final`, payload);
     return response.data;

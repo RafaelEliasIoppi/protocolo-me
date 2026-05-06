@@ -2,6 +2,7 @@ package back.backend.mapper;
 
 import back.backend.dto.OrgaoDoadoDTO;
 import back.backend.dto.ProtocoloMEDTO;
+import back.backend.mapper.ExameMapper;
 import back.backend.model.CentralTransplantes;
 import back.backend.model.OrgaoDoado;
 import back.backend.model.Paciente;
@@ -10,7 +11,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring", uses = OrgaoDoadoMapper.class, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+@Mapper(componentModel = "spring", uses = { OrgaoDoadoMapper.class,
+        ExameMapper.class }, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface ProtocoloMapper {
 
     @Mapping(target = "status", expression = "java(entity.getStatus() != null ? entity.getStatus().name() : null)")
@@ -18,6 +20,7 @@ public interface ProtocoloMapper {
     @Mapping(target = "centralTransplantesNome", expression = "java(getCentralTransplantesNome(entity.getCentralTransplantes()))")
     @Mapping(target = "paciente", expression = "java(toPacienteResumo(entity.getPaciente()))")
     @Mapping(target = "orgaosDoados", ignore = true)
+    @Mapping(target = "exames", source = "exames")
     ProtocoloMEDTO toDTO(ProtocoloME entity);
 
     default Long getCentralTransplantesId(CentralTransplantes centralTransplantes) {
@@ -43,7 +46,6 @@ public interface ProtocoloMapper {
                 hospitalId,
                 hospitalNome,
                 paciente.getLeito(),
-                paciente.getStatusEntrevistaFamiliar()
-        );
+                paciente.getStatusEntrevistaFamiliar());
     }
 }

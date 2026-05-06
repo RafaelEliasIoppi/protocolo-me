@@ -342,8 +342,12 @@ const EstatisticasPage = () => {
   const orgaosDescartados = estatisticasGerais?.orgaosDescartados || 0;
   const orgaosAguardando = Math.max(totalOrgaosDisponiveis - orgaosImplantados - orgaosDescartados, 0);
   const percentualPizzaImplantados = totalOrgaosDisponiveis > 0
-    ? (orgaosImplantados / totalOrgaosDisponiveis) * 565
+    ? (orgaosImplantados / totalOrgaosDisponiveis)
     : 0;
+  // pizza: calcular comprimento do traço (circunferência) dinamicamente
+  const pizzaRadius = 90;
+  const pizzaCircumference = 2 * Math.PI * pizzaRadius; // ~565 for r=90
+  const pizzaDash = percentualPizzaImplantados * pizzaCircumference;
   const totalFinalizados = orgaosImplantados + orgaosDescartados;
   const percentualImplantados = totalFinalizados > 0
     ? (orgaosImplantados / totalFinalizados) * 100
@@ -522,9 +526,7 @@ const EstatisticasPage = () => {
                     </div>
                     <svg className="pizza-svg" viewBox="0 0 200 200">
                       <circle cx="100" cy="100" r="90" fill="none" strokeWidth="30"
-                        stroke="url(#gradient-pizza)" strokeDasharray={`${
-                          percentualPizzaImplantados
-                        } 565`} />
+                        stroke="url(#gradient-pizza)" strokeDasharray={`${pizzaDash} ${pizzaCircumference}`} />
                     </svg>
                   </div>
                 </div>

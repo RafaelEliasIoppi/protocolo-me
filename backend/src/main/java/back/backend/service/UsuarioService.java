@@ -32,6 +32,7 @@ public class UsuarioService implements UserDetailsService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final UsuarioMapper usuarioMapper;
+    private final back.backend.repository.CentralTransplantesRepository centralRepository;
 
     @Value("${app.seed.admin-email:admin@protocolo.me}")
     private String adminPrincipalEmail;
@@ -281,6 +282,18 @@ public class UsuarioService implements UserDetailsService {
         if (usuario.getSenha() == null ||
                 usuario.getSenha().length() < 6) {
             throw new IllegalArgumentException("Senha inválida");
+        }
+
+        // Se for médico, deve pertencer a uma central de transplantes válida
+        if (usuario.getRole() == Role.MEDICO) {
+            if (usuario.getCentralTransplantes() == null || usuario.getCentralTransplantes().getId() == null) {
+                throw new IllegalArgumentException("Médico deve pertencer a uma central de transplantes");
+            }
+
+            boolean existe = centralRepository.existsById(usuario.getCentralTransplantes().getId());
+            if (!existe) {
+                throw new RecursoNaoEncontradoException("Central de transplantes não encontrada");
+            }
         }
     }
 
