@@ -226,7 +226,7 @@ const PacienteForm = ({
         dataInternacao: valorOuNull(formData.dataInternacao),
         dataEntrevistaFamiliar: valorOuNull(formData.dataEntrevistaFamiliar),
         status: editandoId ? formData.status : 'INTERNADO',
-        hospital: { id: parseInt(formData.hospitalId) }
+        hospitalId: parseInt(formData.hospitalId)
       };
 
       if (editandoId) {

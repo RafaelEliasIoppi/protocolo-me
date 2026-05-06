@@ -22,6 +22,7 @@ function MedicoProtocoloME() {
   const [abaProtocoloAberta, setAbaProtocoloAberta] = useState("exames");
   const [semCentraisCadastradas, setSemCentraisCadastradas] = useState(false);
   const [alertaCentral, setAlertaCentral] = useState("");
+  const [mostrarTodosPacientes, setMostrarTodosPacientes] = useState(false);
   const montadoRef = useRef(true);
 
   const statusAtivos = [
@@ -234,6 +235,20 @@ function MedicoProtocoloME() {
     }
   };
 
+  const carregarTodosPacientes = async () => {
+    try {
+      const lista = await pacienteService.listar();
+      if (!montadoRef.current) return;
+      console.log("🔍 [FALLBACK] Todos os pacientes:", lista);
+      setPacientesDisponiveis(Array.isArray(lista) ? lista : []);
+      setMostrarTodosPacientes(true);
+    } catch (e) {
+      console.error("Erro ao carregar todos pacientes:", e);
+      if (!montadoRef.current) return;
+      setErro(getApiErrorMessage(e, "Erro ao carregar pacientes cadastrados"));
+    }
+  };
+
   const iniciarProtocoloME = async (e) => {
     e.preventDefault();
     setErro("");
@@ -409,6 +424,65 @@ function MedicoProtocoloME() {
       )}
       {sucesso && <div className="mensagem sucesso">{sucesso}</div>}
 
+      <div className="panel pacientes-disponiveis">
+        <h2>Pacientes disponíveis para iniciar protocolo</h2>
+        <p>
+          Encontrados <strong>{pacientesDisponiveis.length}</strong> pacientes internados sem protocolo ativo.
+        </p>
+
+        {pacientesDisponiveis.length === 0 ? (
+          <div className="vazio">
+            <p>Nenhum paciente disponível no momento.</p>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={carregarPacientesDisponiveis}
+            >
+              Recarregar pacientes internados
+            </button>
+          </div>
+        ) : (
+          <div className="pacientes-grid">
+            {pacientesDisponiveis.map((paciente) => (
+              <div key={paciente.id} className="protocolo-card status-default">
+                <div className="card-header">
+                  <div>
+                    <h3>{paciente.nome}</h3>
+                    <p className="cpf">CPF: {formatarCpf(paciente.cpf)}</p>
+                  </div>
+                  <span className="status-badge status-default">INTERNADO</span>
+                </div>
+
+                <div className="card-body">
+                  <div className="info-row">
+                    <label>Hospital:</label>
+                    <span>{paciente.hospital?.nome || paciente.hospital?.nomeHospital || paciente.hospitalNome || "N/A"}</span>
+                  </div>
+                  <div className="info-row">
+                    <label>Leito:</label>
+                    <span>{paciente.leito || "N/A"}</span>
+                  </div>
+                </div>
+
+                <div className="card-actions">
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => {
+                      setPacienteSelecionado(String(paciente.id));
+                      setMostraFormularioProtocolo(true);
+                      setErro("");
+                    }}
+                  >
+                    Iniciar com este paciente
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {mostraFormularioProtocolo && (
         <div className="panel formulario-protocolo">
           <h2>Iniciar Novo Protocolo de ME</h2>
@@ -429,7 +503,15 @@ function MedicoProtocoloME() {
                   ))}
                 </select>
                 {pacientesDisponiveis.length === 0 && (
-                  <small style={{ color: "orange" }}>⚠️ Nenhum paciente disponível</small>
+                  <div>
+                    <small style={{ color: "orange" }}>⚠️ Nenhum paciente disponível</small>
+                    <div style={{ marginTop: 6 }}>
+                      <button type="button" className="btn-secondary" onClick={carregarTodosPacientes}>
+                        🔎 Mostrar pacientes cadastrados (fallback)
+                      </button>
+                      {mostrarTodosPacientes && <small style={{ marginLeft: 8, color: '#666' }}>Mostrando todos os pacientes para diagnóstico.</small>}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
