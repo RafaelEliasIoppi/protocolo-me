@@ -205,41 +205,28 @@ function MedicoProtocoloME() {
     }
   };
 
-  const carregarPacientesDisponiveis = async () => {
+ const carregarPacientesDisponiveis = async () => {
   try {
-    console.log("🔍 Buscando pacientes INTERNADOS sem protocolo ativo...");
-
-    const lista = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
+    const [todosPacientes, pacientesEmProtocolo] = await Promise.all([
+      pacienteService.listar(),
+      pacienteService.listarEmProtocoloME(),
+    ]);
 
     if (!montadoRef.current) return;
 
-    const pacientes = Array.isArray(lista) ? lista : [];
+    const listaPacientes = Array.isArray(todosPacientes) ? todosPacientes : [];
+    const idsEmProtocolo = new Set(
+      (Array.isArray(pacientesEmProtocolo) ? pacientesEmProtocolo : [])
+        .map((paciente) => paciente?.id)
+        .filter((id) => id != null)
+    );
 
-    console.log("✅ Pacientes disponíveis:", pacientes.map(p => p.nome));
+    const pacientes = listaPacientes.filter((paciente) => !idsEmProtocolo.has(paciente?.id));
 
-    // 🔥 AQUI ESTÁ A CORREÇÃO: se backend não devolveu candidatos, tenta fallback
-    if (pacientes.length > 0) {
-      setPacientesDisponiveis(pacientes);
-      setMostrarTodosPacientes(false);
-      return;
-    }
-
-    console.warn('Fallback: nenhum paciente retornado pela rota específica; tentando listar pacientes INTERNADOS.');
-    try {
-      const fallbackLista = await pacienteService.listarPorStatus("INTERNADO");
-      const fallbackPacientes = Array.isArray(fallbackLista) ? fallbackLista : [];
-      setPacientesDisponiveis(fallbackPacientes);
-      setMostrarTodosPacientes(true); // indica que estamos num fallback sem garantia de protocolo ativo
-      console.log("🔁 Fallback - pacientes internados (sem validação de protocolos):", fallbackPacientes.map(p => p.nome));
-    } catch (fallbackErr) {
-      console.error('Erro no fallback ao carregar pacientes internados:', fallbackErr);
-      setPacientesDisponiveis([]);
-    }
+    setPacientesDisponiveis(pacientes);
 
   } catch (e) {
     if (!montadoRef.current) return;
-
-    console.error("❌ Erro ao carregar pacientes disponíveis:", e);
 
     tratarErroAutenticacaoOuPermissao(
       e,
