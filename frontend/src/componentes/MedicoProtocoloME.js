@@ -441,6 +441,20 @@ function MedicoProtocoloME() {
           Encontrados <strong>{pacientesDisponiveis.length}</strong> pacientes internados sem protocolo ativo.
         </p>
 
+        {/* DEBUG: lista de fallback simples para garantir visibilidade em caso de problema de estilo */}
+        {pacientesDisponiveis.length > 0 && (
+          <div style={{ marginBottom: 12 }}>
+            <strong>Lista rápida (fallback):</strong>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '6px 0' }}>
+              {pacientesDisponiveis.map((p) => (
+                <li key={`dbg-${p.id}`} style={{ padding: '6px 0', borderBottom: '1px dashed #eee' }}>
+                  {p.nome} — CPF: {formatarCpf(p.cpf)} — <button className="btn-secondary" onClick={() => { setPacienteSelecionado(String(p.id)); setMostraFormularioProtocolo(true); }}>Iniciar</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {pacientesDisponiveis.length === 0 ? (
           <div className="vazio">
             <p>Nenhum paciente disponível no momento.</p>
