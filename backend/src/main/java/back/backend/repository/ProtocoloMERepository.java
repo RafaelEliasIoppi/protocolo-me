@@ -15,88 +15,86 @@ import java.time.LocalDateTime;
 @Repository
 public interface ProtocoloMERepository extends JpaRepository<ProtocoloME, Long> {
 
-    @EntityGraph(attributePaths = {
-            "paciente",
-            "paciente.hospital",
-            "centralTransplantes",
-            "doacao",
-            "doacao.orgaos"
-    })
-    @Query("SELECT DISTINCT p FROM ProtocoloME p")
-    List<ProtocoloME> findAllWithDetalhes();
+        @EntityGraph(attributePaths = {
+                        "paciente",
+                        "paciente.hospital",
+                        "centralTransplantes",
+                        "exames",
+                        "doacao"
+        })
+        @Query("SELECT DISTINCT p FROM ProtocoloME p")
+        List<ProtocoloME> findAllWithDetalhes();
 
-    @EntityGraph(attributePaths = {
-            "paciente",
-            "paciente.hospital",
-            "centralTransplantes",
-            "doacao",
-            "doacao.orgaos"
-    })
-    @Query("SELECT p FROM ProtocoloME p WHERE p.id = :id")
-    Optional<ProtocoloME> findByIdWithDetalhes(@Param("id") Long id);
+        @EntityGraph(attributePaths = {
+                        "paciente",
+                        "paciente.hospital",
+                        "centralTransplantes",
+                        "exames",
+                        "doacao"
+        })
+        @Query("SELECT p FROM ProtocoloME p WHERE p.id = :id")
+        Optional<ProtocoloME> findByIdWithDetalhes(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = {
-            "paciente",
-            "paciente.hospital",
-            "centralTransplantes",
-            "doacao",
-            "doacao.orgaos"
-    })
-    Optional<ProtocoloME> findByNumeroProtocolo(String numeroProtocolo);
+        @EntityGraph(attributePaths = {
+                        "paciente",
+                        "paciente.hospital",
+                        "centralTransplantes",
+                        "exames",
+                        "doacao"
+        })
+        Optional<ProtocoloME> findByNumeroProtocolo(String numeroProtocolo);
 
-    boolean existsByNumeroProtocoloAndIdNot(String numeroProtocolo, Long id);
+        boolean existsByNumeroProtocoloAndIdNot(String numeroProtocolo, Long id);
 
-    @EntityGraph(attributePaths = {
-            "paciente",
-            "paciente.hospital",
-            "centralTransplantes",
-            "doacao",
-            "doacao.orgaos"
-    })
-    @Query("SELECT DISTINCT p FROM ProtocoloME p WHERE p.centralTransplantes = :centralTransplantes")
-    List<ProtocoloME> findByCentralTransplantes(CentralTransplantes centralTransplantes);
+        @EntityGraph(attributePaths = {
+                        "paciente",
+                        "paciente.hospital",
+                        "centralTransplantes",
+                        "exames",
+                        "doacao"
+        })
+        @Query("SELECT DISTINCT p FROM ProtocoloME p WHERE p.centralTransplantes = :centralTransplantes")
+        List<ProtocoloME> findByCentralTransplantes(CentralTransplantes centralTransplantes);
 
-    @EntityGraph(attributePaths = {
-            "paciente",
-            "paciente.hospital",
-            "centralTransplantes",
-            "doacao",
-            "doacao.orgaos"
-    })
-    List<ProtocoloME> findByStatus(ProtocoloME.StatusProtocoloME status);
+        @EntityGraph(attributePaths = {
+                        "paciente",
+                        "paciente.hospital",
+                        "centralTransplantes",
+                        "exames",
+                        "doacao"
+        })
+        List<ProtocoloME> findByStatus(ProtocoloME.StatusProtocoloME status);
 
-    @EntityGraph(attributePaths = {
-            "paciente",
-            "paciente.hospital",
-            "centralTransplantes",
-            "doacao",
-            "doacao.orgaos"
-    })
-    @Query("SELECT DISTINCT p FROM ProtocoloME p WHERE p.centralTransplantes = :centralTransplantes AND p.status = :status")
-    List<ProtocoloME> findByCentralTransplantesAndStatus(
-            CentralTransplantes centralTransplantes,
-            ProtocoloME.StatusProtocoloME status
-    );
+        @EntityGraph(attributePaths = {
+                        "paciente",
+                        "paciente.hospital",
+                        "centralTransplantes",
+                        "exames",
+                        "doacao"
+        })
+        @Query("SELECT DISTINCT p FROM ProtocoloME p WHERE p.centralTransplantes = :centralTransplantes AND p.status = :status")
+        List<ProtocoloME> findByCentralTransplantesAndStatus(
+                        CentralTransplantes centralTransplantes,
+                        ProtocoloME.StatusProtocoloME status);
 
-    @EntityGraph(attributePaths = {
-            "paciente",
-            "paciente.hospital",
-            "centralTransplantes",
-            "doacao",
-            "doacao.orgaos"
-    })
-    @Query("SELECT DISTINCT p FROM ProtocoloME p WHERE p.dataNotificacao BETWEEN :dataInicio AND :dataFim")
-    List<ProtocoloME> findByDataNotificacaoBetween(
-            LocalDateTime dataInicio,
-            LocalDateTime dataFim
-    );
+        @EntityGraph(attributePaths = {
+                        "paciente",
+                        "paciente.hospital",
+                        "centralTransplantes",
+                        "exames",
+                        "doacao"
+        })
+        @Query("SELECT DISTINCT p FROM ProtocoloME p WHERE p.dataNotificacao BETWEEN :dataInicio AND :dataFim")
+        List<ProtocoloME> findByDataNotificacaoBetween(
+                        LocalDateTime dataInicio,
+                        LocalDateTime dataFim);
 
-    @EntityGraph(attributePaths = {
-            "paciente",
-            "paciente.hospital",
-            "centralTransplantes",
-            "doacao",
-            "doacao.orgaos"
-    })
-    List<ProtocoloME> findByHospitalOrigem(String hospitalOrigem);
+        @EntityGraph(attributePaths = {
+                        "paciente",
+                        "paciente.hospital",
+                        "centralTransplantes",
+                        "exames",
+                        "doacao"
+        })
+        List<ProtocoloME> findByHospitalOrigem(String hospitalOrigem);
 }

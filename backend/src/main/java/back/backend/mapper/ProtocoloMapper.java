@@ -10,13 +10,15 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.NullValueCheckStrategy;
 
-@Mapper(componentModel = "spring", uses = OrgaoDoadoMapper.class, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
+@Mapper(componentModel = "spring", uses = { OrgaoDoadoMapper.class,
+        ExameMapper.class }, nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS)
 public interface ProtocoloMapper {
 
     @Mapping(target = "status", expression = "java(entity.getStatus() != null ? entity.getStatus().name() : null)")
     @Mapping(target = "centralTransplantesId", expression = "java(getCentralTransplantesId(entity.getCentralTransplantes()))")
     @Mapping(target = "centralTransplantesNome", expression = "java(getCentralTransplantesNome(entity.getCentralTransplantes()))")
     @Mapping(target = "paciente", expression = "java(toPacienteResumo(entity.getPaciente()))")
+    @Mapping(target = "exames", source = "exames")
     @Mapping(target = "orgaosDoados", ignore = true)
     ProtocoloMEDTO toDTO(ProtocoloME entity);
 
@@ -43,7 +45,6 @@ public interface ProtocoloMapper {
                 hospitalId,
                 hospitalNome,
                 paciente.getLeito(),
-                paciente.getStatusEntrevistaFamiliar()
-        );
+                paciente.getStatusEntrevistaFamiliar());
     }
 }
