@@ -22,6 +22,7 @@ function MedicoProtocoloME() {
   const [abaProtocoloAberta, setAbaProtocoloAberta] = useState("exames");
   const [semCentraisCadastradas, setSemCentraisCadastradas] = useState(false);
   const [alertaCentral, setAlertaCentral] = useState("");
+  const [carregandoPacientesDisponiveis, setCarregandoPacientesDisponiveis] = useState(false);
   const montadoRef = useRef(true);
 
   const statusAtivos = [
@@ -118,6 +119,12 @@ function MedicoProtocoloME() {
     };
   }, []);
 
+  useEffect(() => {
+    if (mostraFormularioProtocolo) {
+      carregarPacientesDisponiveis();
+    }
+  }, [mostraFormularioProtocolo]);
+
   // Abrir automaticamente o modal de exames se houver só um paciente em protocolo
   useEffect(() => {
     if (pacientesProtocolo.length === 1 && !mostraExames) {
@@ -206,6 +213,7 @@ function MedicoProtocoloME() {
   };
 
  const carregarPacientesDisponiveis = async () => {
+  setCarregandoPacientesDisponiveis(true);
   try {
     const [todosPacientes, pacientesEmProtocolo] = await Promise.all([
       pacienteService.listar(),
@@ -221,7 +229,22 @@ function MedicoProtocoloME() {
         .filter((id) => id != null)
     );
 
-    const pacientes = listaPacientes.filter((paciente) => !idsEmProtocolo.has(paciente?.id));
+    let pacientes = listaPacientes.filter((paciente) => !idsEmProtocolo.has(paciente?.id));
+
+    if (pacientes.length === 0) {
+      try {
+        const listaStatus = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
+        if (Array.isArray(listaStatus) && listaStatus.length > 0) {
+          pacientes = listaStatus;
+        }
+      } catch (fallbackErro) {
+        console.warn("Fallback por status falhou:", fallbackErro);
+      }
+    }
+
+    if (pacientes.length === 0) {
+      pacientes = listaPacientes;
+    }
 
     setPacientesDisponiveis(pacientes);
 
@@ -232,6 +255,10 @@ function MedicoProtocoloME() {
       e,
       "Não foi possível carregar os pacientes internados para iniciar protocolo."
     );
+  } finally {
+    if (montadoRef.current) {
+      setCarregandoPacientesDisponiveis(false);
+    }
   }
 };
 
@@ -418,6 +445,9 @@ function MedicoProtocoloME() {
       {mostraFormularioProtocolo && (
         <div className="panel formulario-protocolo">
           <h2>Iniciar Novo Protocolo de ME</h2>
+          {carregandoPacientesDisponiveis && (
+            <p>⏳ Carregando pacientes para seleção...</p>
+          )}
           <form onSubmit={iniciarProtocoloME}>
             <div className="form-row">
               <div className="form-group">

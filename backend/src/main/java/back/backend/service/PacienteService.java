@@ -150,7 +150,6 @@ public class PacienteService {
             Paciente.StatusPaciente statusEnum = Paciente.StatusPaciente.valueOf(status.toUpperCase());
             return pacienteRepository.findByStatus(statusEnum)
                     .stream()
-                    .filter(this::naoPossuiProtocoloAtivo)
                     .map(this::toPacienteEmProtocoloDTO)
                     .toList();
         } catch (IllegalArgumentException e) {
@@ -260,30 +259,30 @@ public class PacienteService {
         return dto;
     }
 
-   private boolean naoPossuiProtocoloAtivo(Paciente paciente) {
-    List<ProtocoloME> protocolos = Optional.ofNullable(paciente.getProtocolosME())
-            .orElse(Collections.emptyList());
+    private boolean naoPossuiProtocoloAtivo(Paciente paciente) {
+        List<ProtocoloME> protocolos = Optional.ofNullable(paciente.getProtocolosME())
+                .orElse(Collections.emptyList());
 
-    return protocolos.stream().noneMatch(protocolo -> {
-        if (protocolo == null || protocolo.getStatus() == null) {
-            return false;
-        }
+        return protocolos.stream().noneMatch(protocolo -> {
+            if (protocolo == null || protocolo.getStatus() == null) {
+                return false;
+            }
 
-        return switch (protocolo.getStatus()) {
-            case NOTIFICADO,
-                 EM_PROCESSO,
-                 MORTE_CEREBRAL_CONFIRMADA,
-                 ENTREVISTA_FAMILIAR ->
-                true;
+            return switch (protocolo.getStatus()) {
+                case NOTIFICADO,
+                        EM_PROCESSO,
+                        MORTE_CEREBRAL_CONFIRMADA,
+                        ENTREVISTA_FAMILIAR ->
+                    true;
 
-            // 🔥 ESTES NÃO SÃO ATIVOS
-            case FINALIZADO,
-                 FAMILIA_RECUSOU,
-                 DOACAO_AUTORIZADA,
-                 CONTRAINDICADO ->
-                false;
-        };
-    });
+                // 🔥 ESTES NÃO SÃO ATIVOS
+                case FINALIZADO,
+                        FAMILIA_RECUSOU,
+                        DOACAO_AUTORIZADA,
+                        CONTRAINDICADO ->
+                    false;
+            };
+        });
     }
 
     private void validarPaciente(Paciente paciente) {

@@ -127,6 +127,14 @@ function App() {
              }
            />
           <Route
+            path="medico/protocolo-me"
+            element={
+              <GuardedRoute isLogged={isLogged} allowedRoles={["MEDICO", "ENFERMEIRO"]}>
+                <MedicoProtocoloME />
+              </GuardedRoute>
+            }
+          />
+          <Route
             path="cadastros/pacientes"
             element={
               <GuardedRoute isLogged={isLogged} allowedRoles={["MEDICO", "ENFERMEIRO", "CENTRAL_TRANSPLANTES"]}>
