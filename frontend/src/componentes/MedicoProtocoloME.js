@@ -201,7 +201,7 @@ function MedicoProtocoloME() {
   const carregarPacientesDisponiveis = async () => {
     try {
       console.log("🔍 [1] Chamando listarPorStatus('INTERNADO')...");
-      const lista = await pacienteService.listarPorStatus("INTERNADO");
+      const lista = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
 
       console.log("🔍 [2] Retorno bruto da API:", lista);
       console.log("🔍 [2] Tipo do retorno:", typeof lista, Array.isArray(lista) ? "(é array)" : "(NÃO é array)");
@@ -225,8 +225,15 @@ function MedicoProtocoloME() {
       // Filtro refinado: mantém apenas pacientes que NÃO possuem
       // nenhum protocolo com status considerado ativo em `statusAtivos`.
       const semProtocolo = pacientes.filter((p) => {
-        const protocolos = Array.isArray(p.protocolosME) ? p.protocolosME : [];
-        const temProtocoloAtivo = protocolos.some((pr) => statusAtivos.includes(pr?.status));
+        if (!Array.isArray(p.protocolosME)) {
+          console.warn(`⚠️ Paciente ${p.nome} veio sem protocolosME`);
+          return false;
+        }
+
+        const temProtocoloAtivo = p.protocolosME.some((pr) =>
+          statusAtivos.includes(pr?.status)
+        );
+
         return !temProtocoloAtivo;
       });
 
