@@ -321,11 +321,6 @@ function MedicoProtocoloME() {
     && Boolean(protocolo?.testesComplementaresValidados)
     && Boolean(protocolo?.apneiaValidada);
 
-  const examesObrigatoriosConcluidos = (protocolo) =>
-    Boolean(protocolo?.testeClinico1Realizado)
-    && Boolean(protocolo?.testeClinico2Realizado)
-    && Boolean(protocolo?.testesComplementaresRealizados);
-
   const entrevistaLiberada = (protocolo) => {
     const status = protocolo?.status;
     // ✅ Agora verifica se exames foram VALIDADOS, não apenas realizados

@@ -12,9 +12,6 @@ const estadoInicialFormulario = {
 
 function LoginPage({ onLogin }) {
 
-  // Cadastro restrito desativado na tela de login.
-  const [isRegister] = useState(false);
-
   const [form, setForm] = useState(estadoInicialFormulario);
 
   const [carregando, setCarregando] = useState(false);
@@ -35,10 +32,6 @@ function LoginPage({ onLogin }) {
   const limparMensagens = () => {
     setErro("");
     setMensagem("");
-  };
-
-  const limparFormulario = () => {
-    setForm(estadoInicialFormulario);
   };
 
   const validarFormulario = () => {

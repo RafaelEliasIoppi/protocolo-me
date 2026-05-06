@@ -131,7 +131,7 @@ function PainelPacientesCentral({
     });
   };
 
-  const adicionarSecao = (protocoloId) => {cer
+  const adicionarSecao = (protocoloId) => {
     atualizarSecoesDoProtocolo(protocoloId, (secoesAtuais) => ([
       ...secoesAtuais,
       {
