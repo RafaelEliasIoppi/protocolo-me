@@ -58,6 +58,24 @@ Os arquivos abaixo foram removidos por redundância e conteúdo desatualizado em
 - `TESTES_PRATICOS_SALVAMENTO_PACIENTE.md`
 - `DIAGNOSTICO_ERRO_500_CPF.md`
 
+## 🗄️ Arquivados
+
+Os arquivos legados e relatórios antigos foram movidos para `docs/_archived/` para preservar histórico.
+
+Exemplos (hoje):
+
+- `docs/_archived/arquivo_legacy/AUDITORIA_COMPLETA_PROBLEMAS.md`
+- `docs/_archived/arquivo_legacy/EXAMES_PROTOCOLO_ME.md`
+- `docs/_archived/arquivo_legacy/RELATORIO_PROBLEMAS_ENCONTRADOS.md`
+- `docs/_archived/CONCLUSAO_CORRECOES_EXAME_PROTOCOLO.md`
+- `docs/_archived/DIAGNOSTICO_HOSPITAIS.md`
+- `docs/_archived/PLANO_ACAO_CORRECOES.md`
+- `docs/_archived/RESUMO_CORRECOES_IMPLEMENTADAS.md`
+- `docs/_archived/REVISAO_CONTEXTO_EXAMES.md`
+- `docs/_archived/VERIFICACAO_FLUXO_EXAME_PROTOCOLO.md`
+
+Consulte `docs/_archived/` para a lista completa.
+
 ## Regra de manutenção daqui para frente
 
 - Evitar criar novos documentos de "resumo da sessão".
