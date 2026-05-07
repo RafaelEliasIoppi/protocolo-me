@@ -98,27 +98,25 @@ function MedicoProtocoloME() {
   }, []);
 
   useEffect(() => {
-    let ativo = true;
-
-    const carregar = async () => {
-      await Promise.all([
-        carregarStatusCentrais(),
-        carregarPacientesProtocolo(),
-        carregarPacientesDisponiveis(),
-      ]);
-
-      if (!ativo || !montadoRef.current) {
-        return;
+    const carregarInicial = async () => {
+      setCarregando(true);
+      try {
+        await Promise.all([
+          carregarStatusCentrais(),
+          carregarPacientesProtocolo(),
+          carregarPacientesDisponiveis(),
+        ]);
+      } finally {
+        if (montadoRef.current) {
+          setCarregando(false);
+        }
       }
     };
 
-    carregar();
-
-    return () => {
-      ativo = false;
-    };
+    carregarInicial();
   }, []);
 
+  // Recarregar pacientes disponíveis quando abrir o formulário
   useEffect(() => {
     if (mostraFormularioProtocolo) {
       carregarPacientesDisponiveis();
@@ -212,55 +210,53 @@ function MedicoProtocoloME() {
     }
   };
 
- const carregarPacientesDisponiveis = async () => {
-  setCarregandoPacientesDisponiveis(true);
-  try {
-    const [todosPacientes, pacientesEmProtocolo] = await Promise.all([
-      pacienteService.listar(),
-      pacienteService.listarEmProtocoloME(),
-    ]);
+  const carregarPacientesDisponiveis = async () => {
+    if (carregandoPacientesDisponiveis) return;
+    
+    setCarregandoPacientesDisponiveis(true);
+    try {
+      // Tenta buscar pacientes que não possuem protocolo ativo diretamente do backend
+      let pacientes = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
+      
+      if (!montadoRef.current) return;
 
-    if (!montadoRef.current) return;
+      // Se não retornar nada por status, busca todos e filtra no front como fallback
+      if (!Array.isArray(pacientes) || pacientes.length === 0) {
+        const [todosPacientes, pacientesEmProtocolo] = await Promise.all([
+          pacienteService.listar(),
+          pacienteService.listarEmProtocoloME(),
+        ]);
 
-    const listaPacientes = Array.isArray(todosPacientes) ? todosPacientes : [];
-    const idsEmProtocolo = new Set(
-      (Array.isArray(pacientesEmProtocolo) ? pacientesEmProtocolo : [])
-        .map((paciente) => paciente?.id)
-        .filter((id) => id != null)
-    );
+        const listaPacientes = Array.isArray(todosPacientes) ? todosPacientes : [];
+        const idsEmProtocolo = new Set(
+          (Array.isArray(pacientesEmProtocolo) ? pacientesEmProtocolo : [])
+            .map((p) => p?.id)
+            .filter((id) => id != null)
+        );
 
-    let pacientes = listaPacientes.filter((paciente) => !idsEmProtocolo.has(paciente?.id));
-
-    if (pacientes.length === 0) {
-      try {
-        const listaStatus = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
-        if (Array.isArray(listaStatus) && listaStatus.length > 0) {
-          pacientes = listaStatus;
+        pacientes = listaPacientes.filter((p) => !idsEmProtocolo.has(p?.id));
+        
+        // Se ainda assim estiver vazio, usa a lista completa para permitir que o usuário veja algo
+        if (pacientes.length === 0) {
+          pacientes = listaPacientes;
         }
-      } catch (fallbackErro) {
-        console.warn("Fallback por status falhou:", fallbackErro);
+      }
+
+      setPacientesDisponiveis(pacientes);
+    } catch (e) {
+      console.error("Erro ao carregar pacientes disponíveis:", e);
+      if (!montadoRef.current) return;
+
+      tratarErroAutenticacaoOuPermissao(
+        e,
+        "Não foi possível carregar os pacientes internados para iniciar protocolo."
+      );
+    } finally {
+      if (montadoRef.current) {
+        setCarregandoPacientesDisponiveis(false);
       }
     }
-
-    if (pacientes.length === 0) {
-      pacientes = listaPacientes;
-    }
-
-    setPacientesDisponiveis(pacientes);
-
-  } catch (e) {
-    if (!montadoRef.current) return;
-
-    tratarErroAutenticacaoOuPermissao(
-      e,
-      "Não foi possível carregar os pacientes internados para iniciar protocolo."
-    );
-  } finally {
-    if (montadoRef.current) {
-      setCarregandoPacientesDisponiveis(false);
-    }
-  }
-};
+  };
 
   const iniciarProtocoloME = async (e) => {
     e.preventDefault();
@@ -308,8 +304,7 @@ function MedicoProtocoloME() {
   };
 
   const obterBadgeStatus = (status) => {
-    const statusMap = {
-      "NOTIFICADO": { cor: "notificado", label: "🔵 NOTIFICADO" },
+    const statusMap = {     "NOTIFICADO": { cor: "notificado", label: "🔵 NOTIFICADO" },
       "EM_PROCESSO": { cor: "em-processo", label: "🟡 EM PROCESSO" },
       "MORTE_CEREBRAL_CONFIRMADA": { cor: "confirmado", label: "🟠 ME CONFIRMADA" },
       "ENTREVISTA_FAMILIAR": { cor: "entrevista", label: "🟢 ENTREVISTA" },
