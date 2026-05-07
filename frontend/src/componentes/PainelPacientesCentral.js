@@ -13,6 +13,7 @@ import {
 import exameService from "../services/exameService";
 import protocoloService from "../services/protocoloService";
 import { formatarCpf } from "../utils/cpf";
+import GerenciadorAnexos from "./GerenciadorAnexos";
 
 const cabecalhoSecao = "## [SECAO] ";
 
@@ -255,6 +256,18 @@ function PainelPacientesCentral({
       pendencia: exame?.descricao || exame?.tipoExame || "Exame",
       exameId: exame?.id || null,
       exameLabel: exame?.descricao || exame?.tipoExame || "Exame",
+    });
+    // Abrir o exame em edição para que o validador da Central possa revisar anexos e textos
+    setExameEmEdicao({
+      id: exame.id,
+      protocoloId: protocolo?.id,
+      categoria: exame.categoria,
+      tipoExame: exame.tipoExame,
+      descricao: exame.descricao || "",
+      responsavel: exame.responsavel || "",
+      observacoes: exame.observacoes || "",
+      resultadoPositivo: exame.resultadoPositivo ?? false,
+      resultado: exame.resultado || null,
     });
     setValidadoPor('');
     setObservacoes('');
@@ -848,6 +861,10 @@ function PainelPacientesCentral({
                                 onChange={(e) => atualizarCampoEdicaoExame("observacoes", e.target.value)}
                                 disabled={salvandoExame}
                               />
+                            </div>
+                            <div className="form-group">
+                              <h4>Anexos do Exame</h4>
+                              <GerenciadorAnexos tipoAnexo="EXAME" idExameOuProtocolo={exame.id} titulo="Anexos do Exame" />
                             </div>
                             <div className="action-row exame-edicao-acoes">
                               <button type="button" className="secondary-button" onClick={() => setExameEmEdicao(null)} disabled={salvandoExame}>
