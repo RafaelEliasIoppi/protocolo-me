@@ -99,13 +99,15 @@ function MedicoProtocoloME() {
 
   useEffect(() => {
     const carregarInicial = async () => {
+      console.log("🚀 Iniciando carregamento...");
       setCarregando(true);
       try {
+        // Carrega apenas dados iniciais, pacientes disponíveis carregam ao abrir formulário
         await Promise.all([
           carregarStatusCentrais(),
           carregarPacientesProtocolo(),
-          carregarPacientesDisponiveis(),
         ]);
+        console.log("✅ Dados iniciais carregados");
       } finally {
         if (montadoRef.current) {
           setCarregando(false);
@@ -116,11 +118,11 @@ function MedicoProtocoloME() {
     carregarInicial();
   }, []);
 
-  // Recarregar pacientes quando abrir formulário
+  // Quando formulário abre, SEMPRE carrega pacientes frescos
   useEffect(() => {
-    if (mostraFormularioProtocolo && pacientesDisponiveis.length === 0) {
-      // Se formulário abriu e ainda não carregou pacientes, carrega agora
-      carregarPacientesDisponiveis();
+    if (mostraFormularioProtocolo) {
+      console.log("🎯 Formulário aberto - carregando pacientes");
+      carregarPacientesDisponiveisInterno();
     }
   }, [mostraFormularioProtocolo]);
 
@@ -211,41 +213,30 @@ function MedicoProtocoloME() {
     }
   };
 
-  // ✅ NOVA FUNÇÃO - REFATORADA DO ZERO - SEM FALLBACKS COMPLEXOS
-  const carregarPacientesDisponiveis = async () => {
-    if (carregandoPacientesDisponiveis) return;
-
-    setCarregandoPacientesDisponiveis(true);
-    setErro("");
-
+// ✅ NOVO - SUPER SIMPLES - CARREGA PACIENTES DIRETO DO ENDPOINT
+  const carregarPacientesDisponiveisInterno = async () => {
     try {
-      // Chama endpoint que retorna pacientes INTERNADO SEM protocolo ativo
+      console.log("📡 Chamando API: /api/pacientes/status/INTERNADO/sem-protocolo-ativo");
+
+      setCarregandoPacientesDisponiveis(true);
       const resultado = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
 
+      console.log("📦 Resposta da API:", resultado);
+
       if (!montadoRef.current) return;
 
-      // Resultado já é array, só precisamos setar
       const pacientes = Array.isArray(resultado) ? resultado : [];
-
-      if (pacientes.length === 0) {
-        console.warn("Nenhum paciente internado disponível para iniciar protocolo");
-      }
+      console.log(`✅ ${pacientes.length} pacientes carregados`);
 
       setPacientesDisponiveis(pacientes);
-    } catch (e) {
-      console.error("Erro ao carregar pacientes disponíveis:", e);
+      setErro("");
+    } catch (erro) {
+      console.error("❌ Erro na API:", erro);
+
       if (!montadoRef.current) return;
 
-      // Tratamento de erro simples
-      if (e?.response?.status === 401) {
-        setErro("Sessão expirada. Faça login novamente.");
-      } else if (e?.response?.status === 403) {
-        setErro("Sem permissão para listar pacientes.");
-      } else {
-        setErro("Erro ao carregar pacientes disponíveis. Tente novamente.");
-      }
-
       setPacientesDisponiveis([]);
+      setErro(`Erro: ${erro?.response?.data?.message || erro?.message || "Falha ao carregar pacientes"}`);
     } finally {
       if (montadoRef.current) {
         setCarregandoPacientesDisponiveis(false);
@@ -283,7 +274,7 @@ function MedicoProtocoloME() {
 
       // Recarregar listas
       await carregarPacientesProtocolo();
-      await carregarPacientesDisponiveis();
+      await carregarPacientesDisponiveisInterno();
 
       if (!montadoRef.current) return;
 
