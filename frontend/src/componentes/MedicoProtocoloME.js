@@ -118,13 +118,6 @@ function MedicoProtocoloME() {
     carregarInicial();
   }, []);
 
-  // Quando formulário abre, SEMPRE carrega pacientes frescos
-  useEffect(() => {
-    if (mostraFormularioProtocolo) {
-      console.log("🎯 Formulário aberto - carregando pacientes");
-      carregarPacientesDisponiveisInterno();
-    }
-  }, [mostraFormularioProtocolo]);
 
   // Abrir automaticamente o modal de exames se houver só um paciente em protocolo
   useEffect(() => {
@@ -213,8 +206,14 @@ function MedicoProtocoloME() {
     }
   };
 
-// ✅ NOVO - SUPER SIMPLES - CARREGA PACIENTES DIRETO DO ENDPOINT
-  const carregarPacientesDisponiveisInterno = async () => {
+// ✅ Abre formulário E carrega pacientes ao mesmo tempo
+  const abrirFormularioComPacientes = async () => {
+    console.log("🎯 Abrindo formulário com carregamento de pacientes...");
+
+    // Abre o formulário IMEDIATAMENTE
+    setMostraFormularioProtocolo(true);
+
+    // Carrega pacientes AGORA (não no useEffect)
     try {
       console.log("📡 Chamando API: /api/pacientes/status/INTERNADO/sem-protocolo-ativo");
 
@@ -237,6 +236,30 @@ function MedicoProtocoloME() {
 
       setPacientesDisponiveis([]);
       setErro(`Erro: ${erro?.response?.data?.message || erro?.message || "Falha ao carregar pacientes"}`);
+    } finally {
+      if (montadoRef.current) {
+        setCarregandoPacientesDisponiveis(false);
+      }
+    }
+  };
+
+  // ✅ Recarrega pacientes (sem abrir formulário)
+  const recarregarPacientes = async () => {
+    try {
+      setCarregandoPacientesDisponiveis(true);
+      const resultado = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
+
+      if (!montadoRef.current) return;
+
+      const pacientes = Array.isArray(resultado) ? resultado : [];
+      setPacientesDisponiveis(pacientes);
+      setErro("");
+    } catch (erro) {
+      console.error("❌ Erro ao recarregar pacientes:", erro);
+      if (montadoRef.current) {
+        setPacientesDisponiveis([]);
+        setErro(`Erro: ${erro?.message || "Falha ao carregar pacientes"}`);
+      }
     } finally {
       if (montadoRef.current) {
         setCarregandoPacientesDisponiveis(false);
@@ -274,7 +297,7 @@ function MedicoProtocoloME() {
 
       // Recarregar listas
       await carregarPacientesProtocolo();
-      await carregarPacientesDisponiveisInterno();
+      await recarregarPacientes();
 
       if (!montadoRef.current) return;
 
@@ -406,7 +429,16 @@ function MedicoProtocoloME() {
         </div>
         <button
           className="btn-primary"
-          onClick={() => setMostraFormularioProtocolo(!mostraFormularioProtocolo)}
+          onClick={() => {
+            if (mostraFormularioProtocolo) {
+              // Se está aberto, fecha simples
+              setMostraFormularioProtocolo(false);
+              setPacientesDisponiveis([]);
+            } else {
+              // Se está fechado, abre COM carregamento de pacientes
+              abrirFormularioComPacientes();
+            }
+          }}
           disabled={semCentraisCadastradas}
           title={semCentraisCadastradas ? "Cadastre uma central para iniciar protocolo" : ""}
         >
