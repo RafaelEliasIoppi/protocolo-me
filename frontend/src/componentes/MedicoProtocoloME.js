@@ -23,8 +23,20 @@ function MedicoProtocoloME() {
   const [semCentraisCadastradas, setSemCentraisCadastradas] = useState(false);
   const [alertaCentral, setAlertaCentral] = useState("");
   const [carregandoPacientesDisponiveis, setCarregandoPacientesDisponiveis] = useState(false);
-  const montadoRef = useRef(true);
 
+  const [erroFormulario, setErroFormulario] = useState("");
+  const [erroModal, setErroModal] = useState("");
+  const montadoRef = useRef(false);
+
+  // ✅ Inicializar ref como true ao montar
+  useEffect(() => {
+    montadoRef.current = true;
+    console.log("✅ Componente montado");
+    return () => {
+      montadoRef.current = false;
+      console.log("❌ Componente desmontado");
+    };
+  }, []);
   const statusAtivos = [
   "NOTIFICADO",
   "EM_PROCESSO",
@@ -59,7 +71,7 @@ function MedicoProtocoloME() {
           ...paciente,
           hospital: {
             id: paciente.hospitalId,
-            nome: paciente.hospitalNome || paciente.hospital?.nome || paciente.hospital?.nomeHospital || "-"
+            nomeHospital: paciente.hospitalNome || paciente.hospital?.nomeHospital || "-"
           }
         };
 
@@ -132,15 +144,6 @@ function MedicoProtocoloME() {
     }
   }, [pacientesProtocolo]);
 
-  // Atualizar protocoloSelecionado quando houver mudanças nos pacientes ou exames
-  useEffect(() => {
-    if (protocoloSelecionado && mostraExames) {
-      const paciente = pacientesProtocolo.find(p => p.protocolosME?.[0]?.id === protocoloSelecionado.id);
-      if (paciente?.protocolosME?.[0]) {
-        setProtocoloSelecionado(paciente.protocolosME[0]);
-      }
-    }
-  }, [pacientesProtocolo, mostraExames, protocoloSelecionado?.id]);
 
   const carregarStatusCentrais = async () => {
     try {
@@ -314,6 +317,27 @@ function MedicoProtocoloME() {
 
   const obterBadgeStatus = (status) => {
     const statusMap = {     "NOTIFICADO": { cor: "notificado", label: "🔵 NOTIFICADO" },
+  // ✅ HELPERS para abrir modal
+  const abrirModalExames = (protocolo) => {
+    setProtocoloSelecionado(protocolo);
+    setAbaProtocoloAberta("exames");
+    setMostraExames(true);
+    setErroModal("");
+  };
+
+  const abrirModalEntrevista = (protocolo) => {
+    if (!entrevistaLiberada(protocolo)) {
+      setErroModal("⚠️ Entrevista bloqueada. Aguardando validação da central para: 2 testes clínicos + apneia + 1 exame complementar.");
+      return;
+    }
+    setProtocoloSelecionado(protocolo);
+    setAbaProtocoloAberta("entrevista");
+    setMostraExames(true);
+    setErroModal("");
+  };
+
+  const obterBadgeStatus = (status) => {
+    const statusMap = {     "NOTIFICADO": { cor: "notificado", label: "🔵 NOTIFICADO" },
       "EM_PROCESSO": { cor: "em-processo", label: "🟡 EM PROCESSO" },
       "MORTE_CEREBRAL_CONFIRMADA": { cor: "confirmado", label: "🟠 ME CONFIRMADA" },
       "ENTREVISTA_FAMILIAR": { cor: "entrevista", label: "🟢 ENTREVISTA" },
@@ -374,6 +398,16 @@ function MedicoProtocoloME() {
     if (examesObrigatoriosValidados(protocolo)) {
       return true;
     }
+      // ✅ Contar EXAMES VALIDADOS pela central
+      const obterExamesValidados = (protocolo) => {
+        if (!protocolo) return 0;
+        let exames = 0;
+        if (protocolo.testeClinico1Validado) exames++;
+        if (protocolo.testeClinico2Validado) exames++;
+        if (protocolo.testesComplementaresValidados) exames++;
+        if (protocolo.apneiaValidada) exames++;
+        return exames;
+      };
 
     return [
       "ENTREVISTA_FAMILIAR",
@@ -454,6 +488,9 @@ function MedicoProtocoloME() {
       )}
       {sucesso && <div className="mensagem sucesso">{sucesso}</div>}
 
+  {/* Mensagens de erro específicas */}
+  {erroFormulario && <div className="mensagem erro">📛 {erroFormulario}</div>}
+  {erroModal && <div className="mensagem erro">📛 {erroModal}</div>}
       {/* Formulário para iniciar novo protocolo */}
       {mostraFormularioProtocolo && (
         <div className="panel formulario-protocolo">
@@ -567,7 +604,7 @@ function MedicoProtocoloME() {
             <p>Nenhum paciente em protocolo ME no momento.</p>
             <button
               className="btn-primary"
-              onClick={() => setMostraFormularioProtocolo(true)}
+              onClick={abrirFormularioComPacientes}
             >
               Iniciar primeiro protocolo
             </button>
@@ -647,20 +684,14 @@ function MedicoProtocoloME() {
                           <p className="entrevista-resumo-texto">
                             {podeAbrirEntrevista
                               ? "Entrevista liberada: exames obrigatórios concluídos e confirmação de ME pronta para abordagem familiar."
-                              : "A entrevista será liberada após concluir 2 testes clínicos e 1 exame complementar."}
+                              : "Entrevista será liberada após validação da central: 2 testes clínicos + apneia + 1 exame complementar."}
                           </p>
                         )}
                         <button
                           className="btn-entrevista-inline"
                           title={!podeAbrirEntrevista ? "Exames precisam ser VALIDADOS pela central: 2 testes clínicos + apneia + 1 exame complementar" : ""}
                           onClick={() => {
-                            if (!podeAbrirEntrevista) {
-                              setErro("Entrevista ainda não liberada. Aguarde a validação da central para: 2 testes clínicos + apneia + 1 exame complementar.");
-                              return;
-                            }
-                            setProtocoloSelecionado(protocolo);
-                            setAbaProtocoloAberta("entrevista");
-                            setMostraExames(true);
+                            abrirModalEntrevista(protocolo);
                           }}
                         >
                           {entrevistaConcluida ? "👀 Ver entrevista" : "👨‍👩‍👧 Abrir entrevista"}
@@ -716,9 +747,7 @@ function MedicoProtocoloME() {
                     <button
                       className="btn-secondary"
                       onClick={() => {
-                        setProtocoloSelecionado(protocolo);
-                        setAbaProtocoloAberta("exames");
-                        setMostraExames(true);
+                        abrirModalExames(protocolo);
                       }}
                     >
                       🧪 Inserir Exames
@@ -726,9 +755,7 @@ function MedicoProtocoloME() {
                     <button
                       className="btn-secondary"
                       onClick={() => {
-                        setProtocoloSelecionado(protocolo);
-                        setAbaProtocoloAberta("exames");
-                        setMostraExames(true);
+                        abrirModalExames(protocolo);
                       }}
                     >
                       📋 Ver Protocolo
@@ -737,13 +764,7 @@ function MedicoProtocoloME() {
                       className="btn-secondary"
                       title={!podeAbrirEntrevista ? "Conclua 2 testes clínicos e 1 exame complementar para liberar a entrevista" : ""}
                       onClick={() => {
-                        if (!podeAbrirEntrevista) {
-                          setErro("Entrevista ainda não liberada. Conclua 2 testes clínicos e 1 exame complementar.");
-                          return;
-                        }
-                        setProtocoloSelecionado(protocolo);
-                        setAbaProtocoloAberta("entrevista");
-                        setMostraExames(true);
+                        abrirModalEntrevista(protocolo);
                       }}
                     >
                       {entrevistaConcluida ? "👀 Ver Entrevista" : "👨‍👩‍👧 Realizar Entrevista"}
@@ -786,12 +807,12 @@ function MedicoProtocoloME() {
                 className={`secondary-button modal-tab ${abaProtocoloAberta === "entrevista" ? "is-active" : ""}`}
                 onClick={() => {
                   if (!entrevistaLiberada(protocoloSelecionado)) {
-                    setErro("Entrevista ainda não liberada. Conclua 2 testes clínicos e 1 exame complementar.");
+                    setErroModal("⚠️ Entrevista bloqueada. Aguardando validação da central para: 2 testes clínicos + apneia + 1 exame complementar.");
                     return;
                   }
                   setAbaProtocoloAberta("entrevista");
                 }}
-                title={!entrevistaLiberada(protocoloSelecionado) ? "Conclua 2 testes clínicos e 1 exame complementar para liberar a entrevista" : ""}
+                title={!entrevistaLiberada(protocoloSelecionado) ? "Aguardando validação da central para: 2 testes clínicos + apneia + 1 exame complementar" : ""}
               >
                 Entrevista
               </button>
@@ -807,7 +828,7 @@ function MedicoProtocoloME() {
             </div>
             {!entrevistaLiberada(protocoloSelecionado) && (
               <div className="entrevista-alerta-card entrevista-alerta-modal" role="alert">
-                ⚠️ Entrevista bloqueada no momento. Conclua 2 testes clínicos e 1 exame complementar para liberar esta etapa.
+                ⚠️ Entrevista bloqueada no momento. Aguardando validação da central para: 2 testes clínicos + apneia + 1 exame complementar.
               </div>
             )}
 
