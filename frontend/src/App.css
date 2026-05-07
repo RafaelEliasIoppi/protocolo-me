@@ -214,10 +214,23 @@ a {
    Avoid overriding components that intentionally style text (status pills, badges, colored labels).
 */
 body,
-h1, h2, h3, h4, h5, h6,
-p, span, label, li, a,
-th, td,
-button, input, textarea, select {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+span,
+label,
+li,
+a,
+th,
+td,
+button,
+input,
+textarea,
+select {
   color: var(--text);
 }
 
