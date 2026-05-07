@@ -647,6 +647,12 @@ function PainelPacientesCentral({
                 >
                   {carregandoRelatorio ? "Gerando relatório..." : "Gerar Relatório Final"}
                 </button>
+                <button
+                  className="secondary-button"
+                  onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}
+                >
+                  Ir para Relatório
+                </button>
               </div>
 
               {relatorioFinalPaciente && (
@@ -663,6 +669,10 @@ function PainelPacientesCentral({
                     <div><strong>Status Final Protocolo:</strong> {relatorioFinalPaciente.statusFinalProtocolo}</div>
                     <div><strong>Total Protocolos:</strong> {relatorioFinalPaciente.totalProtocolos}</div>
                     <div><strong>Entrevista:</strong> {formatarStatusEntrevista(relatorioFinalPaciente.statusEntrevistaFamiliar)}</div>
+                  </div>
+                  <div style={{ marginTop: '0.75rem' }}>
+                    <h4>Anexos do Relatório Final</h4>
+                    <GerenciadorAnexos tipoAnexo="ENTREVISTA" idExameOuProtocolo={pacienteSelecionado.id} titulo="Anexos do Relatório Final" />
                   </div>
                   <p className="note" style={{ marginTop: "0.75rem" }}>
                     <strong>Conclusão:</strong> {relatorioFinalPaciente.conclusaoFinal}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import pacienteService from "../services/pacienteService";
 import "../styles/PainelPrincipalPage.css";
@@ -7,62 +7,66 @@ function PainelPrincipalPage({ onLogout, theme, setTheme, role }) {
   const [pacientes, setPacientes] = useState([]);
   const [protocolosME, setProtocolosME] = useState([]);
   const [notificacoes, setNotificacoes] = useState([]);
+  const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
+  const montadoRef = useRef(true);
+
   useEffect(() => {
-    let ativo = true;
-
-    const carregarDados = async () => {
-      try {
-        setCarregando(true);
-
-        const pacientesResponse = await pacienteService.listar();
-        const pacientesData = Array.isArray(pacientesResponse)
-          ? pacientesResponse
-          : Array.isArray(pacientesResponse?.data)
-            ? pacientesResponse.data
-            : [];
-
-        if (!ativo) {
-          return;
-        }
-
-        setPacientes(pacientesData);
-
-        if (role === "MEDICO" || role === "ENFERMEIRO" || role === "CENTRAL_TRANSPLANTES") {
-          try {
-            const protocolosData = await pacienteService.listarEmProtocoloME();
-            if (ativo) {
-              setProtocolosME(Array.isArray(protocolosData) ? protocolosData : []);
-            }
-          } catch (error) {
-            console.error("Erro ao carregar protocolos ME:", error);
-            if (ativo) {
-              setProtocolosME([]);
-            }
-          }
-        } else {
-          setProtocolosME([]);
-        }
-
-        if (ativo) {
-          setNotificacoes(gerarNotificacoes(pacientesData));
-        }
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-      } finally {
-        if (ativo) {
-          setCarregando(false);
-        }
-      }
+    return () => {
+      montadoRef.current = false;
     };
+  }, []);
 
+  const carregarDados = async () => {
+    try {
+      if (!montadoRef.current) return;
+      setCarregando(true);
+
+      const pacientesResponse = await pacienteService.listar();
+      const pacientesData = Array.isArray(pacientesResponse)
+        ? pacientesResponse
+        : Array.isArray(pacientesResponse?.data)
+          ? pacientesResponse.data
+          : [];
+
+      if (!montadoRef.current) return;
+
+      setPacientes(pacientesData);
+
+      if (role === "MEDICO" || role === "ENFERMEIRO" || role === "CENTRAL_TRANSPLANTES") {
+        try {
+          const protocolosData = await pacienteService.listarEmProtocoloME();
+          if (montadoRef.current) {
+            setProtocolosME(Array.isArray(protocolosData) ? protocolosData : []);
+          }
+        } catch (error) {
+          console.error("Erro ao carregar protocolos ME:", error);
+          if (montadoRef.current) {
+            setProtocolosME([]);
+          }
+        }
+      } else {
+        setProtocolosME([]);
+      }
+
+      if (montadoRef.current) {
+        setNotificacoes(gerarNotificacoes(pacientesData));
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados:", error);
+      setErro && setErro("Erro ao carregar dados: " + (error?.response?.data?.message || error.message || error));
+    } finally {
+      if (montadoRef.current) {
+        setCarregando(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Carrega dados inicialmente e reativa refresh periódico a cada 30s.
     carregarDados();
     const intervalo = setInterval(carregarDados, 30000);
-
-    return () => {
-      ativo = false;
-      clearInterval(intervalo);
-    };
+    return () => clearInterval(intervalo);
   }, [role]);
 
   const gerarNotificacoes = (listaPacientes) => {
@@ -135,6 +139,9 @@ function PainelPrincipalPage({ onLogout, theme, setTheme, role }) {
         <div>
           <button className="secondary-button" onClick={() => setTheme(theme === "dark" ? "light" : "dark") }>
             {theme === "dark" ? "Claro" : "Escuro"}
+          </button>
+          <button className="secondary-button" onClick={carregarDados} title="Atualizar painel">
+            Atualizar
           </button>
           <button className="secondary-button" onClick={onLogout}>Sair</button>
         </div>
