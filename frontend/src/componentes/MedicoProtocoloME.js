@@ -329,12 +329,24 @@ const examesConcluidosModal = [
   apneiaRealizada,
 ].filter(Boolean).length;
 
-  const examesObrigatoriosValidados = (protocolo) =>
-    Boolean(protocolo?.testeClinico1Validado)
-    && Boolean(protocolo?.testeClinico2Validado)
-    && Boolean(protocolo?.testesComplementaresValidados)
-    && Boolean(protocolo?.apneiaValidada);
+  const examesObrigatoriosValidados = (protocolo) => {
+  if (!protocolo) return false;
 
+  const apneiaRealizada =
+    Array.isArray(protocolo?.exames) &&
+    protocolo.exames.some(
+      (e) =>
+        e.tipoExame === "APNEIA_TEST" &&
+        e.resultado != null
+    );
+
+  return (
+    protocolo?.testeClinico1Realizado &&
+    protocolo?.testeClinico2Realizado &&
+    protocolo?.testesComplementaresRealizados &&
+    apneiaRealizada
+  );
+};
   // ✅ CORREÇÃO 2: obterExamesValidados removida daqui (estava aninhada e não era usada)
   const entrevistaLiberada = (protocolo) => {
     if (examesObrigatoriosValidados(protocolo)) return true;

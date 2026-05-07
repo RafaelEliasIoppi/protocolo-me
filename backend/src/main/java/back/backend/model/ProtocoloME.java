@@ -159,60 +159,53 @@ public class ProtocoloME {
 
     public StatusProtocoloME calcularStatusAutomatico() {
 
-        // ✅ NOVA REGRA: Verificar se exames estão VALIDADOS (não apenas realizados)
-        boolean testesValidados = Boolean.TRUE.equals(testeClinico1Validado) &&
-                Boolean.TRUE.equals(testeClinico2Validado) &&
-                Boolean.TRUE.equals(testesComplementaresValidados) &&
-                Boolean.TRUE.equals(apneiaValidada);
+    boolean testesValidados =
+            Boolean.TRUE.equals(testeClinico1Validado) &&
+            Boolean.TRUE.equals(testeClinico2Validado) &&
+            Boolean.TRUE.equals(testesComplementaresValidados) &&
+            Boolean.TRUE.equals(apneiaValidada);
 
-        boolean testesRealizados = Boolean.TRUE.equals(testeClinico1Realizado) &&
-                Boolean.TRUE.equals(testeClinico2Realizado) &&
-                Boolean.TRUE.equals(testesComplementaresRealizados);
+    boolean testesRealizados =
+            Boolean.TRUE.equals(testeClinico1Realizado) &&
+            Boolean.TRUE.equals(testeClinico2Realizado) &&
+            Boolean.TRUE.equals(testesComplementaresRealizados);
 
-        // 🔹 Ainda não tem exames realizados
-        if (!testesRealizados) {
-            if (Boolean.TRUE.equals(testeClinico1Realizado) ||
-                    Boolean.TRUE.equals(testeClinico2Realizado)) {
-                return StatusProtocoloME.EM_PROCESSO;
-            }
-            return StatusProtocoloME.NOTIFICADO;
-        }
+    // 🔹 Ainda sem exames suficientes
+    if (!testesRealizados) {
 
-        // 🔹 Exames realizados mas aguardando validação da central
-        if (!testesValidados) {
+        if (Boolean.TRUE.equals(testeClinico1Realizado)
+                || Boolean.TRUE.equals(testeClinico2Realizado)) {
+
             return StatusProtocoloME.EM_PROCESSO;
         }
 
-        // 🔹 Confirmou morte encefálica
-        if (dataConfirmacaoME == null) {
-            return StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA;
-        }
+        return StatusProtocoloME.NOTIFICADO;
+    }
 
-        // 🔹 Precisa entrevistar família
-        if (doacao == null) {
-            return StatusProtocoloME.ENTREVISTA_FAMILIAR;
-        }
+    // 🔹 Exames realizados mas não validados
+    if (!testesValidados) {
+        return StatusProtocoloME.EM_PROCESSO;
+    }
 
-        // 🔹 Já tem decisão
-        if (doacao.getAutorizada() != null) {
-
-            if (!doacao.getAutorizada()) {
-                return StatusProtocoloME.FAMILIA_RECUSOU;
-            }
-
-            return StatusProtocoloME.DOACAO_AUTORIZADA;
-        }
-
+    // 🔹 Exames validados e aguardando entrevista
+    if (doacao == null || doacao.getAutorizada() == null) {
         return StatusProtocoloME.ENTREVISTA_FAMILIAR;
     }
 
+    // 🔹 Família recusou
+    if (!doacao.getAutorizada()) {
+        return StatusProtocoloME.FAMILIA_RECUSOU;
+    }
+
+    // 🔹 Família autorizou
+    return StatusProtocoloME.DOACAO_AUTORIZADA;
+    }
     public boolean estaProntoParaEntrevista() {
-        // ✅ NOVA REGRA: Exames devem estar VALIDADOS pela central
-        return Boolean.TRUE.equals(testeClinico1Validado) &&
-                Boolean.TRUE.equals(testeClinico2Validado) &&
-                Boolean.TRUE.equals(testesComplementaresValidados) &&
-                Boolean.TRUE.equals(apneiaValidada) &&
-                dataConfirmacaoME != null;
+
+    return Boolean.TRUE.equals(testeClinico1Validado) &&
+            Boolean.TRUE.equals(testeClinico2Validado) &&
+            Boolean.TRUE.equals(testesComplementaresValidados) &&
+            Boolean.TRUE.equals(apneiaValidada);
     }
 
     // =========================
