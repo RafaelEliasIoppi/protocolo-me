@@ -88,42 +88,45 @@ function MedicoProtocoloME() {
     return false;
   };
 
-  // ✅ CORREÇÃO 3: único useEffect de cleanup
-  useEffect(() => {
-    return () => {
-      montadoRef.current = false;
-    };
-  }, []);
-
   useEffect(() => {
     const carregarInicial = async () => {
-      setCarregando(true);
+      if (montadoRef.current) {
+        setCarregando(true);
+      }
+
       try {
-        await Promise.all([
+        await Promise.allSettled([
           carregarStatusCentrais(),
           carregarPacientesProtocolo(),
         ]);
       } finally {
-        if (montadoRef.current) setCarregando(false);
+        if (montadoRef.current) {
+          setCarregando(false);
+        }
       }
     };
 
     carregarInicial();
   }, []);
 
-  // Abre automaticamente o modal se houver só um paciente em protocolo
+
+// Abre automaticamente o modal se houver só um paciente em protocolo
   useEffect(() => {
-    if (pacientesProtocolo.length === 1 && !mostraExames) {
+    if (
+      pacientesProtocolo.length === 1 &&
+      !mostraExames &&
+      !protocoloSelecionado
+    ) {
       const paciente = pacientesProtocolo[0];
       const protocolo = paciente.protocolosME?.[0];
+
       if (protocolo) {
         setProtocoloSelecionado(protocolo);
         setAbaProtocoloAberta("exames");
         setMostraExames(true);
       }
     }
-  }, [pacientesProtocolo]);
-
+    }, [pacientesProtocolo, mostraExames, protocoloSelecionado]);
   const carregarStatusCentrais = async () => {
     try {
       const lista = await centralTransplantesService.listarDados();
@@ -311,16 +314,20 @@ function MedicoProtocoloME() {
     return { label: "Não definido", cor: "nao-definido" };
   };
 
-  const obterExamesRealizados = (protocolo) => {
-    if (!protocolo) return 0;
-    let exames = 0;
-    if (protocolo.testeClinico1Realizado) exames++;
-    if (protocolo.testeClinico2Realizado) exames++;
-    if (protocolo.testesComplementaresRealizados) exames++;
-    const apneiaRealizada = protocolo.exames?.some(e => e.tipoExame === "APNEIA_TEST" && e.resultado != null);
-    if (apneiaRealizada) exames++;
-    return exames;
-  };
+  const apneiaRealizada =
+  Array.isArray(protocoloSelecionado?.exames) &&
+  protocoloSelecionado.exames.some(
+    (e) =>
+      e.tipoExame === "APNEIA_TEST" &&
+      e.resultado != null
+  );
+
+const examesConcluidosModal = [
+  protocoloSelecionado?.testeClinico1Validado,
+  protocoloSelecionado?.testeClinico2Validado,
+  protocoloSelecionado?.testesComplementaresValidados,
+  apneiaRealizada,
+].filter(Boolean).length;
 
   const examesObrigatoriosValidados = (protocolo) =>
     Boolean(protocolo?.testeClinico1Validado)
@@ -361,16 +368,32 @@ function MedicoProtocoloME() {
     return "Acompanhe o status e atualize os dados necessários no protocolo.";
   };
 
+
+
   const pacienteModal = pacientesProtocolo.find(
     (paciente) => paciente?.protocolosME?.[0]?.id === protocoloSelecionado?.id,
   );
+
   const statusModal = obterBadgeStatus(protocoloSelecionado?.status);
-  const examesConcluidosModal = [
-    protocoloSelecionado?.testeClinico1Validado,
-    protocoloSelecionado?.testeClinico2Validado,
-    protocoloSelecionado?.testesComplementaresValidados,
-    protocoloSelecionado?.apneiaValidada,
+
+  const obterExamesRealizados = (protocolo) => {
+  if (!protocolo) return 0;
+
+  const apneiaRealizada =
+    Array.isArray(protocolo?.exames) &&
+    protocolo.exames.some(
+      (e) =>
+        e.tipoExame === "APNEIA_TEST" &&
+        e.resultado != null
+    );
+
+  return [
+    protocolo?.testeClinico1Realizado,
+    protocolo?.testeClinico2Realizado,
+    protocolo?.testesComplementaresRealizados,
+    apneiaRealizada,
   ].filter(Boolean).length;
+};
 
   return (
     <section className="medico-protocolo-me">
@@ -728,25 +751,45 @@ function MedicoProtocoloME() {
               </div>
             )}
 
-            {abaProtocoloAberta === "exames" && (
+           {abaProtocoloAberta === "exames" && (
               <div className="exames-resumo-modal">
                 <h4>Progresso dos Exames</h4>
+
                 <div className="exames-resumo-grid">
+
                   <div className={`resumo-item ${protocoloSelecionado?.testeClinico1Realizado ? "is-complete" : "is-pending"}`}>
-                    <div className="resumo-item-icon">{protocoloSelecionado?.testeClinico1Realizado ? "✅" : "⏳"}</div>
+                    <div className="resumo-item-icon">
+                      {protocoloSelecionado?.testeClinico1Realizado ? "✅" : "⏳"}
+                    </div>
                     <strong>Teste Clínico 1</strong>
                   </div>
+
                   <div className={`resumo-item ${protocoloSelecionado?.testeClinico2Realizado ? "is-complete" : "is-pending"}`}>
-                    <div className="resumo-item-icon">{protocoloSelecionado?.testeClinico2Realizado ? "✅" : "⏳"}</div>
+                    <div className="resumo-item-icon">
+                      {protocoloSelecionado?.testeClinico2Realizado ? "✅" : "⏳"}
+                    </div>
                     <strong>Teste Clínico 2</strong>
                   </div>
+
                   <div className={`resumo-item ${protocoloSelecionado?.testesComplementaresRealizados ? "is-complete" : "is-pending"}`}>
-                    <div className="resumo-item-icon">{protocoloSelecionado?.testesComplementaresRealizados ? "✅" : "⏳"}</div>
+                    <div className="resumo-item-icon">
+                      {protocoloSelecionado?.testesComplementaresRealizados ? "✅" : "⏳"}
+                    </div>
                     <strong>Complementares</strong>
                   </div>
+                  <div className={`resumo-item ${protocoloSelecionado?.exames?.some((e) => e.tipoExame === "APNEIA_TEST" && e.resultado != null     )  ? "is-complete" : "is-pending"    }`} >
+                    <div className="resumo-item-icon">
+                      {protocoloSelecionado?.exames?.some( (e) => e.tipoExame === "APNEIA_TEST" && e.resultado != null) ? "✅"   : "⏳"}
+                    </div>
+
+                    <strong>Teste de Apneia</strong>
+                  </div>
                 </div>
+
                 <div className="exames-resumo-footer">
-                  <p><strong>Progresso:</strong> {examesConcluidosModal}/4 concluídos</p>
+                  <p>
+                    <strong>Progresso:</strong> {examesConcluidosModal}/4 concluídos
+                  </p>
                 </div>
               </div>
             )}
