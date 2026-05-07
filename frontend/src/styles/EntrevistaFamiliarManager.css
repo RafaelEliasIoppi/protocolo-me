@@ -23,21 +23,21 @@
   font-weight: 600;
 }
 
-/* Mensagens */
-.mensagem {
+/* Mensagens (escopo: entrevista-familiar-manager) */
+.entrevista-familiar-manager .mensagem {
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
   font-weight: 500;
 }
 
-.mensagem.erro {
+.entrevista-familiar-manager .mensagem.erro {
   background-color: #fadbd8;
   color: #78281f;
   border: 1px solid #f5b7b1;
 }
 
-.mensagem.sucesso {
+.entrevista-familiar-manager .mensagem.sucesso {
   background-color: #d5f4e6;
   color: #186a3b;
   border: 1px solid #a3e4d7;
@@ -155,15 +155,16 @@
   margin-top: 1rem;
 }
 
-.form-group {
+/* Form groups (escopo: entrevista-familiar-manager) */
+.entrevista-familiar-manager .form-group {
   margin-bottom: 1.5rem;
 }
 
-.form-group:last-child {
+.entrevista-familiar-manager .form-group:last-child {
   margin-bottom: 0;
 }
 
-.form-group label {
+.entrevista-familiar-manager .form-group label {
   display: flex;
   align-items: flex-start;
   gap: 0.8rem;
@@ -173,7 +174,7 @@
   user-select: none;
 }
 
-.form-group input[type="checkbox"] {
+.entrevista-familiar-manager .form-group input[type="checkbox"] {
   margin-top: 0.25rem;
   cursor: pointer;
   width: 18px;
@@ -181,12 +182,12 @@
   accent-color: #16a085;
 }
 
-.form-group input[type="checkbox"]:disabled {
+.entrevista-familiar-manager .form-group input[type="checkbox"]:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.form-group label[for="observacoes"] {
+.entrevista-familiar-manager .form-group label[for="observacoes"] {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;

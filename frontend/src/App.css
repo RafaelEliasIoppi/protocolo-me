@@ -209,6 +209,27 @@ a {
   margin: 0;
 }
 
+/* Theme-aware font colors (only fonts)
+   Ensure textual elements inherit `--text` so switching [data-theme] affects only fonts.
+   Avoid overriding components that intentionally style text (status pills, badges, colored labels).
+*/
+body,
+h1, h2, h3, h4, h5, h6,
+p, span, label, li, a,
+th, td,
+button, input, textarea, select {
+  color: var(--text);
+}
+
+/* Muted text should use --muted variable */
+.note,
+.muted,
+small,
+.resumo-card p,
+.notificacao-item p {
+  color: var(--muted);
+}
+
 .patient-actions {
   display: grid;
   align-content: center;

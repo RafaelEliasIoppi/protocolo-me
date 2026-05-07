@@ -43,8 +43,8 @@
   box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
 }
 
-/* Mensagens */
-.mensagem {
+/* Mensagens (escopo: gerenciador-anexos) */
+.gerenciador-anexos .mensagem {
   padding: 1rem;
   border-radius: 6px;
   margin-bottom: 1rem;
@@ -52,13 +52,13 @@
   font-weight: 500;
 }
 
-.mensagem.erro {
+.gerenciador-anexos .mensagem.erro {
   background-color: #fadbd8;
   color: #78281f;
   border: 1px solid #f5b7b1;
 }
 
-.mensagem.sucesso {
+.gerenciador-anexos .mensagem.sucesso {
   background-color: #d5f4e6;
   color: #186a3b;
   border: 1px solid #a3e4d7;
@@ -73,15 +73,16 @@
   margin-bottom: 1.5rem;
 }
 
-.form-group {
+/* Form groups (escopo: gerenciador-anexos) */
+.gerenciador-anexos .form-group {
   margin-bottom: 1rem;
 }
 
-.form-group:last-child {
+.gerenciador-anexos .form-group:last-child {
   margin-bottom: 0;
 }
 
-.form-group label {
+.gerenciador-anexos .form-group label {
   display: block;
   font-weight: 600;
   margin-bottom: 0.5rem;
@@ -89,8 +90,8 @@
   font-size: 0.9rem;
 }
 
-.input-file,
-.input-text {
+.gerenciador-anexos .input-file,
+.gerenciador-anexos .input-text {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ddd;
@@ -100,8 +101,8 @@
   transition: border-color 0.3s ease;
 }
 
-.input-file:focus,
-.input-text:focus {
+.gerenciador-anexos .input-file:focus,
+.gerenciador-anexos .input-text:focus {
   outline: none;
   border-color: #3498db;
   box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);

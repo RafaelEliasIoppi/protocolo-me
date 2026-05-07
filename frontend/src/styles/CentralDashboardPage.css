@@ -111,12 +111,14 @@
   font-size: 1.8rem;
   margin: 0;
   font-weight: 700;
+  color: var(--text);
 }
 
 .central-dashboard .dashboard-header p {
   margin: 0.5rem 0 0 0;
   font-size: 0.95rem;
   opacity: 0.9;
+  color: var(--muted);
 }
 
 .central-dashboard .action-row {
@@ -269,13 +271,6 @@
   font-size: 0.95rem;
   font-weight: 600;
   transition: all 0.3s ease;
-
-  hover {
-    background-color: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.6);
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  }
 }
 
 .central-dashboard .secondary-button:hover {
