@@ -268,20 +268,17 @@ public class PacienteService {
                 return false;
             }
 
-            return switch (protocolo.getStatus()) {
-                case NOTIFICADO,
-                        EM_PROCESSO,
-                        MORTE_CEREBRAL_CONFIRMADA,
-                        ENTREVISTA_FAMILIAR ->
-                    true;
+           return switch (protocolo.getStatus()) {
 
-                // 🔥 ESTES NÃO SÃO ATIVOS
-                case FINALIZADO,
-                        FAMILIA_RECUSOU,
-                        DOACAO_AUTORIZADA,
-                        CONTRAINDICADO ->
-                    false;
-            };
+            case FINALIZADO,
+                    FAMILIA_RECUSOU,
+                    DOACAO_AUTORIZADA,
+                    CONTRAINDICADO ->
+                false;
+
+            default ->
+                true;
+        };
         });
     }
 

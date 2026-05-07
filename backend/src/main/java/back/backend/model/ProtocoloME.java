@@ -156,8 +156,7 @@ public class ProtocoloME {
     // =========================
     // REGRA DE NEGÓCIO (MELHORADA)
     // =========================
-
-    public StatusProtocoloME calcularStatusAutomatico() {
+public StatusProtocoloME calcularStatusAutomatico() {
 
     boolean testesValidados =
             Boolean.TRUE.equals(testeClinico1Validado) &&
@@ -174,7 +173,8 @@ public class ProtocoloME {
     if (!testesRealizados) {
 
         if (Boolean.TRUE.equals(testeClinico1Realizado)
-                || Boolean.TRUE.equals(testeClinico2Realizado)) {
+                || Boolean.TRUE.equals(testeClinico2Realizado)
+                || Boolean.TRUE.equals(testesComplementaresRealizados)) {
 
             return StatusProtocoloME.EM_PROCESSO;
         }
@@ -182,12 +182,17 @@ public class ProtocoloME {
         return StatusProtocoloME.NOTIFICADO;
     }
 
-    // 🔹 Exames realizados mas não validados
+    // 🔹 Exames realizados mas aguardando validação
     if (!testesValidados) {
         return StatusProtocoloME.EM_PROCESSO;
     }
 
-    // 🔹 Exames validados e aguardando entrevista
+    // 🔹 Exames já validados e morte encefálica confirmada
+    if (dataConfirmacaoME == null) {
+        return StatusProtocoloME.MORTE_CEREBRAL_CONFIRMADA;
+    }
+
+    // 🔹 Aguardando entrevista familiar
     if (doacao == null || doacao.getAutorizada() == null) {
         return StatusProtocoloME.ENTREVISTA_FAMILIAR;
     }
@@ -199,7 +204,8 @@ public class ProtocoloME {
 
     // 🔹 Família autorizou
     return StatusProtocoloME.DOACAO_AUTORIZADA;
-    }
+}
+
     public boolean estaProntoParaEntrevista() {
 
     return Boolean.TRUE.equals(testeClinico1Validado) &&

@@ -353,90 +353,129 @@ public class ProtocoloMEService {
         pacienteRepository.save(paciente);
     }
 
-    // ================= VALIDAÇÃO DE TESTES PELA CENTRAL =================
+    // ================= VALIDAÇÃO DE TESTES PELA CENTRAL =================.
+   // ================= VALIDAÇÃO MANUAL =================
 
-    public ProtocoloMEDTO validarTesteClinico1(Long id, String validadoPor, String observacoes) {
-        return executar(id, p -> {
-            p.setTesteClinico1Validado(true);
-            p.setDataValidacaoTesteClinico1(LocalDateTime.now());
-            p.setValidadosPor(validadoPor);
-            if (observacoes != null) {
-                // Adicionar observação se houver
-            }
-            // ✅ Recalcular status automaticamente
-            p.setStatus(p.calcularStatusAutomatico());
-        });
-    }
+public ProtocoloMEDTO validarTesteClinico1(
+        Long id,
+        String validadoPor,
+        String observacoes) {
 
-    public ProtocoloMEDTO validarTesteClinico2(Long id, String validadoPor, String observacoes) {
+    return executar(id, p -> {
+
+        p.setTesteClinico1Validado(true);
+        p.setDataValidacaoTesteClinico1(LocalDateTime.now());
+        p.setValidadosPor(validadoPor);
+
+        atualizarConfirmacaoMorteEncefalica(p);
+    });
+}
+
+    public ProtocoloMEDTO validarTesteClinico2(
+            Long id,
+            String validadoPor,
+            String observacoes) {
+
         return executar(id, p -> {
+
             p.setTesteClinico2Validado(true);
             p.setDataValidacaoTesteClinico2(LocalDateTime.now());
             p.setValidadosPor(validadoPor);
-            // ✅ Recalcular status automaticamente
-            p.setStatus(p.calcularStatusAutomatico());
+
+            atualizarConfirmacaoMorteEncefalica(p);
         });
     }
 
-    public ProtocoloMEDTO validarTestesComplementares(Long id, String validadoPor, String observacoes) {
+    public ProtocoloMEDTO validarTestesComplementares(
+            Long id,
+            String validadoPor,
+            String observacoes) {
+
         return executar(id, p -> {
+
             p.setTestesComplementaresValidados(true);
             p.setDataValidacaoTesteComplementar(LocalDateTime.now());
             p.setValidadosPor(validadoPor);
-            // ✅ Recalcular status automaticamente
-            p.setStatus(p.calcularStatusAutomatico());
+
+            atualizarConfirmacaoMorteEncefalica(p);
         });
     }
 
-    public ProtocoloMEDTO validarApneia(Long id, String validadoPor, String observacoes) {
+    public ProtocoloMEDTO validarApneia(
+            Long id,
+            String validadoPor,
+            String observacoes) {
+
         return executar(id, p -> {
+
             p.setApneiaValidada(true);
             p.setDataValidacaoApneia(LocalDateTime.now());
             p.setValidadosPor(validadoPor);
-            // ✅ Recalcular status automaticamente
-            p.setStatus(p.calcularStatusAutomatico());
+
+            atualizarConfirmacaoMorteEncefalica(p);
         });
     }
+    public ProtocoloMEDTO validarExame(Long id,
+        Long exameId,
+        boolean validado,
+        String validadoPor,
+        String observacoes) {
 
-    public ProtocoloMEDTO validarExame(Long id, Long exameId, boolean validado, String validadoPor,
-            String observacoes) {
-        ProtocoloME protocolo = buscarOuFalhar(id);
-        ExameME exame = exameRepository.findById(exameId)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Exame não encontrado"));
+    ProtocoloME protocolo = buscarOuFalhar(id);
 
-        if (!exame.getProtocoloME().getId().equals(id)) {
-            throw new ConflitoNegocioException("Exame não pertence a este protocolo");
-        }
+    ExameME exame = exameRepository.findById(exameId)
+            .orElseThrow(() ->
+                    new RecursoNaoEncontradoException("Exame não encontrado"));
 
-        // ✅ Validar se exame tem resultado antes de permitir validação
-        if (validado && exame.getResultado() == null) {
-            throw new ConflitoNegocioException(
-                    "Não é possível validar exame sem resultado. Preencha o resultado primeiro.");
-        }
-
-        if (validado) {
-            exame.setStatusValidacao(ExameME.StatusValidacao.VALIDADO);
-        } else {
-            exame.setStatusValidacao(ExameME.StatusValidacao.REJEITADO);
-        }
-
-        exame.setValidadoPor(validadoPor);
-        exame.setDataValidacao(LocalDateTime.now());
-        exame.setObservacoesValidacao(observacoes);
-
-        exameRepository.save(exame);
-
-        // ✅ Atualizar indicadores do protocolo com base em VALIDADOS
-        exameMEService.atualizarIndicadoresProtocolo(id);
-
-        // ✅ Recarregar protocolo com novos valores (status já foi calculado em
-        // atualizarIndicadoresProtocolo)
-        protocolo = buscarOuFalhar(id);
-
-        // ✅ Salvar e sincroniza
-        return toDTO(salvar(protocolo));
+    // ✅ Garantir que exame pertence ao protocolo
+    if (!exame.getProtocoloME().getId().equals(id)) {
+        throw new ConflitoNegocioException(
+                "Exame não pertence a este protocolo");
     }
 
+    // ✅ Não permitir validar sem resultado
+    if (validado && exame.getResultado() == null) {
+        throw new ConflitoNegocioException(
+                "Não é possível validar exame sem resultado. Preencha o resultado primeiro.");
+    }
+
+    // ✅ Atualizar status da validação
+    exame.setStatusValidacao(
+            validado
+                    ? ExameME.StatusValidacao.VALIDADO
+                    : ExameME.StatusValidacao.REJEITADO);
+
+    exame.setValidadoPor(validadoPor);
+    exame.setDataValidacao(LocalDateTime.now());
+    exame.setObservacoesValidacao(observacoes);
+
+    exameRepository.save(exame);
+
+    // ✅ Atualiza indicadores do protocolo
+    exameMEService.atualizarIndicadoresProtocolo(id);
+
+    // ✅ Recarrega protocolo atualizado
+    protocolo = buscarOuFalhar(id);
+
+    // ✅ Atualiza confirmação de ME e status automático
+    atualizarConfirmacaoMorteEncefalica(protocolo);
+
+    // ✅ Salva protocolo sincronizado
+    return toDTO(salvar(protocolo));
+}
+
+    private void atualizarConfirmacaoMorteEncefalica(ProtocoloME protocolo) {
+
+        // ✅ Confirmar morte encefálica automaticamente
+        if (protocolo.estaProntoParaEntrevista() &&
+                protocolo.getDataConfirmacaoME() == null) {
+
+            protocolo.setDataConfirmacaoME(LocalDateTime.now());
+        }
+
+        // ✅ Atualizar status automático
+        protocolo.setStatus(protocolo.calcularStatusAutomatico());
+    }
     // ================= DELETE =================
 
     public void deletarProtocolo(@NonNull Long id) {
