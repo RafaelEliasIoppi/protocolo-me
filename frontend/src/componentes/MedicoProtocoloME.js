@@ -23,35 +23,24 @@ function MedicoProtocoloME() {
   const [semCentraisCadastradas, setSemCentraisCadastradas] = useState(false);
   const [alertaCentral, setAlertaCentral] = useState("");
   const [carregandoPacientesDisponiveis, setCarregandoPacientesDisponiveis] = useState(false);
-
   const [erroFormulario, setErroFormulario] = useState("");
+  // ✅ CORREÇÃO 3: inicializar como true para evitar race condition
   const [erroModal, setErroModal] = useState("");
-  const montadoRef = useRef(false);
+  const montadoRef = useRef(true);
 
-  // ✅ Inicializar ref como true ao montar
-  useEffect(() => {
-    montadoRef.current = true;
-    console.log("✅ Componente montado");
-    return () => {
-      montadoRef.current = false;
-      console.log("❌ Componente desmontado");
-    };
-  }, []);
   const statusAtivos = [
-  "NOTIFICADO",
-  "EM_PROCESSO",
-  "MORTE_CEREBRAL_CONFIRMADA",
-  "ENTREVISTA_FAMILIAR",
-  "DOACAO_AUTORIZADA",
-  "FAMILIA_RECUSOU",
-  "CONTRAINDICADO",
-  "FINALIZADO"
-];
+    "NOTIFICADO",
+    "EM_PROCESSO",
+    "MORTE_CEREBRAL_CONFIRMADA",
+    "ENTREVISTA_FAMILIAR",
+    "DOACAO_AUTORIZADA",
+    "FAMILIA_RECUSOU",
+    "CONTRAINDICADO",
+    "FINALIZADO"
+  ];
 
   const mapearProtocolosParaPacientes = (protocolos) => {
-    if (!Array.isArray(protocolos)) {
-      return [];
-    }
+    if (!Array.isArray(protocolos)) return [];
 
     const porPaciente = new Map();
 
@@ -66,7 +55,6 @@ function MedicoProtocoloME() {
         const dataAtual = atual?.protocolosME?.[0]?.dataNotificacao || atual?.protocolosME?.[0]?.dataCriacao;
         const dataNova = protocolo?.dataNotificacao || protocolo?.dataCriacao;
 
-        // Ajuste para garantir que hospitalNome/hospitalId estejam presentes
         const pacienteComHospital = {
           ...paciente,
           hospital: {
@@ -96,13 +84,11 @@ function MedicoProtocoloME() {
       setErro("Sem permissão para acessar este protocolo. Verifique o perfil logado.");
       return true;
     }
-    if (fallbackMensagem) {
-      setErro(fallbackMensagem);
-    }
+    if (fallbackMensagem) setErro(fallbackMensagem);
     return false;
   };
 
-  // Carregar pacientes em protocolo e disponíveis
+  // ✅ CORREÇÃO 3: único useEffect de cleanup
   useEffect(() => {
     return () => {
       montadoRef.current = false;
@@ -111,27 +97,21 @@ function MedicoProtocoloME() {
 
   useEffect(() => {
     const carregarInicial = async () => {
-      console.log("🚀 Iniciando carregamento...");
       setCarregando(true);
       try {
-        // Carrega apenas dados iniciais, pacientes disponíveis carregam ao abrir formulário
         await Promise.all([
           carregarStatusCentrais(),
           carregarPacientesProtocolo(),
         ]);
-        console.log("✅ Dados iniciais carregados");
       } finally {
-        if (montadoRef.current) {
-          setCarregando(false);
-        }
+        if (montadoRef.current) setCarregando(false);
       }
     };
 
     carregarInicial();
   }, []);
 
-
-  // Abrir automaticamente o modal de exames se houver só um paciente em protocolo
+  // Abre automaticamente o modal se houver só um paciente em protocolo
   useEffect(() => {
     if (pacientesProtocolo.length === 1 && !mostraExames) {
       const paciente = pacientesProtocolo[0];
@@ -144,14 +124,12 @@ function MedicoProtocoloME() {
     }
   }, [pacientesProtocolo]);
 
-
   const carregarStatusCentrais = async () => {
     try {
       const lista = await centralTransplantesService.listarDados();
       if (!montadoRef.current) return;
       const centrais = Array.isArray(lista) ? lista : [];
       const naoPossuiCentrais = centrais.length === 0;
-
       setSemCentraisCadastradas(naoPossuiCentrais);
       setAlertaCentral(
         naoPossuiCentrais
@@ -184,16 +162,9 @@ function MedicoProtocoloME() {
   const atualizarPainelAposExame = async () => {
     try {
       if (!protocoloSelecionado?.id) return;
-
-      // Buscar apenas o protocolo atualizado para evitar forçar re-render da lista inteira
       const protocoloAtualizado = await protocoloService.obter(protocoloSelecionado.id);
       if (!montadoRef.current) return;
-
-      // Atualiza o modal/seleção atual com os dados retornados
       setProtocoloSelecionado(protocoloAtualizado);
-
-      // Atualiza silenciosamente a lista de pacientes em protocolo para manter os cards sincronizados,
-      // sem forçar re-render do modal (evita "piscar").
       setPacientesProtocolo((prev) => prev.map((p) => {
         const proto = p.protocolosME?.[0];
         if (proto?.id === protocoloAtualizado.id) {
@@ -203,57 +174,34 @@ function MedicoProtocoloME() {
       }));
     } catch (e) {
       if (!montadoRef.current) return;
-      console.error('Erro ao atualizar protocolo selecionado:', e);
-      // Em casos excepcionais, recarrega tudo (fallback) — mas evitamos isso para não causar piscar.
+      console.error("Erro ao atualizar protocolo selecionado:", e);
       await carregarPacientesProtocolo();
     }
   };
 
-// ✅ Abre formulário E carrega pacientes ao mesmo tempo
   const abrirFormularioComPacientes = async () => {
-    console.log("🎯 Abrindo formulário com carregamento de pacientes...");
-
-    // Abre o formulário IMEDIATAMENTE
     setMostraFormularioProtocolo(true);
-
-    // Carrega pacientes AGORA (não no useEffect)
     try {
-      console.log("📡 Chamando API: /api/pacientes/status/INTERNADO/sem-protocolo-ativo");
-
       setCarregandoPacientesDisponiveis(true);
       const resultado = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
-
-      console.log("📦 Resposta da API:", resultado);
-
       if (!montadoRef.current) return;
-
       const pacientes = Array.isArray(resultado) ? resultado : [];
-      console.log(`✅ ${pacientes.length} pacientes carregados`);
-
       setPacientesDisponiveis(pacientes);
       setErro("");
     } catch (erro) {
-      console.error("❌ Erro na API:", erro);
-
       if (!montadoRef.current) return;
-
       setPacientesDisponiveis([]);
       setErro(`Erro: ${erro?.response?.data?.message || erro?.message || "Falha ao carregar pacientes"}`);
     } finally {
-      if (montadoRef.current) {
-        setCarregandoPacientesDisponiveis(false);
-      }
+      if (montadoRef.current) setCarregandoPacientesDisponiveis(false);
     }
   };
 
-  // ✅ Recarrega pacientes (sem abrir formulário)
   const recarregarPacientes = async () => {
     try {
       setCarregandoPacientesDisponiveis(true);
       const resultado = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
-
       if (!montadoRef.current) return;
-
       const pacientes = Array.isArray(resultado) ? resultado : [];
       setPacientesDisponiveis(pacientes);
       setErro("");
@@ -264,9 +212,7 @@ function MedicoProtocoloME() {
         setErro(`Erro: ${erro?.message || "Falha ao carregar pacientes"}`);
       }
     } finally {
-      if (montadoRef.current) {
-        setCarregandoPacientesDisponiveis(false);
-      }
+      if (montadoRef.current) setCarregandoPacientesDisponiveis(false);
     }
   };
 
@@ -298,26 +244,20 @@ function MedicoProtocoloME() {
       setPacienteSelecionado("");
       setDiagnostico("");
 
-      // Recarregar listas
       await carregarPacientesProtocolo();
       await recarregarPacientes();
 
       if (!montadoRef.current) return;
-
       setTimeout(() => setSucesso(""), 3000);
     } catch (e) {
       if (!montadoRef.current) return;
       setErro(getApiErrorMessage(e, "Erro ao iniciar protocolo ME"));
     } finally {
-      if (montadoRef.current) {
-        setCarregando(false);
-      }
+      if (montadoRef.current) setCarregando(false);
     }
   };
 
-  const obterBadgeStatus = (status) => {
-    const statusMap = {     "NOTIFICADO": { cor: "notificado", label: "🔵 NOTIFICADO" },
-  // ✅ HELPERS para abrir modal
+  // ✅ CORREÇÃO 1: helpers declarados ANTES de obterBadgeStatus, sem duplicata
   const abrirModalExames = (protocolo) => {
     setProtocoloSelecionado(protocolo);
     setAbaProtocoloAberta("exames");
@@ -336,8 +276,10 @@ function MedicoProtocoloME() {
     setErroModal("");
   };
 
+  // ✅ CORREÇÃO 1: única declaração, completa e correta
   const obterBadgeStatus = (status) => {
-    const statusMap = {     "NOTIFICADO": { cor: "notificado", label: "🔵 NOTIFICADO" },
+    const statusMap = {
+      "NOTIFICADO": { cor: "notificado", label: "🔵 NOTIFICADO" },
       "EM_PROCESSO": { cor: "em-processo", label: "🟡 EM PROCESSO" },
       "MORTE_CEREBRAL_CONFIRMADA": { cor: "confirmado", label: "🟠 ME CONFIRMADA" },
       "ENTREVISTA_FAMILIAR": { cor: "entrevista", label: "🟢 ENTREVISTA" },
@@ -355,21 +297,17 @@ function MedicoProtocoloME() {
       AUTORIZADA: "Autorizada",
       RECUSADA: "Recusada"
     };
-
     return mapa[status] || status || "Não iniciada";
   };
 
   const formatarResultadoEntrevista = (paciente, protocolo) => {
     const status = paciente?.statusEntrevistaFamiliar;
-
     if (status === "AUTORIZADA" || protocolo?.autopsiaAutorizada === true) {
       return { label: "Positivo", cor: "positivo" };
     }
-
     if (status === "RECUSADA" || (protocolo?.status === "FINALIZADO" && protocolo?.autopsiaAutorizada === false)) {
       return { label: "Negativo", cor: "negativo" };
     }
-
     return { label: "Não definido", cor: "nao-definido" };
   };
 
@@ -379,42 +317,26 @@ function MedicoProtocoloME() {
     if (protocolo.testeClinico1Realizado) exames++;
     if (protocolo.testeClinico2Realizado) exames++;
     if (protocolo.testesComplementaresRealizados) exames++;
-    // Apneia: verificar lista de exames do protocolo (resultado preenchido)
-    const apneiaRealizada = protocolo.exames && protocolo.exames.some(e => e.tipoExame === 'APNEIA_TEST' && e.resultado != null);
+    const apneiaRealizada = protocolo.exames?.some(e => e.tipoExame === "APNEIA_TEST" && e.resultado != null);
     if (apneiaRealizada) exames++;
     return exames;
   };
 
-  // ✅ NOVA REGRA: Verificar se exames foram VALIDADOS pela central
   const examesObrigatoriosValidados = (protocolo) =>
     Boolean(protocolo?.testeClinico1Validado)
     && Boolean(protocolo?.testeClinico2Validado)
     && Boolean(protocolo?.testesComplementaresValidados)
     && Boolean(protocolo?.apneiaValidada);
 
+  // ✅ CORREÇÃO 2: obterExamesValidados removida daqui (estava aninhada e não era usada)
   const entrevistaLiberada = (protocolo) => {
-    const status = protocolo?.status;
-    // ✅ Agora verifica se exames foram VALIDADOS, não apenas realizados
-    if (examesObrigatoriosValidados(protocolo)) {
-      return true;
-    }
-      // ✅ Contar EXAMES VALIDADOS pela central
-      const obterExamesValidados = (protocolo) => {
-        if (!protocolo) return 0;
-        let exames = 0;
-        if (protocolo.testeClinico1Validado) exames++;
-        if (protocolo.testeClinico2Validado) exames++;
-        if (protocolo.testesComplementaresValidados) exames++;
-        if (protocolo.apneiaValidada) exames++;
-        return exames;
-      };
-
+    if (examesObrigatoriosValidados(protocolo)) return true;
     return [
       "ENTREVISTA_FAMILIAR",
       "DOACAO_AUTORIZADA",
       "FAMILIA_RECUSOU",
       "FINALIZADO",
-    ].includes(status);
+    ].includes(protocolo?.status);
   };
 
   const obterProximoPasso = (protocolo, paciente) => {
@@ -423,7 +345,6 @@ function MedicoProtocoloME() {
     if (protocolo.status === "NOTIFICADO" || protocolo.status === "EM_PROCESSO") {
       return "Próximo passo: concluir 2 testes clínicos e 1 exame complementar.";
     }
-
     if (protocolo.status === "MORTE_CEREBRAL_CONFIRMADA") {
       const entrevistaStatus = paciente?.statusEntrevistaFamiliar;
       if (!entrevistaStatus || entrevistaStatus === "NAO_INICIADA") {
@@ -431,15 +352,12 @@ function MedicoProtocoloME() {
       }
       return "Próximo passo: concluir o resultado final da entrevista familiar.";
     }
-
     if (protocolo.status === "ENTREVISTA_FAMILIAR") {
       return "Próximo passo: registrar decisão da família (autorizada ou recusada).";
     }
-
-    if (protocolo.status === "FINALIZADO" || protocolo.status === "DOACAO_AUTORIZADA" || protocolo.status === "FAMILIA_RECUSOU") {
+    if (["FINALIZADO", "DOACAO_AUTORIZADA", "FAMILIA_RECUSOU"].includes(protocolo.status)) {
       return "Entrevista concluída. Protocolo finalizado nesta etapa.";
     }
-
     return "Acompanhe o status e atualize os dados necessários no protocolo.";
   };
 
@@ -465,11 +383,9 @@ function MedicoProtocoloME() {
           className="btn-primary"
           onClick={() => {
             if (mostraFormularioProtocolo) {
-              // Se está aberto, fecha simples
               setMostraFormularioProtocolo(false);
               setPacientesDisponiveis([]);
             } else {
-              // Se está fechado, abre COM carregamento de pacientes
               abrirFormularioComPacientes();
             }
           }}
@@ -487,30 +403,25 @@ function MedicoProtocoloME() {
         </div>
       )}
       {sucesso && <div className="mensagem sucesso">{sucesso}</div>}
+      {erroFormulario && <div className="mensagem erro">📛 {erroFormulario}</div>}
 
-  {/* Mensagens de erro específicas */}
-  {erroFormulario && <div className="mensagem erro">📛 {erroFormulario}</div>}
-  {erroModal && <div className="mensagem erro">📛 {erroModal}</div>}
       {/* Formulário para iniciar novo protocolo */}
       {mostraFormularioProtocolo && (
         <div className="panel formulario-protocolo">
           <h2>Iniciar Novo Protocolo de ME</h2>
 
-          {/* Estado de carregamento */}
           {carregandoPacientesDisponiveis && (
             <div className="mensagem info" style={{ marginBottom: "20px" }}>
               ⏳ Carregando pacientes internados disponíveis...
             </div>
           )}
 
-          {/* Erro ao carregar */}
           {erro && pacientesDisponiveis.length === 0 && (
             <div className="mensagem erro" style={{ marginBottom: "20px" }}>
               ❌ {erro}
             </div>
           )}
 
-          {/* Aviso quando não há pacientes */}
           {!carregandoPacientesDisponiveis && pacientesDisponiveis.length === 0 && !erro && (
             <div className="mensagem aviso" style={{ marginBottom: "20px" }}>
               ⚠️ Nenhum paciente internado disponível para iniciar protocolo.
@@ -521,7 +432,7 @@ function MedicoProtocoloME() {
           <form onSubmit={iniciarProtocoloME}>
             <div className="form-row">
               <div className="form-group">
-                <label>Paciente * ({pacientesDisponiveis.length} disponível{pacientesDisponiveis.length !== 1 ? 's' : ''})</label>
+                <label>Paciente * ({pacientesDisponiveis.length} disponível{pacientesDisponiveis.length !== 1 ? "s" : ""})</label>
                 <select
                   value={pacienteSelecionado}
                   onChange={(e) => setPacienteSelecionado(e.target.value)}
@@ -602,10 +513,7 @@ function MedicoProtocoloME() {
         {pacientesProtocolo.length === 0 ? (
           <div className="vazio">
             <p>Nenhum paciente em protocolo ME no momento.</p>
-            <button
-              className="btn-primary"
-              onClick={abrirFormularioComPacientes}
-            >
+            <button className="btn-primary" onClick={abrirFormularioComPacientes}>
               Iniciar primeiro protocolo
             </button>
           </div>
@@ -646,16 +554,16 @@ function MedicoProtocoloME() {
                       <label>Diagnóstico:</label>
                       <span>{protocolo?.diagnosticoBasico || "N/A"}</span>
                     </div>
-                        <div className="info-row">
-                          <label>Data de Notificação:</label>
-                          <span>
-                            {protocolo?.dataNotificacao
-                              ? new Date(protocolo.dataNotificacao).toLocaleDateString("pt-BR")
-                              : "N/A"}
-                          </span>
-                        </div>
+                    <div className="info-row">
+                      <label>Data de Notificação:</label>
+                      <span>
+                        {protocolo?.dataNotificacao
+                          ? new Date(protocolo.dataNotificacao).toLocaleDateString("pt-BR")
+                          : "N/A"}
+                      </span>
+                    </div>
 
-                      <div className="entrevista-resumo">
+                    <div className="entrevista-resumo">
                       <div className="entrevista-resumo-topo">
                         <div>
                           <label>Entrevista Familiar</label>
@@ -690,9 +598,7 @@ function MedicoProtocoloME() {
                         <button
                           className="btn-entrevista-inline"
                           title={!podeAbrirEntrevista ? "Exames precisam ser VALIDADOS pela central: 2 testes clínicos + apneia + 1 exame complementar" : ""}
-                          onClick={() => {
-                            abrirModalEntrevista(protocolo);
-                          }}
+                          onClick={() => abrirModalEntrevista(protocolo)}
                         >
                           {entrevistaConcluida ? "👀 Ver entrevista" : "👨‍👩‍👧 Abrir entrevista"}
                         </button>
@@ -718,8 +624,8 @@ function MedicoProtocoloME() {
                         <div className={protocolo?.testesComplementaresRealizados ? "exame completo" : "exame pendente"}>
                           {protocolo?.testesComplementaresRealizados ? "✅" : "⏳"} Complementares
                         </div>
-                        <div className={protocolo && protocolo.exames && protocolo.exames.some(e => e.tipoExame === 'APNEIA_TEST' && e.resultado != null) ? "exame completo" : "exame pendente"}>
-                          {protocolo && protocolo.exames && protocolo.exames.some(e => e.tipoExame === 'APNEIA_TEST' && e.resultado != null) ? "✅" : "⏳"} Apneia
+                        <div className={protocolo?.exames?.some(e => e.tipoExame === "APNEIA_TEST" && e.resultado != null) ? "exame completo" : "exame pendente"}>
+                          {protocolo?.exames?.some(e => e.tipoExame === "APNEIA_TEST" && e.resultado != null) ? "✅" : "⏳"} Apneia
                         </div>
                       </div>
 
@@ -731,7 +637,6 @@ function MedicoProtocoloME() {
                       </div>
                     </div>
 
-                    {/* Progresso */}
                     <div className="proximo-passo-box">
                       <strong>Próximo passo:</strong> {obterProximoPasso(protocolo, paciente)}
                     </div>
@@ -744,28 +649,16 @@ function MedicoProtocoloME() {
                   </div>
 
                   <div className="card-actions">
-                    <button
-                      className="btn-secondary"
-                      onClick={() => {
-                        abrirModalExames(protocolo);
-                      }}
-                    >
+                    <button className="btn-secondary" onClick={() => abrirModalExames(protocolo)}>
                       🧪 Inserir Exames
                     </button>
-                    <button
-                      className="btn-secondary"
-                      onClick={() => {
-                        abrirModalExames(protocolo);
-                      }}
-                    >
+                    <button className="btn-secondary" onClick={() => abrirModalExames(protocolo)}>
                       📋 Ver Protocolo
                     </button>
                     <button
                       className="btn-secondary"
                       title={!podeAbrirEntrevista ? "Conclua 2 testes clínicos e 1 exame complementar para liberar a entrevista" : ""}
-                      onClick={() => {
-                        abrirModalEntrevista(protocolo);
-                      }}
+                      onClick={() => abrirModalEntrevista(protocolo)}
                     >
                       {entrevistaConcluida ? "👀 Ver Entrevista" : "👨‍👩‍👧 Realizar Entrevista"}
                     </button>
@@ -784,11 +677,9 @@ function MedicoProtocoloME() {
             <div className="modal-header">
               <div className="modal-header-main">
                 <h2>
-                  {abaProtocoloAberta === "entrevista"
-                    ? "Entrevista Familiar"
-                    : "Gerenciar Exames"}
+                  {abaProtocoloAberta === "entrevista" ? "Entrevista Familiar" : "Gerenciar Exames"}
                 </h2>
-                <p className="modal-header-subtitle">Protocolo de Morte Encefalica</p>
+                <p className="modal-header-subtitle">Protocolo de Morte Encefálica</p>
                 <div className="modal-header-meta">
                   <span><strong>Paciente:</strong> {pacienteModal?.nome || "N/A"}</span>
                   <span className={`status-badge status-${statusModal.cor}`}>{statusModal.label}</span>
@@ -796,70 +687,66 @@ function MedicoProtocoloME() {
               </div>
               <button className="modal-close" onClick={() => setMostraExames(false)}>✕</button>
             </div>
+
             <div className="action-row modal-tabs">
               <button
                 className={`secondary-button modal-tab ${abaProtocoloAberta === "exames" ? "is-active" : ""}`}
-                onClick={() => setAbaProtocoloAberta("exames")}
+                onClick={() => { setAbaProtocoloAberta("exames"); setErroModal(""); }}
               >
                 Exames
               </button>
               <button
                 className={`secondary-button modal-tab ${abaProtocoloAberta === "entrevista" ? "is-active" : ""}`}
+                title={!entrevistaLiberada(protocoloSelecionado) ? "Aguardando validação da central para: 2 testes clínicos + apneia + 1 exame complementar" : ""}
                 onClick={() => {
                   if (!entrevistaLiberada(protocoloSelecionado)) {
                     setErroModal("⚠️ Entrevista bloqueada. Aguardando validação da central para: 2 testes clínicos + apneia + 1 exame complementar.");
                     return;
                   }
+                  setErroModal("");
                   setAbaProtocoloAberta("entrevista");
                 }}
-                title={!entrevistaLiberada(protocoloSelecionado) ? "Aguardando validação da central para: 2 testes clínicos + apneia + 1 exame complementar" : ""}
               >
                 Entrevista
               </button>
             </div>
+
             <div className="modal-pill-row">
-              <span
-                className={`fluxo-entrevista-pill ${entrevistaLiberada(protocoloSelecionado) ? "fluxo-entrevista-pill-liberada" : "fluxo-entrevista-pill-aguardando"}`}
-              >
-                {entrevistaLiberada(protocoloSelecionado)
-                  ? "Entrevista liberada"
-                  : "Aguardando exames obrigatórios"}
+              <span className={`fluxo-entrevista-pill ${entrevistaLiberada(protocoloSelecionado) ? "fluxo-entrevista-pill-liberada" : "fluxo-entrevista-pill-aguardando"}`}>
+                {entrevistaLiberada(protocoloSelecionado) ? "Entrevista liberada" : "Aguardando exames obrigatórios"}
               </span>
             </div>
+
+            {/* ✅ CORREÇÃO 4: erroModal exibido DENTRO do modal */}
+            {erroModal && (
+              <div className="mensagem erro" style={{ margin: "0 24px 12px" }}>📛 {erroModal}</div>
+            )}
+
             {!entrevistaLiberada(protocoloSelecionado) && (
               <div className="entrevista-alerta-card entrevista-alerta-modal" role="alert">
                 ⚠️ Entrevista bloqueada no momento. Aguardando validação da central para: 2 testes clínicos + apneia + 1 exame complementar.
               </div>
             )}
 
-            {/* Resumo de Exames em Tempo Real */}
             {abaProtocoloAberta === "exames" && (
               <div className="exames-resumo-modal">
                 <h4>Progresso dos Exames</h4>
                 <div className="exames-resumo-grid">
                   <div className={`resumo-item ${protocoloSelecionado?.testeClinico1Realizado ? "is-complete" : "is-pending"}`}>
-                    <div className="resumo-item-icon">
-                      {protocoloSelecionado?.testeClinico1Realizado ? "✅" : "⏳"}
-                    </div>
-                    <strong>Teste Clinico 1</strong>
+                    <div className="resumo-item-icon">{protocoloSelecionado?.testeClinico1Realizado ? "✅" : "⏳"}</div>
+                    <strong>Teste Clínico 1</strong>
                   </div>
                   <div className={`resumo-item ${protocoloSelecionado?.testeClinico2Realizado ? "is-complete" : "is-pending"}`}>
-                    <div className="resumo-item-icon">
-                      {protocoloSelecionado?.testeClinico2Realizado ? "✅" : "⏳"}
-                    </div>
-                    <strong>Teste Clinico 2</strong>
+                    <div className="resumo-item-icon">{protocoloSelecionado?.testeClinico2Realizado ? "✅" : "⏳"}</div>
+                    <strong>Teste Clínico 2</strong>
                   </div>
                   <div className={`resumo-item ${protocoloSelecionado?.testesComplementaresRealizados ? "is-complete" : "is-pending"}`}>
-                    <div className="resumo-item-icon">
-                      {protocoloSelecionado?.testesComplementaresRealizados ? "✅" : "⏳"}
-                    </div>
+                    <div className="resumo-item-icon">{protocoloSelecionado?.testesComplementaresRealizados ? "✅" : "⏳"}</div>
                     <strong>Complementares</strong>
                   </div>
                 </div>
                 <div className="exames-resumo-footer">
-                  <p>
-                    <strong>Progresso:</strong> {examesConcluidosModal}/4 concluidos
-                  </p>
+                  <p><strong>Progresso:</strong> {examesConcluidosModal}/4 concluídos</p>
                 </div>
               </div>
             )}
