@@ -864,6 +864,7 @@ function PainelCentralPage({ telaoMode = false }) {
         relatorioTextoPorProtocolo={relatorioTextoPorProtocolo}
         setRelatorioTextoPorProtocolo={setRelatorioTextoPorProtocolo}
         salvarConclusaoProtocolo={salvarConclusaoProtocolo}
+        onAtualizacao={carregarPacientesDoEstado}
       />
     </section>
   );

@@ -10,6 +10,7 @@ import {
     obterNomeHospital,
     obterResumoStatusExames,
 } from "../services/centralDashboardService";
+import exameService from "../services/exameService";
 import protocoloService from "../services/protocoloService";
 import { formatarCpf } from "../utils/cpf";
 
@@ -67,6 +68,36 @@ const serializarSecoesRelatorio = (secoes) => {
     .join("\n\n");
 };
 
+const formatarStatusValidacaoExame = (status) => {
+  switch (status) {
+    case "VALIDADO":
+      return "Validado";
+    case "REJEITADO":
+      return "Rejeitado";
+    case "REALIZADO":
+      return "Realizado";
+    case "PENDENTE":
+      return "Pendente";
+    default:
+      return status || "Indefinido";
+  }
+};
+
+// ✅ Função para retornar classe CSS dinâmica baseada no status
+const obterClasseBadgeStatusValidacao = (status) => {
+  switch (status) {
+    case "VALIDADO":
+      return "badge-exame badge-exame-validado";
+    case "REJEITADO":
+      return "badge-exame badge-exame-rejeitado";
+    case "REALIZADO":
+      return "badge-exame badge-exame-realizado";
+    case "PENDENTE":
+    default:
+      return "badge-exame badge-exame-pendente";
+  }
+};
+
 function PainelPacientesCentral({
   modoTelao,
   pacientes,
@@ -88,13 +119,18 @@ function PainelPacientesCentral({
   relatorioTextoPorProtocolo,
   setRelatorioTextoPorProtocolo,
   salvarConclusaoProtocolo,
+  onAtualizacao,
 }) {
   const [secoesPorProtocolo, setSecoesPorProtocolo] = useState({});
   const [mostraModalValidacao, setMostraModalValidacao] = useState(false);
-  const [dadosValidacao, setDadosValidacao] = useState({ protocolo: null, pendencia: null });
+  const [dadosValidacao, setDadosValidacao] = useState({ protocolo: null, pendencia: null, exameId: null, exameLabel: null });
   const [validadoPor, setValidadoPor] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [carregandoValidacao, setCarregandoValidacao] = useState(false);
+  const [examesDoProtocolo, setExamesDoProtocolo] = useState([]);
+  const [carregandoExames, setCarregandoExames] = useState(false);
+  const [exameEmEdicao, setExameEmEdicao] = useState(null);
+  const [salvandoExame, setSalvandoExame] = useState(false);
 
   useEffect(() =>{
     if (!relatorioFinalPaciente?.protocolos) {
@@ -110,6 +146,44 @@ function PainelPacientesCentral({
     });
     setSecoesPorProtocolo(mapa);
   }, [relatorioFinalPaciente, relatorioTextoPorProtocolo]);
+
+  const carregarExamesDoProtocolo = async (protocoloId, ativoRef = { current: true }) => {
+    if (!protocoloId) {
+      setExamesDoProtocolo([]);
+      setExameEmEdicao(null);
+      return;
+    }
+
+    setCarregandoExames(true);
+    try {
+      const dados = await exameService.listarPorProtocolo(protocoloId);
+      if (!ativoRef.current) {
+        return;
+      }
+
+      setExamesDoProtocolo(Array.isArray(dados) ? dados : []);
+    } catch (e) {
+      if (ativoRef.current) {
+        setErro("Não foi possível carregar os exames do protocolo.");
+      }
+    } finally {
+      if (ativoRef.current) {
+        setCarregandoExames(false);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const protocoloId = pacienteSelecionado?.protocolo?.id;
+    // ✅ Usar useRef corretamente para evitar race condition
+    const ativoRef = { current: true };
+
+    carregarExamesDoProtocolo(protocoloId, ativoRef);
+
+    return () => {
+      ativoRef.current = false;
+    };
+  }, [pacienteSelecionado?.protocolo?.id]);
 
   const atualizarSecoesDoProtocolo = (protocoloId, atualizador) => {
     setSecoesPorProtocolo((prev) => {
@@ -162,7 +236,26 @@ function PainelPacientesCentral({
   };
 
   const abrirModalValidacao = (protocolo, pendencia) => {
-    setDadosValidacao({ protocolo, pendencia });
+    setDadosValidacao({ protocolo, pendencia, exameId: null, exameLabel: pendencia });
+    setValidadoPor('');
+    setObservacoes('');
+    setCarregandoValidacao(false);
+    setMostraModalValidacao(true);
+  };
+
+  const abrirValidacaoExame = (protocolo, exame) => {
+    // ✅ Validar se exame tem resultado antes de permitir validação
+    if (!exame?.resultado) {
+      alert("Este exame ainda não possui resultado. Preencha o resultado antes de validar.");
+      return;
+    }
+
+    setDadosValidacao({
+      protocolo,
+      pendencia: exame?.descricao || exame?.tipoExame || "Exame",
+      exameId: exame?.id || null,
+      exameLabel: exame?.descricao || exame?.tipoExame || "Exame",
+    });
     setValidadoPor('');
     setObservacoes('');
     setCarregandoValidacao(false);
@@ -177,10 +270,12 @@ function PainelPacientesCentral({
 
     setCarregandoValidacao(true);
     try {
-      const { protocolo, pendencia } = dadosValidacao;
-      const pendenciaLimpa = pendencia.replace(/\s*\(.*\)$/, '');
+      const { protocolo, pendencia, exameId } = dadosValidacao;
+      const pendenciaLimpa = String(pendencia || "").replace(/\s*\(.*\)$/, '');
 
-      if (pendenciaLimpa.includes('Teste clínico 1')) {
+      if (exameId) {
+        await protocoloService.validarExame(protocolo.id, exameId, true, validadoPor, observacoes);
+      } else if (pendenciaLimpa.includes('Teste clínico 1')) {
         await protocoloService.validarTesteClinico1(protocolo.id, validadoPor, observacoes);
       } else if (pendenciaLimpa.includes('Teste clínico 2')) {
         await protocoloService.validarTesteClinico2(protocolo.id, validadoPor, observacoes);
@@ -196,12 +291,84 @@ function PainelPacientesCentral({
 
       alert('Validação registrada com sucesso!');
       setMostraModalValidacao(false);
-      window.location.reload();
+      setDadosValidacao({ protocolo: null, pendencia: null, exameId: null, exameLabel: null });
+      await carregarExamesDoProtocolo(protocolo.id);
+      if (typeof onAtualizacao === "function") {
+        await onAtualizacao();
+      }
     } catch (err) {
       console.error(err);
       alert('Erro ao registrar validação: ' + (err.response?.data?.message || err.message));
     } finally {
       setCarregandoValidacao(false);
+    }
+  };
+
+  const abrirEdicaoExame = (exame) => {
+    // ✅ Avisar se há estações de edição em progresso
+    if (exameEmEdicao && exameEmEdicao.id !== exame.id) {
+      if (!confirm("Há edições em progresso em outro exame. Deseja descartá-las e abrir este novo?")) {
+        return;
+      }
+    }
+
+    setExameEmEdicao({
+      id: exame.id,
+      protocoloId: pacienteSelecionado?.protocolo?.id,
+      categoria: exame.categoria,
+      tipoExame: exame.tipoExame,
+      descricao: exame.descricao || "",
+      responsavel: exame.responsavel || "",
+      observacoes: exame.observacoes || "",
+      resultadoPositivo: exame.resultadoPositivo ?? false,
+      resultado: exame.resultado || null,
+    });
+  };
+
+  const atualizarCampoEdicaoExame = (campo, valor) => {
+    setExameEmEdicao((atual) => ({
+      ...atual,
+      [campo]: valor
+    }));
+  };
+
+  const salvarEdicaoExame = async (e) => {
+    e.preventDefault();
+
+    if (!exameEmEdicao?.id || !exameEmEdicao?.protocoloId) {
+      return;
+    }
+
+    if (!String(exameEmEdicao.descricao || "").trim()) {
+      setErro("A descrição do exame é obrigatória.");
+      return;
+    }
+
+    setSalvandoExame(true);
+    setErro("");
+
+    try {
+      await exameService.atualizar(exameEmEdicao.id, {
+        protocoloId: exameEmEdicao.protocoloId,
+        categoria: exameEmEdicao.categoria,
+        tipoExame: exameEmEdicao.tipoExame,
+        descricao: exameEmEdicao.descricao.trim(),
+        resultadoPositivo: Boolean(exameEmEdicao.resultadoPositivo ?? false),
+        responsavel: exameEmEdicao.responsavel || "",
+        observacoes: exameEmEdicao.observacoes || "",
+      });
+
+      setExameEmEdicao(null);
+      await carregarExamesDoProtocolo(exameEmEdicao.protocoloId);
+
+      if (typeof onAtualizacao === "function") {
+        await onAtualizacao();
+      }
+    } catch (err) {
+      console.error(err);
+      setErro(err?.response?.data?.message || "Erro ao salvar edição do exame.");
+    } finally {
+      setSalvandoExame(false);
     }
   };
 
@@ -429,7 +596,7 @@ function PainelPacientesCentral({
             </div>
             <div className="modal-body">
               <div className="readonly-alert">
-                🔒 Perfil Central: sem permissão para alterar resultados, status ou entrevista.
+                🔒 Perfil Central: usa esta tela para validar exames um a um e ajustar os dados do exame quando necessário.
               </div>
 
               <div className="readonly-grid">
@@ -610,6 +777,93 @@ function PainelPacientesCentral({
 
               <div className="readonly-pendencias">
                 <h3>Exames Realizados (com resultado)</h3>
+
+              <div className="readonly-pendencias">
+                <h3>Exames do Protocolo</h3>
+                {carregandoExames ? (
+                  <p className="note">Carregando exames do protocolo...</p>
+                ) : examesDoProtocolo.length === 0 ? (
+                  <p className="note">Nenhum exame registrado para este protocolo.</p>
+                ) : (
+                  <ul className="lista-faltantes exames-lista-central">
+                    {examesDoProtocolo.map((exame) => (
+                      <li key={`exame-central-${exame.id}`} className="exame-item-central">
+                        <div className="exame-item-conteudo">
+                          <strong>{exame.descricao || exame.tipoExame}</strong>
+                          <span className="exame-meta">{exame.tipoExame}</span>
+                          <span className={obterClasseBadgeStatusValidacao(exame.statusValidacao)}>
+                            Validação: {formatarStatusValidacaoExame(exame.statusValidacao)}
+                          </span>
+                          <span className="exame-meta">Resultado: {formatarResultadoExame(exame)}</span>
+                          {exame.responsavel && <span className="exame-meta">Responsável: {exame.responsavel}</span>}
+                          {exame.dataRealizacao && (
+                            <span className="exame-meta">Realizado em: {new Date(exame.dataRealizacao).toLocaleString("pt-BR")}</span>
+                          )}
+                          {exame.observacoes && (
+                            <span className="exame-meta exame-observacao">Obs.: {exame.observacoes}</span>
+                          )}
+                        </div>
+                        <div className="exame-item-acoes">
+                          <button
+                            className="btn-small btn-validar"
+                            onClick={() => abrirValidacaoExame(pacienteSelecionado.protocolo, exame)}
+                          >
+                            Validar
+                          </button>
+                          <button
+                            className="btn-small btn-editar"
+                            onClick={() => abrirEdicaoExame(exame)}
+                          >
+                            Editar
+                          </button>
+                        </div>
+                        {exameEmEdicao?.id === exame.id && (
+                          <form className="exame-edicao-form" onSubmit={salvarEdicaoExame}>
+                            <div className="form-group">
+                              <label htmlFor={`descricao-${exame.id}`}>Descrição</label>
+                              <input
+                                id={`descricao-${exame.id}`}
+                                type="text"
+                                value={exameEmEdicao.descricao}
+                                onChange={(e) => atualizarCampoEdicaoExame("descricao", e.target.value)}
+                                disabled={salvandoExame}
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label htmlFor={`responsavel-${exame.id}`}>Responsável</label>
+                              <input
+                                id={`responsavel-${exame.id}`}
+                                type="text"
+                                value={exameEmEdicao.responsavel}
+                                onChange={(e) => atualizarCampoEdicaoExame("responsavel", e.target.value)}
+                                disabled={salvandoExame}
+                              />
+                            </div>
+                            <div className="form-group">
+                              <label htmlFor={`observacoes-${exame.id}`}>Observações</label>
+                              <textarea
+                                id={`observacoes-${exame.id}`}
+                                rows="3"
+                                value={exameEmEdicao.observacoes}
+                                onChange={(e) => atualizarCampoEdicaoExame("observacoes", e.target.value)}
+                                disabled={salvandoExame}
+                              />
+                            </div>
+                            <div className="action-row exame-edicao-acoes">
+                              <button type="button" className="secondary-button" onClick={() => setExameEmEdicao(null)} disabled={salvandoExame}>
+                                Cancelar
+                              </button>
+                              <button type="submit" className="secondary-button" disabled={salvandoExame}>
+                                {salvandoExame ? "Salvando..." : "Salvar edição"}
+                              </button>
+                            </div>
+                          </form>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
                 {obterExamesRealizadosDetalhados(pacienteSelecionado.protocolo).length === 0 ? (
                   <p className="note">Nenhum exame com resultado registrado até o momento.</p>
                 ) : (

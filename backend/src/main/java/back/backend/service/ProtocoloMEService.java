@@ -408,6 +408,12 @@ public class ProtocoloMEService {
             throw new ConflitoNegocioException("Exame não pertence a este protocolo");
         }
 
+        // ✅ Validar se exame tem resultado antes de permitir validação
+        if (validado && exame.getResultado() == null) {
+            throw new ConflitoNegocioException(
+                    "Não é possível validar exame sem resultado. Preencha o resultado primeiro.");
+        }
+
         if (validado) {
             exame.setStatusValidacao(ExameME.StatusValidacao.VALIDADO);
         } else {
@@ -423,13 +429,11 @@ public class ProtocoloMEService {
         // ✅ Atualizar indicadores do protocolo com base em VALIDADOS
         exameMEService.atualizarIndicadoresProtocolo(id);
 
-        // ✅ Recarregar protocolo com novos valores
+        // ✅ Recarregar protocolo com novos valores (status já foi calculado em
+        // atualizarIndicadoresProtocolo)
         protocolo = buscarOuFalhar(id);
 
-        // ✅ Recalcular status automaticamente
-        protocolo.setStatus(protocolo.calcularStatusAutomatico());
-
-        // ✅ Salvar recalcula e sincroniza
+        // ✅ Salvar e sincroniza
         return toDTO(salvar(protocolo));
     }
 

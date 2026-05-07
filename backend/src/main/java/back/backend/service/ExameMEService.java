@@ -270,12 +270,6 @@ public class ExameMEService {
             protocolo.setDataTesteComplementar(LocalDateTime.now());
         }
 
-        // Se todos os testes realizados, marcar data de confirmação se ainda não houver
-        if (tc1Realizado && tc2Realizado && complementaresRealizados && apneiaRealizada
-                && protocolo.getDataConfirmacaoME() == null) {
-            protocolo.setDataConfirmacaoME(LocalDateTime.now());
-        }
-
         // Atualizar status automático se necessário
         protocolo.setStatus(protocolo.calcularStatusAutomatico());
 
