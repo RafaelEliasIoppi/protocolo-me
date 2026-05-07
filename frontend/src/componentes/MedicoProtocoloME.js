@@ -116,9 +116,10 @@ function MedicoProtocoloME() {
     carregarInicial();
   }, []);
 
-  // Recarregar pacientes disponíveis quando abrir o formulário
+  // Recarregar pacientes quando abrir formulário
   useEffect(() => {
-    if (mostraFormularioProtocolo) {
+    if (mostraFormularioProtocolo && pacientesDisponiveis.length === 0) {
+      // Se formulário abriu e ainda não carregou pacientes, carrega agora
       carregarPacientesDisponiveis();
     }
   }, [mostraFormularioProtocolo]);
@@ -210,36 +211,24 @@ function MedicoProtocoloME() {
     }
   };
 
+  // ✅ NOVA FUNÇÃO - REFATORADA DO ZERO - SEM FALLBACKS COMPLEXOS
   const carregarPacientesDisponiveis = async () => {
     if (carregandoPacientesDisponiveis) return;
-    
+
     setCarregandoPacientesDisponiveis(true);
+    setErro("");
+
     try {
-      // Tenta buscar pacientes que não possuem protocolo ativo diretamente do backend
-      let pacientes = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
-      
+      // Chama endpoint que retorna pacientes INTERNADO SEM protocolo ativo
+      const resultado = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
+
       if (!montadoRef.current) return;
 
-      // Se não retornar nada por status, busca todos e filtra no front como fallback
-      if (!Array.isArray(pacientes) || pacientes.length === 0) {
-        const [todosPacientes, pacientesEmProtocolo] = await Promise.all([
-          pacienteService.listar(),
-          pacienteService.listarEmProtocoloME(),
-        ]);
+      // Resultado já é array, só precisamos setar
+      const pacientes = Array.isArray(resultado) ? resultado : [];
 
-        const listaPacientes = Array.isArray(todosPacientes) ? todosPacientes : [];
-        const idsEmProtocolo = new Set(
-          (Array.isArray(pacientesEmProtocolo) ? pacientesEmProtocolo : [])
-            .map((p) => p?.id)
-            .filter((id) => id != null)
-        );
-
-        pacientes = listaPacientes.filter((p) => !idsEmProtocolo.has(p?.id));
-        
-        // Se ainda assim estiver vazio, usa a lista completa para permitir que o usuário veja algo
-        if (pacientes.length === 0) {
-          pacientes = listaPacientes;
-        }
+      if (pacientes.length === 0) {
+        console.warn("Nenhum paciente internado disponível para iniciar protocolo");
       }
 
       setPacientesDisponiveis(pacientes);
@@ -247,10 +236,16 @@ function MedicoProtocoloME() {
       console.error("Erro ao carregar pacientes disponíveis:", e);
       if (!montadoRef.current) return;
 
-      tratarErroAutenticacaoOuPermissao(
-        e,
-        "Não foi possível carregar os pacientes internados para iniciar protocolo."
-      );
+      // Tratamento de erro simples
+      if (e?.response?.status === 401) {
+        setErro("Sessão expirada. Faça login novamente.");
+      } else if (e?.response?.status === 403) {
+        setErro("Sem permissão para listar pacientes.");
+      } else {
+        setErro("Erro ao carregar pacientes disponíveis. Tente novamente.");
+      }
+
+      setPacientesDisponiveis([]);
     } finally {
       if (montadoRef.current) {
         setCarregandoPacientesDisponiveis(false);
@@ -440,28 +435,46 @@ function MedicoProtocoloME() {
       {mostraFormularioProtocolo && (
         <div className="panel formulario-protocolo">
           <h2>Iniciar Novo Protocolo de ME</h2>
+
+          {/* Estado de carregamento */}
           {carregandoPacientesDisponiveis && (
-            <p>⏳ Carregando pacientes para seleção...</p>
+            <div className="mensagem info" style={{ marginBottom: "20px" }}>
+              ⏳ Carregando pacientes internados disponíveis...
+            </div>
           )}
+
+          {/* Erro ao carregar */}
+          {erro && pacientesDisponiveis.length === 0 && (
+            <div className="mensagem erro" style={{ marginBottom: "20px" }}>
+              ❌ {erro}
+            </div>
+          )}
+
+          {/* Aviso quando não há pacientes */}
+          {!carregandoPacientesDisponiveis && pacientesDisponiveis.length === 0 && !erro && (
+            <div className="mensagem aviso" style={{ marginBottom: "20px" }}>
+              ⚠️ Nenhum paciente internado disponível para iniciar protocolo.
+              Verifique se há pacientes cadastrados com status INTERNADO.
+            </div>
+          )}
+
           <form onSubmit={iniciarProtocoloME}>
             <div className="form-row">
               <div className="form-group">
-                <label>Paciente *</label>
+                <label>Paciente * ({pacientesDisponiveis.length} disponível{pacientesDisponiveis.length !== 1 ? 's' : ''})</label>
                 <select
                   value={pacienteSelecionado}
                   onChange={(e) => setPacienteSelecionado(e.target.value)}
+                  disabled={carregandoPacientesDisponiveis || pacientesDisponiveis.length === 0}
                   required
                 >
                   <option value="">-- Selecione um paciente --</option>
                   {pacientesDisponiveis.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.nome} ({formatarCpf(p.cpf)}) - {p.hospital?.nome || p.hospitalNome || p.hospital?.nomeHospital || "-"}
+                      {p.nome} ({formatarCpf(p.cpf)}) - {p.hospital?.nomeHospital || "Hospital não informado"}
                     </option>
                   ))}
                 </select>
-                {pacientesDisponiveis.length === 0 && (
-                  <small style={{ color: "orange" }}>⚠️ Nenhum paciente disponível</small>
-                )}
               </div>
             </div>
 
@@ -473,19 +486,35 @@ function MedicoProtocoloME() {
                   onChange={(e) => setDiagnostico(e.target.value)}
                   placeholder="Ex: Traumatismo craniano severo com suspeita de morte cerebral"
                   rows="3"
+                  disabled={carregando}
                   required
                 />
               </div>
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn-save" disabled={carregando || semCentraisCadastradas}>
+              <button
+                type="submit"
+                className="btn-save"
+                disabled={
+                  carregando ||
+                  carregandoPacientesDisponiveis ||
+                  pacientesDisponiveis.length === 0 ||
+                  semCentraisCadastradas ||
+                  !pacienteSelecionado
+                }
+              >
                 {carregando ? "⏳ Iniciando..." : "✅ Iniciar Protocolo"}
               </button>
               <button
                 type="button"
                 className="btn-cancel"
-                onClick={() => setMostraFormularioProtocolo(false)}
+                onClick={() => {
+                  setMostraFormularioProtocolo(false);
+                  setPacienteSelecionado("");
+                  setDiagnostico("");
+                }}
+                disabled={carregando}
               >
                 Cancelar
               </button>
