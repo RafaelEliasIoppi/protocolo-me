@@ -206,26 +206,32 @@ function MedicoProtocoloME() {
     }
   };
 
-// ✅ Abre formulário E carrega pacientes ao mesmo tempo
-  const abrirFormularioComPacientes = async () => {
-    console.log("🎯 Abrindo formulário com carregamento de pacientes...");
+  const carregarPacientesElegiveis = async () => {
+    const statusElegiveis = ["INTERNADO", "PRE_INTERNACAO"];
+    const pacientesPorId = new Map();
 
-    // Abre o formulário IMEDIATAMENTE
+    await Promise.all(statusElegiveis.map(async (status) => {
+      const resultado = await pacienteService.listarPorStatusSemProtocoloAtivo(status);
+      const lista = Array.isArray(resultado) ? resultado : [];
+      lista.forEach((paciente) => {
+        if (paciente?.id) {
+          pacientesPorId.set(paciente.id, paciente);
+        }
+      });
+    }));
+
+    return Array.from(pacientesPorId.values());
+  };
+
+  // ✅ Abre formulário E carrega pacientes ao mesmo tempo
+  const abrirFormularioComPacientes = async () => {
     setMostraFormularioProtocolo(true);
 
-    // Carrega pacientes AGORA (não no useEffect)
     try {
-      console.log("📡 Chamando API: /api/pacientes/status/INTERNADO/sem-protocolo-ativo");
-
       setCarregandoPacientesDisponiveis(true);
-      const resultado = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
-
-      console.log("📦 Resposta da API:", resultado);
+      const pacientes = await carregarPacientesElegiveis();
 
       if (!montadoRef.current) return;
-
-      const pacientes = Array.isArray(resultado) ? resultado : [];
-      console.log(`✅ ${pacientes.length} pacientes carregados`);
 
       setPacientesDisponiveis(pacientes);
       setErro("");
@@ -247,11 +253,10 @@ function MedicoProtocoloME() {
   const recarregarPacientes = async () => {
     try {
       setCarregandoPacientesDisponiveis(true);
-      const resultado = await pacienteService.listarPorStatusSemProtocoloAtivo("INTERNADO");
+      const pacientes = await carregarPacientesElegiveis();
 
       if (!montadoRef.current) return;
 
-      const pacientes = Array.isArray(resultado) ? resultado : [];
       setPacientesDisponiveis(pacientes);
       setErro("");
     } catch (erro) {
