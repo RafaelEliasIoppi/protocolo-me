@@ -74,6 +74,12 @@ npm start
 | Login | http://localhost:3000/login | Autenticação |
 | Protocolo ME | http://localhost:3000/medico/protocolo-me | Gerenciar protocolos |
 
+### Acesso inicial local
+
+- E-mail: `admin@protocolo.me`
+- Senha: `Admin123!`
+- Use esse acesso para validar o painel médico e os smoke tests locais.
+
 ## Supabase (PostgreSQL)
 
 O backend usa Supabase/PostgreSQL por padrão. Crie o projeto no Supabase e exporte estas variáveis antes de subir o backend:

@@ -65,6 +65,8 @@ sequenceDiagram
 - O frontend sempre tenta reaproveitar o token.
 - O backend decide acesso por role.
 - Se der 401, o usuario volta para o login.
+- O fluxo de protocolo precisa carregar exames e órgãos doados juntos sem disparar erro de múltiplas coleções no Hibernate.
+- Se a listagem do médico quebrar com 500, o primeiro ponto a revisar é o carregamento detalhado do protocolo no backend.
 
 ---
 

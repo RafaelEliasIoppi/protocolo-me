@@ -441,6 +441,7 @@ Para aprofundar em outros fluxos do sistema, use os guias gerais abaixo:
   - backend/src/main/java/back/backend/repository/AnexoDocumentoRepository.java
 - Papel:
   - Consultas JPA e filtros do sistema.
+  - No fluxo de protocolo, o carregamento detalhado inclui `doacao.orgaos` para manter o DTO completo do painel médico sem erro de fetch de múltiplas coleções.
 
 ### 1.6 Seguranca
 - Arquivos:
@@ -450,6 +451,11 @@ Para aprofundar em outros fluxos do sistema, use os guias gerais abaixo:
   - backend/src/main/java/back/backend/security/PasswordConfig.java
 - Papel:
   - Rotas por role, autenticacao JWT, interceptacao de request.
+
+### Observacao de integracao do protocolo
+
+- O protocolo médico lista exames e órgãos doados a partir de um carregamento antecipado no backend.
+- Quando esse fluxo mudar, valide também o endpoint `GET /api/protocolos-me` antes de mexer na tela do médico.
 
 ---
 

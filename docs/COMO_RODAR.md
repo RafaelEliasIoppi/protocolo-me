@@ -43,6 +43,19 @@ npm start
 - **Frontend**: http://localhost:3000
 - **API**: http://localhost:2500/api/usuarios
 
+### Acesso inicial local
+
+- E-mail: `admin@protocolo.me`
+- Senha: `Admin123!`
+- Use esse acesso para validar o painel médico e os smoke tests locais.
+
+## Smoke test rápido do painel médico
+
+1. Suba backend e frontend.
+2. Faça login com `admin@protocolo.me` e `Admin123!`.
+3. Acesse `/medico/protocolo-me`.
+4. Verifique se a listagem de protocolos carrega sem erro 500.
+
 ---
 
 ## 📝 Cadastrar Novo Usuário

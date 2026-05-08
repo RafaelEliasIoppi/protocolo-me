@@ -1,4 +1,4 @@
-1# Guia de Testes - Protocolo ME
+# Guia de Testes - Protocolo ME
 
 > Leia primeiro: [GUIA_MESTRA_DE_INICIO.md](GUIA_MESTRA_DE_INICIO.md). Este documento é a referência secundária para validação.
 
@@ -94,8 +94,8 @@ Checklist:
 Este guia complementa o guia mestre e concentra os comandos de teste do projeto.
 
 Status validado:
-- Backend: 1 teste passando
-- Frontend: 4 suítes, 19 testes passando
+- Backend: suíte de testes e regressão do protocolo passando
+- Frontend: build validado com sucesso
 
 ## Como executar
 
@@ -171,16 +171,30 @@ Fluxo:
 3. Validar sucesso quando dados corretos.
 4. Validar erro quando confirmação divergir, senha atual incorreta ou nova senha curta.
 
-### 3. Cadastro de centrais e erros de duplicidade
+### 3. Fluxo médico do protocolo ME
+
+1. Subir backend e frontend.
+2. Fazer login com `admin@protocolo.me` e `Admin123!`.
+3. Abrir a rota `/medico/protocolo-me`.
+4. Confirmar que a listagem inicial de protocolos responde sem erro 500.
+5. Confirmar que abrir um protocolo e seus exames não quebra o carregamento da tela.
+
+### 4. Cadastro de centrais e erros de duplicidade
 
 1. Criar central com nome/CNPJ inéditos.
 2. Tentar criar outra com mesmo nome ou CNPJ.
 3. Confirmar retorno com mensagem clara de duplicidade.
 
-### 4. Segurança e CORS
+### 5. Segurança e CORS
 
 1. Verificar que o login retorna `token` e `tokenExpiraEm`.
 2. Validar que origem do frontend utilizada está listada em `app.cors.allowed-origins`.
+
+### 6. Endpoint de protocolos
+
+1. Autenticar com um usuário válido.
+2. Chamar `GET /api/protocolos-me`.
+3. Confirmar que o retorno é uma lista JSON e não uma resposta 500.
 
 ## Como me cobrar durante a execução
 
